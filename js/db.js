@@ -1173,6 +1173,16 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
+        epochIsBC: function(
+            epoch,
+            startEnd // 'start' or 'end'
+        ) {
+        // --------------------------------------------------------------------------------------------
+            let lbl, key = startEnd + 'Label';
+            return epoch && typeof (lbl = epoch[key]) === 'string' && lbl.toLowerCase() === 'bc';
+        },
+
+        // --------------------------------------------------------------------------------------------
         valueMatchesFilter: function(
             value,
             filter
@@ -1227,7 +1237,7 @@ function initializeDbVar() {
                 case 'epoch-start':
                     if(value !== null && typeof value === 'object') {
                         valueToCompare = value.start;
-                        if(typeof valueToCompare === 'number' && value.startLabel === 'bc')
+                        if(typeof valueToCompare === 'number' && db.epochIsBC(value, 'start'))
                             valueToCompare = -valueToCompare;
                     }
                     else
@@ -1236,7 +1246,7 @@ function initializeDbVar() {
                 case 'epoch-end':
                     if(value !== null && typeof value === 'object') {
                         valueToCompare = value.end;
-                        if(typeof valueToCompare === 'number' && value.endLabel === 'bc')
+                        if(typeof valueToCompare === 'number' && db.epochIsBC(value, 'end'))
                             valueToCompare = -valueToCompare;
                     }
                     else
@@ -1250,8 +1260,8 @@ function initializeDbVar() {
                     break;
                 case 'epoch-timespan':
                     if(value !== null && typeof value === 'object' && typeof value.start === 'number' && typeof value.end === 'number') {
-                        let start = value.startLabel === 'bc' ? -value.start : value.start;
-                        let end = value.endLabel === 'bc' ? -value.end : value.end
+                        let start = db.epochIsBC(value, 'start') ? -value.start : value.start;
+                        let end = db.epochIsBC(end, 'end') ? -value.end : value.end
                         valueToCompare = end - start;
                     }
                     else
