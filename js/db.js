@@ -1261,7 +1261,7 @@ function initializeDbVar() {
                 case 'epoch-timespan':
                     if(value !== null && typeof value === 'object' && typeof value.start === 'number' && typeof value.end === 'number') {
                         let start = db.epochIsBC(value, 'start') ? -value.start : value.start;
-                        let end = db.epochIsBC(end, 'end') ? -value.end : value.end
+                        let end = db.epochIsBC(value, 'end') ? -value.end : value.end;
                         valueToCompare = end - start;
                     }
                     else
