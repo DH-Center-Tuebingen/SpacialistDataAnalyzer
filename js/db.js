@@ -665,7 +665,7 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
             if(!epochObj || epochObj.start === undefined || epochObj.start === null)
                 return undefined;
-            return epochObj.startLabel === 'bc' ? -epochObj.start : epochObj.start;
+            return db.epochIsBC(epochObj, 'start') ? -epochObj.start : epochObj.start;
         },
 
         // --------------------------------------------------------------------------------------------
@@ -675,7 +675,17 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
             if(!epochObj || epochObj.end === undefined || epochObj.end === null)
                 return undefined;
-            return epochObj.endLabel === 'bc' ? -epochObj.end : epochObj.end;
+            return db.epochIsBC(epochObj, 'end') ? -epochObj.end : epochObj.end;
+        },
+
+        // --------------------------------------------------------------------------------------------
+        epochIsBC: function(
+            epoch,
+            startEnd // 'start' or 'end'
+        ) {
+        // --------------------------------------------------------------------------------------------
+            let lbl, key = startEnd + 'Label';
+            return epoch && typeof (lbl = epoch[key]) === 'string' && lbl.toLowerCase() === 'bc';
         },
 
         // --------------------------------------------------------------------------------------------
@@ -1170,16 +1180,6 @@ function initializeDbVar() {
                     op[i] = op[i].toString().toUpperCase();
             });
             return op[0].indexOf(op[1]) !== -1;
-        },
-
-        // --------------------------------------------------------------------------------------------
-        epochIsBC: function(
-            epoch,
-            startEnd // 'start' or 'end'
-        ) {
-        // --------------------------------------------------------------------------------------------
-            let lbl, key = startEnd + 'Label';
-            return epoch && typeof (lbl = epoch[key]) === 'string' && lbl.toLowerCase() === 'bc';
         },
 
         // --------------------------------------------------------------------------------------------
