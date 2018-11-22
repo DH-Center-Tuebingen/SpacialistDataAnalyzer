@@ -4,36 +4,8 @@ function start_the_session($reldir = '.') {
 // ------------------------------------------------------------------------------------
     session_name(preg_replace('/[^a-zA-Z0-9]+/', '', 'SpacialistDataAnalysis'));
     session_start();
-    if(isset($_SESSION['instance']) 
-        && isset($_SESSION['instance']['db']) 
-        && isset($_SESSION['instance']['host']) 
-        && isset($_SESSION['instance']['port']) 
-        && isset($_SESSION['instance']['user']) 
-        && isset($_SESSION['instance']['pass'])
-    ) {
-        if(isset($_SESSION['user']) 
-            && !isset($_SESSION['lang'])
-        ) {
-            $succ = db_single_row("
-                select p.default_value, (select u.value from user_preferences u where u.pref_id = p.id and u.user_id = ?) user_value
-                from preferences p
-                where p.label = 'prefs.gui-language'
-            ", array($_SESSION['user']['id']), $row);
-            $lang = 'en';
-            if($succ) {
-                $def_val = json_decode($row['default_value'], true);
-                $usr_val = json_decode($row['user_value'], true);
-                if($usr_val !== null && isset($usr_val['language_key']))
-                    $lang = $usr_val['language_key'];
-                else if($def_val !== null && isset($def_val['language_key']))
-                    $lang = $def_val['language_key'];
-                if(!in_array($lang, array('en', 'de')))
-                    $lang = 'en';
-            }
-            $_SESSION['lang'] = $lang;
-        }
+    if(try_set_lang())
         return;
-    }
     if(!isset($_GET['env']))
         die('Please provide the <b>env</b> parameter pointing to the Spacialist instance folder');
     $ini = @parse_ini_file($reldir . '/global.ini');
@@ -64,6 +36,8 @@ function start_the_session($reldir = '.') {
             $instance['user'] = $match['user'];
         else if(preg_match('/^\s*DB_PASSWORD\s*=\s*(?<pass>[^$\s]+)/', $line, $match))
             $instance['pass'] = $match['pass'];
+        else if(preg_match('/^\s*JWT_SECRET\s*=\s*(?<jwt>[^$\s]+)/', $line, $match))
+            $_SESSION['jwt_secret'] = $match['jwt'];
     }
     if(!isset($instance['db']) || !isset($instance['host']) || !isset($instance['port']) || !isset($instance['user']) || !isset($instance['pass']))
         die('Error: One or more required settings not found in .env file!');
@@ -74,6 +48,45 @@ function start_the_session($reldir = '.') {
         die('Invalid database connection details in .env file!');
     }
     set_instance_name();
+}
+
+// ------------------------------------------------------------------------------------
+function try_set_lang() {
+// ------------------------------------------------------------------------------------
+    if(is_instance_set()) {
+        if(is_logged_in() && !isset($_SESSION['lang'])) {
+            $succ = db_single_row("
+                select p.default_value, (select u.value from user_preferences u where u.pref_id = p.id and u.user_id = ?) user_value
+                from preferences p
+                where p.label = 'prefs.gui-language'
+            ", array($_SESSION['user']['id']), $row);
+            $lang = 'en';
+            if($succ) {
+                $def_val = json_decode($row['default_value'], true);
+                $usr_val = json_decode($row['user_value'], true);
+                if($usr_val !== null && isset($usr_val['language_key']))
+                    $lang = $usr_val['language_key'];
+                else if($def_val !== null && isset($def_val['language_key']))
+                    $lang = $def_val['language_key'];
+                if(!in_array($lang, array('en', 'de')))
+                    $lang = 'en';
+            }
+            $_SESSION['lang'] = $lang;
+        }
+        return true;
+    }
+    return false;
+}
+
+// ------------------------------------------------------------------------------------
+function is_instance_set() {
+// ------------------------------------------------------------------------------------
+    return isset($_SESSION['instance']) 
+        && isset($_SESSION['instance']['db']) 
+        && isset($_SESSION['instance']['host']) 
+        && isset($_SESSION['instance']['port']) 
+        && isset($_SESSION['instance']['user']) 
+        && isset($_SESSION['instance']['pass']);
 }
 
 // ------------------------------------------------------------------------------------

@@ -9,7 +9,7 @@ Spacialist Data Analyzer is a web application that allows users to analyze data 
 
 ## Installation
 * Clone this repository into any folder served by your web server. The target folder is hereafter referred to as the app folder
-* Run `npm install` in the app folder
+* Run `npm install` and `composer install` in the app folder
 * In the app folder, create a `global.ini` file with an entry `spacialist_root` that reflects the absolute local filesystem location of the parent folder of your Spacialist instances, and an entry `spacialist_webroot` pointing to its external URL. For example:
     ```
     spacialist_root=/var/www/spacialist

@@ -1,6 +1,7 @@
 <?php
 	require_once 'lib/Helper.php';
 	require_once 'lib/Login.php';
+	require_once 'vendor/autoload.php';
 	start_the_session();
 	check_login_and_instance();
 ?>
