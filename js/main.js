@@ -794,7 +794,7 @@ function getHierarchicalPathBreadcrumbs(context) {
     let parent = context;
     while(parent = parent.parentContext) {
         crumbs.prepend('%s » '.with(db.getEntityDetailsLink(
-            parent.id,
+            parent,
             '%s (%s)'.with(parent.name, parent.contextType.name),
             { 'data-navigate': true }
         )));
@@ -836,7 +836,7 @@ function renderEntityDetails(
             .click(() => {
                 renderEntityDetails(container, historyPos + 1);
             }))
-        .append(db.getSpacialistLink(context.id, l10n.entityDetailsShowInSpacialist))
+        .append(db.getSpacialistLink(context, l10n.entityDetailsShowInSpacialist.with(context.contextType.name)))
     );
     let tableContainer = $('<div/>').addClass('table-responsive').appendTo(div);
     let table = $('<table/>').addClass('table table-striped table-sm mb-0 mt-1').appendTo(tableContainer);
@@ -865,7 +865,7 @@ function renderEntityDetails(
             if(!list)
                 list = typeLists[child.contextType.name] = [];
             list.push(db.getEntityDetailsLink(
-                child.id,
+                child,
                 child.name,
                 { 'data-navigate': true },
                 'mr-2'
@@ -1143,7 +1143,7 @@ function addResultMap(contexts, result_div) {
             let tr = $('<tr/>').append($('<th/>').text(attr.name));
             renderAttributeValueHtml(
                 attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                ? { display: 'html', value: db.getEntityDetailsLink(context.id), order: context.id } 
+                ? { display: 'html', value: db.getEntityDetailsLink(context), order: context.id } 
                 : db.getDisplayValue(value, attr), 
                 tr, attr);
             table.append(tr);

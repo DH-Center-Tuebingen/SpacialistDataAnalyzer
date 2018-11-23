@@ -599,23 +599,23 @@ function initializeDbVar() {
 
         // --------------------------------------------------------------------------------------------
         getSpacialistLink: function(
-            contextId,
+            context,
             label,
             customClasses = ''
         ) {
         // --------------------------------------------------------------------------------------------
             return ($('<a/>').attr({
                 target: '_spacialist',
-                href: '%s/%s/#/e/%s'.with(spacialistInstance.webRoot, spacialistInstance.folder, contextId),
-                title: l10n.dbSpacialistLinkTitle,
+                href: '%s/%s/#/e/%s'.with(spacialistInstance.webRoot, spacialistInstance.folder, context.id),
+                title: l10n.dbSpacialistLinkTitle.with(context.contextType.name),
             }).addClass('btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
-                '%s %s'.with(Symbols['list-links'], label === undefined? contextId : label).trim()
+                '%s %s'.with(Symbols['list-links'], label === undefined? context.id : label).trim()
             ))[0].outerHTML;
         },
 
         // --------------------------------------------------------------------------------------------
         getEntityDetailsLink: function(
-            contextId,
+            context,
             label,
             customAttrs,
             customClasses = ''
@@ -623,14 +623,14 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
             let attrs = {
                 href: 'javascript:void(0)',
-                title: l10n.dbEntityDetailsTitle,
+                title: l10n.dbEntityDetailsTitle.with(context.contextType.name),
                 onclick: 'javascript:clickedShowEntityDetails(this)',
-                'data-contextId': contextId
+                'data-contextId': context.id
             };
             if(customAttrs)
                 $.extend(attrs, customAttrs);
             return ($('<a/>').attr(attrs).addClass('btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
-                '%s %s'.with(Symbols['list-entities'], label === undefined? contextId : label).trim()
+                '%s %s'.with(Symbols['list-entities'], label === undefined? context.id : label).trim()
             ))[0].outerHTML;
         },
 
@@ -654,7 +654,7 @@ function initializeDbVar() {
                 let row = [];
                 r.attrs.forEach(attr => row.push(
                     attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                    ? { display: 'html', value: this.getEntityDetailsLink(context.id), order: context.id } 
+                    ? { display: 'html', value: this.getEntityDetailsLink(context), order: context.id } 
                     : this.getDisplayValue(context.attributes[attr.id], attr)
                 ));
                 r.body.push(row);
@@ -730,7 +730,7 @@ function initializeDbVar() {
                     if(currentValue === undefined)
                         currentValue = [];
                     let label = context.attributes[attribute.id];
-                    currentValue.push({ label, html: db.getSpacialistLink(context.id, label, undefined, 'mr-2') });
+                    currentValue.push({ label, html: db.getSpacialistLink(context, label, 'mr-2') });
                     return currentValue;
                 }
 
@@ -738,7 +738,7 @@ function initializeDbVar() {
                     if(currentValue === undefined)
                         currentValue = [];
                     let label = context.attributes[attribute.id];
-                    currentValue.push({ label, html: db.getEntityDetailsLink(context.id, label, undefined, 'mr-2') });
+                    currentValue.push({ label, html: db.getEntityDetailsLink(context, label, undefined, 'mr-2') });
                     return currentValue;
                 }
 
