@@ -23,12 +23,17 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
 
             // ----------------------------------------------------------------------------------------
-            db.thesaurus.getDescendants = /*array*/ function (url) {
+            db.thesaurus.getDescendants = /*array*/ function (
+                url, 
+                exclude_leaf_concepts = false
+            ) {
             // ----------------------------------------------------------------------------------------
                 function recurseThesaurus(concept, curResult, addParent) {
                     if(addParent)
                         curResult.push(concept);
                     concept.childConcepts.forEach(child => {
+                        if(exclude_leaf_concepts && child.childConcepts.length === 0)
+                            return;
                         curResult.push(child);
                         recurseThesaurus(child, curResult, false);
                     });
@@ -1363,8 +1368,39 @@ function initializeDbVar() {
                     return contain ? found : !found;
                 }
 
+                case 'descendant-thesaurus':
+                case 'not-descendant-thesaurus':
+                case 'contain-descendant-thesaurus':
+                case 'not-contain-descendant-thesaurus': {
+                    let descendant = ['descendant-thesaurus', 'contain-descendant-thesaurus'].includes(filter.operator);
+                    if(valueToCompare === null || typeof valueToCompare === 'undefined')
+                        return descendant ? false : true;
+                    if(!$.isArray(valueToCompare)) { // single choice -> fake multiple choice
+                        valueToCompare = [{ 
+                            concept_url: valueToCompare.concept_url || valueToCompare
+                        }];
+                    }
+                    let found = db.findDescendantThesaurusConcept(
+                        db.thesaurus[filter.values[0]],
+                        valueToCompare.map(v => v.concept_url)
+                    );
+                    return descendant ? found : !found;
+                }
+
                 default: throw l10n.get('errorUnknownFilterOperator', filter.operation);
             }
+        },
+
+        // --------------------------------------------------------------------------------------------
+        findDescendantThesaurusConcept: function(
+            concept,
+            descendantCandidateUrls
+        ) {
+        // --------------------------------------------------------------------------------------------
+            return concept && concept.childConcepts.some(childConcept => {
+                return descendantCandidateUrls.includes(childConcept.url)
+                    || db.findDescendantThesaurusConcept(childConcept, descendantCandidateUrls);
+            });
         },
 
         // --------------------------------------------------------------------------------------------

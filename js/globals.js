@@ -60,6 +60,10 @@ const Symbols = {
     'contain-thesaurus': '∋',
     'not-contain': '∌',
     'not-contain-thesaurus': '∌',
+    'descendant-thesaurus': '⇒',
+    'not-descendant-thesaurus': '⇏',
+    'contain-descendant-thesaurus': '⇒',
+    'not-contain-descendant-thesaurus': '⇏',
     empty: '⍻',
     'not-empty': '✓',
     'dimension-b': '⭲',
@@ -194,7 +198,7 @@ const ObjectFilterOperatorMapping = {
     'string':       [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'stringf':      [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'date':         [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
-    'string-mc':    [ 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist' ],
-    'string-sc':    [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'exist', 'not-exist' ],
+    'string-mc':    [ 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'contain-descendant-thesaurus', 'not-contain-descendant-thesaurus', 'exist', 'not-exist' ],
+    'string-sc':    [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'descendant-thesaurus', 'not-descendant-thesaurus', 'exist', 'not-exist' ],
     'table':        [ 'exist', 'not-exist' ]
 };

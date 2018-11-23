@@ -196,7 +196,7 @@ tr.attribute {
     padding: 1px 6px;
 }
 
-.hidden {
+.hidden, select.hidden + span.select2-container {
     display: none;
 }
 

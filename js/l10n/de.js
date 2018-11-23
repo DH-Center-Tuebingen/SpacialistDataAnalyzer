@@ -85,6 +85,10 @@ const l10n_de = {
         'contain-thesaurus': 'Beinhaltet Thesauruskonzept',
         'not-contain': 'Beinhaltet nicht',
         'not-contain-thesaurus': 'Beinhaltet nicht Thesauruskonzept',
+        'descendant-thesaurus': 'Untergeordnetes Thesauruskonzept von',
+        'not-descendant-thesaurus': 'Nicht untergeordnetes Thesauruskonzept von',
+        'contain-descendant-thesaurus': 'Enthält untergeordnetes Thesauruskonzept von',
+        'not-contain-descendant-thesaurus': 'Enthält kein untergeordnetes Thesauruskonzept von',
         empty: 'Ist leer',
         'not-empty': 'Ist nichtleer',
         'dimension-b': 'Breite',
@@ -158,6 +162,7 @@ const l10n_de = {
     },
     filterAdd: 'Filter Hinzufügen',
     filterRemoveAll: 'Alle Filter Entfernen',
+    filterNoDescendantConcepts: 'Keine Konzepte zur Auswahl',
 
     groupIntro: 'Hier können Sie definieren, wie die Eigenschaftswerte der Entitäten des Typs <b class="outputObjectName"></span> im Ergebnis gruppiert oder aggregiert werden sollen. Falls Sie gruppierte Eigenschaften definieren, werden die aggregierte Eingenschaften für jede Kombination der gruppierten Eigenschaften separat berechnet. Eigenschaften, die weder gruppiert noch aggregiert werden, scheinen im Ergebnis nicht auf.',
     groupDropdownPlaceholder: 'Ignorieren',

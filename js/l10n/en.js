@@ -85,6 +85,10 @@ const l10n_en = {
         'contain-thesaurus': 'Contains thesaurus concept',
         'not-contain': 'Not contains',
         'not-contain-thesaurus': 'Not contains thesaurus concept',
+        'descendant-thesaurus': 'Descendant of thesaurus concept',
+        'not-descendant-thesaurus': 'Not descendant of thesaurus concept',
+        'contain-descendant-thesaurus': 'Contains descendant of thesaurus concept',
+        'not-contain-descendant-thesaurus': 'Not contains descendant of thesaurus concept',
         empty: 'Is empty',
         'not-empty': 'Is not empty',
         'dimension-b': 'Breadth',
@@ -158,6 +162,7 @@ const l10n_en = {
     },
     filterAdd: 'Add A Filter',
     filterRemoveAll: 'Remove All Filters',
+    filterNoDescendantConcepts: 'There are no concepts to choose from',
 
     groupIntro: 'You may define how to group and aggregate the resulting entities of type <b class="outputObjectName"></span> by the values of their properties. For each unique combination of the grouped properties, you can define what kind of aggregate properties (e.g. the mean value or sum of values of a property) you would like to see in the output table. Note that all properties that are selected neither for grouping nor aggregation will be omitted from the output table.',
     groupDropdownPlaceholder: 'No Grouping or Aggregation',
