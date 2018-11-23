@@ -829,7 +829,7 @@ function renderEntityDetails(
             return;
         let row = $('<tr/>').appendTo(tbody);
         $('<th/>').text(attr.name).appendTo(row);
-        renderAttributeValueHtml(value, row, attr);
+        renderAttributeValue('html', value, row, attr);
     });
     if(context.childContexts.length) {
         let typeLists = {};
@@ -848,7 +848,7 @@ function renderEntityDetails(
             let tr = $('<tr/>').append(
                 $('<th/>').text(l10n.get('entityDetailsChildEntities', typeName))
             );
-            renderAttributeValueHtml({ display: 'entityLinkList', value: items, overrideMaxShow: 10 }, tr);
+            renderAttributeValue('html', { display: 'entityLinkList', value: items, overrideMaxShow: 10 }, tr);
             tbody.append(tr);
         });
     }
@@ -891,7 +891,8 @@ function clickedShowEntityDetails(source) {
 }
 
 // ------------------------------------------------------------------------------------
-function renderAttributeValueHtml(
+function renderAttributeValue(
+    type,   // html or data
     val, 
     tr, 
     attr = undefined // may be undefined for computed attributes
@@ -899,30 +900,46 @@ function renderAttributeValueHtml(
 // ------------------------------------------------------------------------------------
     if(val !== null && typeof val === 'object') {
         switch(val.display) {
-            case 'html': {
+            case 'html':
+            if(type === 'html') {
                 let td = $('<td/>').html(val.value);
                 if(val.order !== undefined)
                     td.attr('data-order', val.order);
                 tr.append(td);
                 break;
             }
-            case 'entityLinkList': {
-                let td = $('<td/>');
+            else {
+                return {
+                    v: val.value,
+                    s: val.order !== undefined ? val.order : val.value
+                };
+            }
+            case 'entityLinkList':
                 if($.isArray(val.value)) {
                     let maxShow = val.overrideMaxShow || Settings.resultTable.entityLinkListMaxItems;
                     let cut = {
-                        show: val.value.slice(0, maxShow),
+                        show: val.value.slice(0, maxShow).join(''),
                         hide: val.value.slice(maxShow)
                     };
-                    td.html(cut.show.join(''));
+                    let hidden = '';
                     if(cut.hide.length > 0)
-                        td.append(getShowMoreSpan(cut.hide.join(''), true, l10n.get('resultTableShowMoreListItems', cut.hide.length)));
-                    if(val.order !== undefined)
-                        td.attr('data-order', val.order);
+                        hidden = getShowMoreSpan(cut.hide.join(''), true, l10n.get('resultTableShowMoreListItems', cut.hide.length));
+                    if(type === 'html') {
+                        let td = $('<td/>');
+                        td.html(cut.show);
+                        td.append(hidden);
+                        if(val.order !== undefined)
+                            td.attr('data-order', val.order);
+                        tr.append(td);
+                        break;
+                    }
+                    else {
+                        return {
+                            v: cut.show + hidden,
+                            s: val.order !== undefined ? val.order : (cut.show + hidden)
+                        };
+                    }
                 }
-                tr.append(td);
-                break;
-            }
             case 'table':
                 let btn = $('<button/>').attr({
                     type: 'button',
@@ -931,10 +948,23 @@ function renderAttributeValueHtml(
                     table: val.value,
                     target: '#modalTableInCell'
                 }).click(showTableModal).text('%s %s'.with(Symbols.table, l10n.resultShowTableModal));
-                tr.append($('<td/>').append(btn));
-                break;
+                if(type === 'html') {
+                    tr.append($('<td/>').append(btn));
+                    break;
+                }
+                else {
+                    return {
+                        v: btn.html(),
+                        s: val.value.body.length
+                    };
+                }
             default:
-                tr.append($('<td/>').text('???'));
+                if(type === 'html') {
+                    tr.append($('<td/>').text('???'));
+                    break;
+                }
+                else
+                    return { v: '???', s: '???' };
         }
     }
     else {
@@ -960,7 +990,10 @@ function renderAttributeValueHtml(
                 break;
             }
         }
-        tr.append(cell);
+        if(type === 'html')
+            tr.append(cell);
+        else
+            return { v: cell.html(), s: cell.attr('data-order') ? cell.attr('data-order') : cell.text() };
     }
 }
 
@@ -969,12 +1002,11 @@ function getResultTable(r, info, limit) {
 // ------------------------------------------------------------------------------------
     if(r.head.length == 0)
         return $('<div/>').addClass('alert alert-info').text(l10n.resultsNone);
-    var t = $('<table/>').attr({ id: 'result-table' }).addClass('table table-striped table-bordered table-nonfluid table-sm').data('contexts', r.contexts);
-    var thead = $('<thead/>').addClass('thead-light').appendTo(t);
-    var h = $('<tr/>');
-    r.head.forEach(th => h.append($('<th/>').text(th)));
-    thead.append(h);
-    var tbody = $('<tbody/>').appendTo(t);
+    var t = $('<table/>').attr({ id: 'result-table' }).addClass('table table-striped table-bordered table-nonfluid table-sm').data({
+        contexts: r.contexts,
+        resultBody: r.body,
+        resultHead: r.head
+    });
     let c = 0;
     let res = {
         total: r.body.length
@@ -982,8 +1014,8 @@ function getResultTable(r, info, limit) {
     r.body.forEach(row => {
         if(limit && ++c > limit)
             return false;
-        var tr = $('<tr/>').appendTo(tbody);
-        row.forEach((val, index) => renderAttributeValueHtml(val, tr, r.attrs ? r.attrs[index] : undefined));
+        for(let i = row.length - 1; i >= 0; i--)
+            row[i] = renderAttributeValue('data', row[i], undefined, r.attrs ? r.attrs[i] : undefined);
     });
     res.div = $('<div/>').addClass('table-responsive').append(t);
     return res;
@@ -1114,7 +1146,8 @@ function addResultMap(contexts, result_div) {
             if(value === null || typeof value === 'undefined')
                 return;
             let tr = $('<tr/>').append($('<th/>').text(attr.name));
-            renderAttributeValueHtml(
+            renderAttributeValue(
+                'html',
                 attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
                 ? { display: 'html', value: db.getEntityDetailsLink(context.id), order: context.id } 
                 : db.getDisplayValue(value, attr), 
@@ -1158,10 +1191,22 @@ function makeDataTable(table, customOptions, domColumns = [4, 4, 4]) {
     });
     let options = {
         scrollX: true,
+        deferRender: true,
+        data: table.data('resultBody'),
+        columns: table.data('resultHead').map((title, colIndex) => {
+            return { 
+                title,  
+                data: { 
+                    _: '%s.v'.with(colIndex), 
+                    sort: '%s.s'.with(colIndex) 
+                },
+                type: 'html'
+            }
+        }),
         buttons,
         dom: ("<'row font-sm'<'col-sm-12 col-md-%s'l><'col-sm-12 col-md-%s'B><'col-sm-12 col-md-%s'f>>" +
            "<'row font-sm'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>" +
-           "<'row'<'col-sm-12'tr>>").with(domColumns[0], domColumns[1], domColumns[2])
+          + "<'row'<'col-sm-12'tr>>").with(domColumns[0], domColumns[1], domColumns[2])
     };
     if(l10n.dataTablesLocalization)
         options.language = l10n.dataTablesLocalization;
@@ -1226,7 +1271,7 @@ function updateResult(callback) {
                         addResultMap(r, result_div.empty());
                     }
                     else {
-                        const limit = 1000;
+                        const limit = Infinity;
                         let tbl = getResultTable(r, result.info, limit);
 
                         result_div.empty()
@@ -1241,7 +1286,8 @@ function updateResult(callback) {
                         let customOrder;
                         if(analysis.outputDisplay.type === 'distribution')
                             customOrder = { order: [[ 1, 'desc']] }; // order by second column descending
-                        makeDataTable(result_div.find('table'), customOrder, [5, 1, 6]);
+                        let table = result_div.find('table').first();
+                        makeDataTable(table, customOrder, [5, 1, 6]);
                         result_div.find('div.dt-buttons').detach().appendTo('#result-heading').addClass('datatable-buttons').removeClass('btn-group dt-buttons');
                     }
                 }
