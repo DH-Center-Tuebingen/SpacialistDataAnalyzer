@@ -1014,17 +1014,24 @@ function initializeDbVar() {
                             groupColumnValues.push(seenValues);
                         }
                         else {
-                            groupColumnValues.push([undefined]);
+                            groupColumnValues.push([null]);
                         }
                     }
                     else { // single attribute
-                        groupColumnValues.push([ this.getDisplayValue(context.attributes[attr.id], attr) ]);
+                        if(attr.type === 'string-mc') {
+                            let values = context.attributes[attr.id];
+                            if($.isArray(values))
+                                groupColumnValues.push(values.map(val => db.getThesaurusLabel(val.concept_url)));
+                        }
+                        else {
+                            groupColumnValues.push([ this.getDisplayValue(context.attributes[attr.id], attr) ]);
+                        }
                     }
                 });
 
                 if(groupColumns.length === 0) {
                     // add fake grouping
-                    groupColumnValues.push([undefined]);
+                    groupColumnValues.push([null]);
                 }
 
                 // Now we create a row for each value combination
@@ -1039,7 +1046,7 @@ function initializeDbVar() {
                     let breakEvery = cntRows / groupColumnValues[c].length;
                     for(let r = 0; r < cntRows; r++) {
                         if(rows[r] === undefined)
-                            rows[r] = [];
+                            rows[r] = new Array(groupColumns.length).fill(null);
                         rows[r][c] = groupColumnValues[c][groupRowInColumn];
                         if((r + 1) % breakEvery === 0)
                             groupRowInColumn++;
