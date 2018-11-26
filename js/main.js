@@ -668,7 +668,7 @@ function renderRowIngoreSettings() {
     else {
         $('.outputObjectName').text(l10n.filterDiscardTableRowsOutputObjectNameEntity);
     }
-    tableRowSettingsContainer.find('input').prop('disabled', disable);
+    $('#discardTableRows').prop('disabled', disable);
 }
 
 // ------------------------------------------------------------------------------------
