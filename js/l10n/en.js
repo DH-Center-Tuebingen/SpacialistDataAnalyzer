@@ -176,7 +176,7 @@ const l10n_en = {
     resultDownloadGeoJsonTooltip: 'Download result as GeoJSON file',
     resultShowTableModal: 'Show',
     resultShowTableModalTooltip: 'Show data table of this property',
-    resultNone: 'There are no results.',
+    resultNone: 'Empty result',
     resultNoValue: 'No Value',
     resultNoCoordinates: 'The result contains %s entities, but none of them has geo coordinates.',
     resultGeoJsonNone: 'The table contains no entities with geo coordinates. Aborting GeoJSON download.',

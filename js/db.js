@@ -1734,7 +1734,7 @@ function initializeDbVar() {
                     res = { error: e.message + "\n" + e.stack };
             }
             if(!res.error && typeof res.result === 'undefined')
-                res.error = l10n.errorNotImpl;
+                res.result = l10n.resultNone;
             res.executionTime = debugGetElapsedSeconds(startTime);
             return res;
         }

@@ -1329,7 +1329,7 @@ function updateResult(callback) {
             console.log(result);
             if(result.error)
                 result_div.append(
-                    $('<div/>').html(result.error).prepend('<b>%s</b>'.with(l10n.errorHeading)).addClass('alert alert-danger')
+                    $('<div/>').html(result.error).prepend('<b>%s:</b> '.with(l10n.errorHeading)).addClass('alert alert-danger')
                 );
             else if(result.hasOwnProperty('result')) {
                 let r = result.result;
