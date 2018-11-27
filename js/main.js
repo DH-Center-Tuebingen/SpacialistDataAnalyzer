@@ -769,22 +769,33 @@ function tryCutCellText(
 }
 
 // ------------------------------------------------------------------------------------
-function getShowMoreSpan(hiddenContent, isHtml, label) {
+function showMoreClicked() {
 // ------------------------------------------------------------------------------------
-    return $('<span/>').append(
-        $('<a/>').attr('href', 'javascript:void(0)').text(label ? label : l10n.resultTableShowMore).addClass('font-italic').on('click', function() {
-            let e = $(this).parent('span');
-            e.empty();
-            if(e.data('isHtml'))
-                e.before(e.data('hiddenContent'));
-            else
-                e.before(document.createTextNode(e.data('hiddenContent')));
-            e.remove();
-        })
-    ).data({
+    let a = $(this);
+    let span = a.parent('span');
+    if(a.data('isHtml'))
+        span.before(a.data('hiddenContent'));
+    else
+        span.before(document.createTextNode(a.data('hiddenContent')));
+    span.remove();
+}
+
+// ------------------------------------------------------------------------------------
+function getShowMoreSpan(hiddenContent, isHtml, label, inDataTable) {
+// ------------------------------------------------------------------------------------
+    let a = $('<a/>').attr('href', 'javascript:void(0)').text(label ? label : l10n.resultTableShowMore).addClass('font-italic');
+    let data = {
         hiddenContent,
         isHtml
-    });
+    };
+    if(inDataTable) {
+        let infoIndex = DataTableElementInfos.add(data, 'showMoreClicked');
+        a.addClass('xinfo').attr('data-xinfo', infoIndex);
+    }
+    else {
+        a.on('click', showMoreClicked).data(data);
+    }
+    return $('<span/>').append(a);
 }
 
 // ------------------------------------------------------------------------------------
@@ -955,7 +966,7 @@ function renderAttributeValue(
                     };
                     let hidden = '';
                     if(cut.hide.length > 0)
-                        hidden = getShowMoreSpan(cut.hide.join(''), true, l10n.get('resultTableShowMoreListItems', cut.hide.length));
+                        hidden = getShowMoreSpan(cut.hide.join(''), true, l10n.get('resultTableShowMoreListItems', cut.hide.length), type === 'data');
                     if(type === 'html') {
                         let td = $('<td/>');
                         td.html(cut.show);
@@ -966,9 +977,10 @@ function renderAttributeValue(
                         break;
                     }
                     else {
+                        let hiddenHtml = hidden[0].outerHTML;
                         return {
-                            v: cut.show + hidden,
-                            s: val.order !== undefined ? val.order : (cut.show + hidden)
+                            v: cut.show + hiddenHtml,
+                            s: val.order !== undefined ? val.order : (cut.show + hiddenHtml)
                         };
                     }
                 }
@@ -1036,7 +1048,7 @@ function renderAttributeValue(
                 let cut = tryCutCellText(val, attr);
                 cell.text(cut.show);
                 if(cut.hide)
-                    cell.append(getShowMoreSpan(cut.hide, false));
+                    cell.append(getShowMoreSpan(cut.hide, false, undefined, type === 'data'));
                 break;
             }
         }

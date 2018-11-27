@@ -12,11 +12,6 @@ var DataTableElementInfos = {
     get: function(index) {
         return this.infos[index];
     },
-    remove: function(index) {
-        delete this.infos[index];
-        if(--this.count === 0)
-            this.infos = []; // if has grown, we reset it now so it gets zero length
-    },
     clear: function () {
         this.infos = [];
         this.count = 0;
