@@ -964,20 +964,21 @@ function renderAttributeValue(
                         show: val.value.slice(0, maxShow).join(''),
                         hide: val.value.slice(maxShow)
                     };
-                    let hidden = '';
+                    let hidden;
                     if(cut.hide.length > 0)
                         hidden = getShowMoreSpan(cut.hide.join(''), true, l10n.get('resultTableShowMoreListItems', cut.hide.length), type === 'data');
                     if(type === 'html') {
                         let td = $('<td/>');
                         td.html(cut.show);
-                        td.append(hidden);
+                        if(hidden)
+                            td.append(hidden);
                         if(val.order !== undefined)
                             td.attr('data-order', val.order);
                         tr.append(td);
                         break;
                     }
                     else {
-                        let hiddenHtml = hidden[0].outerHTML;
+                        let hiddenHtml = hidden ? hidden[0].outerHTML : '';
                         return {
                             v: cut.show + hiddenHtml,
                             s: val.order !== undefined ? val.order : (cut.show + hiddenHtml)
