@@ -15,10 +15,13 @@ Object.forEach || Object.defineProperty(Object.prototype, 'forEach', {
 Object.forEachValue || Object.defineProperty(Object.prototype, 'forEachValue', {
 // ------------------------------------------------------------------------------------
     enumerable: false,
-    value: function(callback) {
+    value: function(callback, canBreak = false) {
         for(let k in this)
-            if(this.hasOwnProperty(k))
-                callback(k, this[k]);
+            if(this.hasOwnProperty(k)) {
+                let r = callback(k, this[k]);
+                if(canBreak && r === false)
+                    break;
+            }
         return this;
     }
 });
@@ -47,6 +50,22 @@ String.with || Object.defineProperty(String.prototype, 'with', {
         return s;
     }
 });
+
+// ------------------------------------------------------------------------------------
+$.fn.setElementInfo = function(data, click) {
+// ------------------------------------------------------------------------------------
+    let table = $(this[0]);
+    let xinfo = table.data('xinfo');
+    if(!xinfo)
+        xinfo = table.data('xinfo', []).data('xinfo');
+    return xinfo.push({ data, click }) - 1;
+}
+
+// ------------------------------------------------------------------------------------
+$.fn.getElementInfo = function(index) {
+// ------------------------------------------------------------------------------------
+    return $(this[0]).data('xinfo')[index];
+}
 
 // ------------------------------------------------------------------------------------
 function get_checkbox(attr, data, checked, label, change_handler) {

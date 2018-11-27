@@ -188,7 +188,7 @@ const l10n_de = {
         print: 'Tabelle für Ausdrucken vorbereiten',
         colvis: 'Spalten ein- und ausblenden'
     },
-    resultTableLimit: 'Die Tabelle ist auf die ersten %s von insgesamt %s Einträgen limitiert.',
+    resultTableLimit: 'Die Tabelle ist auf die ersten %s von insgesamt %s Einträgen limitiert. Definieren Sie Filter oder Aggregate, um die Anzahl der Ergebnisse zu verringern.',
     resultButtonLabel: 'Ergebnis Anzeigen',
     resultTableShowMore: '[mehr anzeigen]',
     resultTableShowMoreListItems: '[restliche %s anzeigen]',

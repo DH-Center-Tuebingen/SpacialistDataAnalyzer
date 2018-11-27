@@ -2,6 +2,26 @@ var db;
 var tree;
 var analysis = {};
 var masterTree;
+var DataTableElementInfos = {
+    infos: [],
+    count: 0,
+    add: function (data, click) {
+        this.count++;
+        return this.infos.push({ data: data, click: click }) - 1;
+    },
+    get: function(index) {
+        return this.infos[index];
+    },
+    remove: function(index) {
+        delete this.infos[index];
+        if(--this.count === 0)
+            this.infos = []; // if has grown, we reset it now so it gets zero length
+    },
+    clear: function () {
+        this.infos = [];
+        this.count = 0;
+    }
+};
 const Settings = {
     splitScreen: {
         analysisHeight: 35,
@@ -9,7 +29,8 @@ const Settings = {
     },
     resultTable: {
         textMaxChars: 200,
-        entityLinkListMaxItems: 50
+        entityLinkListMaxItems: 50,
+        maxRows: 1000
     },
     mcSeparator: ' ⬥ ',
     epochSeparator: ' ⬥ ',
