@@ -23,7 +23,7 @@
 	<script src="node_modules/jquery-ui-dist/jquery-ui.min.js"></script>
 	<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
 	<script src="node_modules/select2/dist/js/select2.min.js"></script>
-	<script src="node_modules/datatables.net/js/jquery.dataTables.js"></script>
+	<script src="node_modules/datatables.net/js/jquery.dataTables.min.js"></script>
 	<script src="node_modules/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
 	<script src="node_modules/jszip/dist/jszip.min.js"></script>
 	<script src="node_modules/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
