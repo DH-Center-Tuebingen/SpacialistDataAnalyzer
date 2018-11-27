@@ -316,16 +316,19 @@ function initializeDbVar() {
                 this.contexts.forEachValue((id, context) => {
                     if(applyFilters && this.filteredContexts[context.id])
                         return;
-                    if(context.typePathToRoot.equals(pathToRoot))
-                        callback(context);
-                });
+                    if(context.typePathToRoot.equals(pathToRoot)) {
+                        if(false === callback(context))
+                            return false;
+                    }
+                }, true);
             }
             else {
                 contextType.contexts.forEachValue((id, context) => {
                     if(applyFilters && this.filteredContexts[context.id])
                         return;
-                    callback(context);
-                });
+                    if(false === callback(context))
+                        return false;
+                }, true);
             }
         },
 
@@ -555,7 +558,8 @@ function initializeDbVar() {
                 case 'table':
                     let table = {
                         head: [],
-                        body: []
+                        body: [],
+                        sortTypes: []
                     };
                     let colAttrs = {}; // for quicker access than via db.attributes
                     let i = 0;
@@ -566,6 +570,7 @@ function initializeDbVar() {
                             if(i == 0) {
                                 attr = colAttrs[c] = db.attributes[c];
                                 table.head.push(attr ? attr.name : c);
+                                table.sortTypes.push(attr ? db.getSortTypeFromAttr(attr) : undefined);
                             }
                             else
                                 attr = colAttrs[c];
@@ -621,17 +626,35 @@ function initializeDbVar() {
             customClasses = ''
         ) {
         // --------------------------------------------------------------------------------------------
+            let xinfo = DataTableElementInfos.add({ context.id }, 'clickedShowEntityDetails');
             let attrs = {
                 href: 'javascript:void(0)',
-                title: l10n.dbEntityDetailsTitle.with(context.contextType.name),
-                onclick: 'javascript:clickedShowEntityDetails(this)',
-                'data-contextId': context.id
+                title: l10n.dbEntityDetailsTitle,
+                'data-xinfo': xinfo
             };
             if(customAttrs)
                 $.extend(attrs, customAttrs);
-            return ($('<a/>').attr(attrs).addClass('btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
+            return ($('<a/>').attr(attrs).addClass('xinfo btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
                 '%s %s'.with(Symbols['list-entities'], label === undefined? context.id : label).trim()
             ))[0].outerHTML;
+        },
+
+        // --------------------------------------------------------------------------------------------
+        getSortTypeFromAttr: function(
+            attr
+        ) {
+        // --------------------------------------------------------------------------------------------
+            switch(attr.type) {
+                case 'table': // sorts by number of table rows
+                case 'double':
+                case 'integer':
+                case 'percentage':
+                case 'date':
+                    return 'num';
+
+                default:
+                    return 'string';
+            }
         },
 
         // --------------------------------------------------------------------------------------------
@@ -643,22 +666,29 @@ function initializeDbVar() {
                 head: [],
                 body: [],
                 attrs: [],
-                contexts: []
+                sortTypes: [],
+                contexts: [],
+                grandTotal: 0
             };
             let ct = this.contextTypes[contextType.id];
             ct.attributes.forEach(attr => {
                 r.head.push(attr.name);
                 r.attrs.push(attr);
+                r.sortTypes.push(db.getSortTypeFromAttr(attr));
             });
+            let count = 0;
             db.traverseContextsOfType(ct, contextType.typePathToRoot, true, context => {
-                let row = [];
-                r.attrs.forEach(attr => row.push(
-                    attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                    ? { display: 'html', value: this.getEntityDetailsLink(context), order: context.id } 
-                    : this.getDisplayValue(context.attributes[attr.id], attr)
-                ));
-                r.body.push(row);
-                r.contexts.push(context);
+                if(++count <= Settings.resultTable.maxRows) {
+                    let row = [];
+                    r.attrs.forEach(attr => row.push(
+                        attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
+                        ? { display: 'html', value: this.getEntityDetailsLink(context), order: context.id } 
+                        : this.getDisplayValue(context.attributes[attr.id], attr)
+                    ));
+                    r.body.push(row);
+                    r.contexts.push(context);
+                }
+                r.grandTotal++;
             });
             return r;
         },
@@ -980,13 +1010,17 @@ function initializeDbVar() {
             let r = {
                 head: [],
                 body: [],
-                contexts: []
+                contexts: [],
+                sortTypes: [],
+                grandTotal: 0
             };
             let ct = this.contextTypes[contextType.id];
             let groupColumns = [], aggrColumns = [], rowInfos = [], linkListColumns = [];
             this.query.grouping.group.forEach(attrId => {
-                groupColumns.push(db.attributes[attrId]);
-                r.head.push(db.attributes[attrId].name);
+                let attr = db.attributes[attrId];
+                groupColumns.push(attr);
+                r.head.push(attr.name);
+                r.sortTypes.push(db.getSortTypeFromAttr(attr));
             });
             this.query.grouping.aggregate.forEachValue((attrId, aggr) => {
                 let attr = db.attributes[attrId];
@@ -994,6 +1028,7 @@ function initializeDbVar() {
                 let colIndex = r.head.push("%s: %s %s".with(db.attributes[attrId].name, Symbols[aggr], l10n.attributeDisplayTypeLabels[aggr])) - 1;
                 if([PseudoAttributes.ID, PseudoAttributes.Name].includes(attr.pseudoAttributeKey) && ['list-links', 'list-entities'].includes(aggr))
                     linkListColumns.push(colIndex);
+                r.sortTypes.push('num'); // aggregate columns always numberic ?!
             });
             db.traverseContextsOfType(ct, contextType.typePathToRoot, true, context => {
                 // here we need to be aware that for a table attribute, there are multiple values per context
@@ -1098,6 +1133,9 @@ function initializeDbVar() {
                     }
                 })
             });
+            r.grandTotal = r.body.length;
+            if(r.grandTotal > Settings.resultTable.maxRows)
+                r.body.length = Settings.resultTable.maxRows; // https://stackoverflow.com/questions/26568536/remove-all-items-after-an-index/26568611
             return r;
         },
 

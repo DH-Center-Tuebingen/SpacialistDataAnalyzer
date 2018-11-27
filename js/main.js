@@ -695,7 +695,9 @@ function showReloadDbModal() {
                     get_button(l10n.dbReloadModalCancel).addClass('btn-secondary ml-3').attr('data-dismiss', 'modal')
                 ))
         )
-    ).appendTo($('body')).modal({ show: true });
+    ).appendTo($('body')).on('hidden.bs.modal', function() {
+        $(this).remove();
+    }).modal({ show: true });
 }
 
 // ------------------------------------------------------------------------------------
@@ -722,8 +724,9 @@ function showTableModal() {
         $(window).resize(); // will auto adjust DataTables column widths
         $('#modalEntityDetails').hide();
         div.fadeIn();
-    }).on('hidden.bs.modal', () => {
+    }).on('hidden.bs.modal', function () {
         $('#modalEntityDetails').fadeIn();
+        $(this).remove();
     }).modal({ show: true });
 }
 
@@ -856,7 +859,7 @@ function renderEntityDetails(
             return;
         let row = $('<tr/>').appendTo(tbody);
         $('<th/>').text(attr.name).appendTo(row);
-        renderAttributeValueHtml(value, row, attr);
+        renderAttributeValue('html', value, row, attr);
     });
     if(context.childContexts.length) {
         let typeLists = {};
@@ -875,7 +878,7 @@ function renderEntityDetails(
             let tr = $('<tr/>').append(
                 $('<th/>').text(l10n.get('entityDetailsChildEntities', typeName))
             );
-            renderAttributeValueHtml({ display: 'entityLinkList', value: items, overrideMaxShow: 10 }, tr);
+            renderAttributeValue('html', { display: 'entityLinkList', value: items, overrideMaxShow: 10 }, tr);
             tbody.append(tr);
         });
     }
@@ -899,26 +902,29 @@ function showEntityDetails(id) {
         )
     ).css('display', 'none').appendTo($('body'));
     renderEntityDetails(container, 0, context);
-    dialog.modal({ show: true });
+    dialog.on('hidden.bs.modal', function () {
+        $(this).remove();
+    }).modal({ show: true });
 }
 
 // ------------------------------------------------------------------------------------
-function clickedShowEntityDetails(source) {
+function clickedShowEntityDetails() {
 // ------------------------------------------------------------------------------------
-    let link = $(source);
+    let link = $(this);
     if(link.attr('data-navigate') === undefined)
-        showEntityDetails(parseInt(link.attr('data-contextId')));
+        showEntityDetails(parseInt(link.data('contextId')));
     else {
         let container = $('#modalEntityDetails div.modal-content');
         renderEntityDetails(container, 
             container.data('historyPos') + 1, 
-            db.contexts[parseInt(link.attr('data-contextId'))]
+            db.contexts[link.data('contextId')]
         );
     }
 }
 
 // ------------------------------------------------------------------------------------
-function renderAttributeValueHtml(
+function renderAttributeValue(
+    type,   // html or data
     val, 
     tr, 
     attr = undefined // may be undefined for computed attributes
@@ -926,57 +932,104 @@ function renderAttributeValueHtml(
 // ------------------------------------------------------------------------------------
     if(val !== null && typeof val === 'object') {
         switch(val.display) {
-            case 'html': {
-                let td = $('<td/>').html(val.value);
-                if(val.order !== undefined)
-                    td.attr('data-order', val.order);
-                tr.append(td);
-                break;
-            }
-            case 'entityLinkList': {
-                let td = $('<td/>');
+            case 'html':
+                if(type === 'html') {
+                    let td = $('<td/>').html(val.value);
+                    if(val.order !== undefined)
+                        td.attr('data-order', val.order);
+                    tr.append(td);
+                    break;
+                }
+                else {
+                    return {
+                        v: val.value,
+                        s: val.order !== undefined ? val.order : val.value
+                    };
+                }
+            case 'entityLinkList':
                 if($.isArray(val.value)) {
                     let maxShow = val.overrideMaxShow || Settings.resultTable.entityLinkListMaxItems;
                     let cut = {
-                        show: val.value.slice(0, maxShow),
+                        show: val.value.slice(0, maxShow).join(''),
                         hide: val.value.slice(maxShow)
                     };
-                    td.html(cut.show.join(''));
+                    let hidden = '';
                     if(cut.hide.length > 0)
-                        td.append(getShowMoreSpan(cut.hide.join(''), true, l10n.get('resultTableShowMoreListItems', cut.hide.length)));
-                    if(val.order !== undefined)
-                        td.attr('data-order', val.order);
+                        hidden = getShowMoreSpan(cut.hide.join(''), true, l10n.get('resultTableShowMoreListItems', cut.hide.length));
+                    if(type === 'html') {
+                        let td = $('<td/>');
+                        td.html(cut.show);
+                        td.append(hidden);
+                        if(val.order !== undefined)
+                            td.attr('data-order', val.order);
+                        tr.append(td);
+                        break;
+                    }
+                    else {
+                        return {
+                            v: cut.show + hidden,
+                            s: val.order !== undefined ? val.order : (cut.show + hidden)
+                        };
+                    }
                 }
-                tr.append(td);
-                break;
-            }
-            case 'table':
-                let btn = $('<button/>').attr({
-                    type: 'button',
-                    title: l10n.resultShowTableModalTooltip
-                }).addClass('btn btn-outline-dark btn-sm pb-0 pt-0').data({
+            case 'table': {
+                let infoIndex = DataTableElementInfos.add({
                     table: val.value,
                     target: '#modalTableInCell'
-                }).click(showTableModal).text('%s %s'.with(Symbols.table, l10n.resultShowTableModal));
-                tr.append($('<td/>').append(btn));
-                break;
+                }, 'showTableModal');    
+                let btn = $('<button/>').attr({
+                    type: 'button',
+                    title: l10n.resultShowTableModalTooltip,
+                    'data-xinfo': infoIndex
+                }).addClass('xinfo btn btn-outline-dark btn-sm pb-0 pt-0').text('%s %s'.with(Symbols.table, l10n.resultShowTableModal));
+                if(type === 'html') {
+                    tr.append($('<td/>').append(btn));
+                    break;
+                }
+                else {
+                    return {
+                        v: btn[0].outerHTML,
+                        s: val.value.body.length
+                    };
+                }
+            }
+            case 'plain':
+                if(type === 'html') {
+                    let td = $('<td/>').text(val.value);
+                    if(val.order !== undefined)
+                        td.attr('data-order', val.order);
+                    tr.append(td);
+                    break;
+                }
+                else {
+                    return {
+                        v: val.value,
+                        s: val.order !== undefined ? val.order : val.value
+                    };
+                }
             default:
-                tr.append($('<td/>').text('???'));
+                if(type === 'html') {
+                    tr.append($('<td/>').text('???'));
+                    break;
+                }
+                else
+                    return { v: '???', s: '???' };
         }
     }
     else {
         let cell = $('<td/>');
+        let orderVal;
         if(val === null || val === undefined)
             cell/*.attr('data-order', '')*/.text('');
         else switch(typeof val) {
             case 'number': 
-                cell.attr('data-order', val).text(
+                cell.attr('data-order', orderVal = val).text(
                     attr && attr.pseudoAttributeKey === PseudoAttributes.ID ? val : val.toLocaleString()
                 ); 
                 break;
             
             case 'date': 
-                cell.attr('data-order', val.getTime()).text(val.toLocaleDateString()); 
+                cell.attr('data-order', orderVal = val.getTime()).text(val.toLocaleDateString()); 
                 break;
 
             default: {
@@ -987,31 +1040,34 @@ function renderAttributeValueHtml(
                 break;
             }
         }
-        tr.append(cell);
+        if(type === 'html')
+            tr.append(cell);
+        else
+            return { v: cell.html(), s: orderVal ? orderVal : cell.text() };
     }
 }
 
 // ------------------------------------------------------------------------------------
-function getResultTable(r, info, limit) {
+function getResultTable(r, info) {
 // ------------------------------------------------------------------------------------
     if(r.head.length == 0)
         return $('<div/>').addClass('alert alert-info').text(l10n.resultsNone);
-    var t = $('<table/>').attr({ id: 'result-table' }).addClass('table table-striped table-bordered table-nonfluid table-sm').data('contexts', r.contexts);
-    var thead = $('<thead/>').addClass('thead-light').appendTo(t);
-    var h = $('<tr/>');
-    r.head.forEach(th => h.append($('<th/>').text(th)));
-    thead.append(h);
-    var tbody = $('<tbody/>').appendTo(t);
-    let c = 0;
+    var t = $('<table/>').attr({ id: 'result-table' }).addClass('table table-striped table-bordered table-nonfluid table-sm').data({
+        contexts: r.contexts,
+        tableBody: r.body,
+        tableHead: r.head,
+        tableSortTypes: r.sortTypes
+    });
     let res = {
         total: r.body.length
     }
-    r.body.forEach(row => {
-        if(limit && ++c > limit)
-            return false;
-        var tr = $('<tr/>').appendTo(tbody);
-        row.forEach((val, index) => renderAttributeValueHtml(val, tr, r.attrs ? r.attrs[index] : undefined));
-    });
+    if(!r.isRendered) {
+        r.body.forEach(row => {
+            for(let i = row.length - 1; i >= 0; i--)
+                row[i] = renderAttributeValue('data', row[i], undefined, r.attrs ? r.attrs[i] : undefined);
+        });
+        r.isRendered = true;
+    }
     res.div = $('<div/>').addClass('table-responsive').append(t);
     return res;
 }
@@ -1141,7 +1197,8 @@ function addResultMap(contexts, result_div) {
             if(value === null || typeof value === 'undefined')
                 return;
             let tr = $('<tr/>').append($('<th/>').text(attr.name));
-            renderAttributeValueHtml(
+            renderAttributeValue(
+                'html',
                 attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
                 ? { display: 'html', value: db.getEntityDetailsLink(context), order: context.id } 
                 : db.getDisplayValue(value, attr), 
@@ -1171,6 +1228,13 @@ function addResultMap(contexts, result_div) {
 }
 
 // ------------------------------------------------------------------------------------
+function tryClearDataTableElementInfos() {
+// ------------------------------------------------------------------------------------
+    if($('table.dataTable').length === 0)
+        DataTableElementInfos.clear();
+}
+    
+// ------------------------------------------------------------------------------------
 function makeDataTable(table, customOptions, domColumns = [4, 4, 4]) {
 // ------------------------------------------------------------------------------------
     let init_button = (foo, node) => node.removeClass('btn-secondary').addClass('btn-outline-secondary btn-sm');
@@ -1183,18 +1247,33 @@ function makeDataTable(table, customOptions, domColumns = [4, 4, 4]) {
             init: init_button 
         });
     });
+    let sortTypes = table.data('tableSortTypes');
     let options = {
         scrollX: true,
+        deferRender: true,
+        data: table.data('tableBody'),
+        columns: table.data('tableHead').map((title, colIndex) => {
+            return { 
+                title,  
+                data: { 
+                    _: '%s.v'.with(colIndex), 
+                    sort: '%s.s'.with(colIndex) 
+                },
+                type: sortTypes === undefined ? undefined : sortTypes[colIndex]
+            }
+        }),
         buttons,
-        dom: ("<'row font-sm'<'col-sm-12 col-md-%s'l><'col-sm-12 col-md-%s'B><'col-sm-12 col-md-%s'f>>" +
-           "<'row font-sm'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>" +
-           "<'row'<'col-sm-12'tr>>").with(domColumns[0], domColumns[1], domColumns[2])
+        dom: String().concat(
+            "<'row font-sm'<'col-sm-12 col-md-%s'l><'col-sm-12 col-md-%s'B><'col-sm-12 col-md-%s'f>>",
+            "<'row font-sm'<'col-sm-12 col-md-5'i><'col-sm-12 col-md-7'p>>",
+            "<'row'<'col-sm-12'tr>>"
+        ).with(domColumns[0], domColumns[1], domColumns[2])
     };
     if(l10n.dataTablesLocalization)
         options.language = l10n.dataTablesLocalization;
     if(typeof customOptions === 'object')
         $.extend(options, customOptions);
-    return table.DataTable(options);
+    table.DataTable(options);
 }
 
 // ------------------------------------------------------------------------------------
@@ -1207,16 +1286,18 @@ function clearResultTableButtons() {
 function updateResult(callback) {
 // ------------------------------------------------------------------------------------
     clearResultTableButtons();
+    let result_div = $('#result').empty();
+    tryClearDataTableElementInfos();
     let filterObject = getFiltersObject();
     if(typeof filterObject === 'string') {
-        $('#result').empty().append(
+        result_div.append(
             $('<div/>').text(filterObject).addClass('alert alert-danger')
         );
         return;
     }
     let groupingObject = getGroupingObject();
     if(typeof groupingObject === 'string') {
-        $('#result').empty().append(
+        result_div.append(
             $('<div/>').text(groupingObject).addClass('alert alert-danger')
         );
         return;
@@ -1227,15 +1308,15 @@ function updateResult(callback) {
     console.log('Start query', analysis);
     setTimeout(function() {
         try {
+            result_div.empty();
             analysis.filters = filterObject;
             analysis.grouping = groupingObject;
             analysis.hierarchical = $('#tree-analysis').prop('checked');
             analysis.discardTableRows = doIgnoreTableRows();
             let result = db.getAnalysisResults(analysis);
-            let result_div = $('#result');
             console.log(result);
             if(result.error)
-                result_div.empty().append(
+                result_div.append(
                     $('<div/>').html(result.error).prepend('<b>%s</b>'.with(l10n.errorHeading)).addClass('alert alert-danger')
                 );
             else if(result.hasOwnProperty('result')) {
@@ -1243,37 +1324,33 @@ function updateResult(callback) {
                 if(r === null)
                     r = l10n.resultNoValue;
                 if(typeof r === 'number')
-                    result_div.empty().append(
+                    result_div.append(
                         $('<div/>').addClass('alert alert-info result-number').text(r.toLocaleString())
                     );
                 else if(typeof r === 'object') { // tabular result
                     $('#export-geojson').prop('disabled', ['map', 'table'].indexOf(analysis.outputDisplay.type) === -1);
 
                     if(analysis.outputDisplay.type === 'map') {
-                        addResultMap(r, result_div.empty());
+                        addResultMap(r, result_div);
                     }
                     else {
-                        const limit = 1000;
-                        let tbl = getResultTable(r, result.info, limit);
-
-                        result_div.empty()
-                        if(tbl.total > limit) {
-                            result_div.append(
-                                $('<p/>').addClass('alert alert-warning').text(
-                                    l10n.get('resultTableLimit', limit.toLocaleString(), tbl.total.toLocaleString())
-                                )
-                            );
+                        let tbl = getResultTable(r, result.info);
+                        if(r.grandTotal > Settings.resultTable.maxRows) {
+                            result_div.append($('<p/>').addClass('alert alert-warning').text(
+                                l10n.resultTableLimit.with(Settings.resultTable.maxRows.toLocaleString(), r.grandTotal.toLocaleString())
+                            ));
                         }
                         result_div.append(tbl.div);
                         let customOrder;
                         if(analysis.outputDisplay.type === 'distribution')
                             customOrder = { order: [[ 1, 'desc']] }; // order by second column descending
-                        makeDataTable(result_div.find('table'), customOrder, [5, 1, 6]);
+                        let table = result_div.find('table').first();
+                        makeDataTable(table, customOrder, [5, 1, 6]);
                         result_div.find('div.dt-buttons').detach().appendTo('#result-heading').addClass('datatable-buttons').removeClass('btn-group dt-buttons');
                     }
                 }
                 else
-                    result_div.empty().append(
+                    result_div.append(
                         $('<div/>').addClass('alert alert-info').text(r)
                     );
             }
@@ -1458,7 +1535,7 @@ function initializeGroupTab() {
 function addAttributeToGroupingTable(tbody, attr) {
 // ------------------------------------------------------------------------------------
     let options = [{ value: '', label: Symbols.longdash }];
-    let aggregates = AttributeGroupMapping[attr.type].slice();
+    let aggregates = AttributeGroupMapping[attr.type] && AttributeGroupMapping[attr.type].slice();
     if(!aggregates) {// e.g. when a type 'unknown'
         console.warn('No group mapping for attribute type', attr.type, 'of attribute', attr);
         return;
@@ -1870,7 +1947,16 @@ function reloadDb() {
 // ------------------------------------------------------------------------------------
 function start() {
 // ------------------------------------------------------------------------------------
-    $(document).on('DOMNodeInserted', 'select', function () { makeSelect2($(this)) });
+    $(document).on('DOMNodeInserted', 'select', function () { 
+       makeSelect2($(this)) 
+    }).on('click', '.xinfo', function(event) {
+        let e = $(event.target);
+        let info = DataTableElementInfos.get(e.data('xinfo'));
+        if(info.data)
+            e.data(info.data);
+        if(typeof info.click === 'string')
+            window[info.click].apply(event.target, event);
+    });
     $('#loading-progress').text(l10n.statusInitUI);
     initUi();
     updateAnalysisStatus({ curSection: 'output'});
