@@ -4,9 +4,7 @@ var analysis = {};
 var masterTree;
 var DataTableElementInfos = {
     infos: [],
-    count: 0,
     add: function (data, click) {
-        this.count++;
         return this.infos.push({ data: data, click: click }) - 1;
     },
     get: function(index) {
@@ -14,7 +12,6 @@ var DataTableElementInfos = {
     },
     clear: function () {
         this.infos = [];
-        this.count = 0;
     }
 };
 const Settings = {
