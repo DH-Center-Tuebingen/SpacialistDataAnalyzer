@@ -374,13 +374,24 @@ function getFilterTransformationDropdown(row, object) {
 }
 
 // ------------------------------------------------------------------------------------
-function getThesaurusOptions(object, select) {
+function addThesaurusOptionsToDropdown(
+    object, 
+    select, 
+    exclude_leaf_concepts = false
+) {
 // ------------------------------------------------------------------------------------
-    let options = db.thesaurus.getDescendants(db.attributes[object.id].thesaurusRoot);
+    let options = db.thesaurus.getDescendants(db.attributes[object.id].thesaurusRoot, exclude_leaf_concepts);
     select.empty().append($('<option/>').attr({ value: '' }).text(''));
     options.forEach(concept => select.append(
         $('<option/>').attr({ value: concept.url }).text(concept.label)
     ));
+    if(options.length === 0) {
+        select.data('select2Options', {
+            language: {
+                noResults: () => l10n.filterNoDescendantConcepts
+            }
+        });
+    }
     select.removeClass('hidden');
 }
 
@@ -406,7 +417,8 @@ function getFilterValueControls(row) {
         case 'equal-thesaurus':
         case 'not-equal-thesaurus':
             select = get_select(null, { width: '100%' }).addClass('hidden');
-            getThesaurusOptions(obj, select);
+            addThesaurusOptionsToDropdown(obj, select);
+            select.data('thesaurusType', 'concept');
             ctrls.unshift(select);
             break;
 
@@ -418,7 +430,18 @@ function getFilterValueControls(row) {
         case 'contain-thesaurus':
         case 'not-contain-thesaurus':
             select = get_select(null, { width: '100%' }).addClass('hidden');
-            getThesaurusOptions(obj, select);
+            addThesaurusOptionsToDropdown(obj, select);
+            select.data('thesaurusType', 'concept');
+            ctrls.unshift(select);
+            break;
+
+        case 'descendant-thesaurus':
+        case 'not-descendant-thesaurus':
+        case 'contain-descendant-thesaurus':
+        case 'not-contain-descendant-thesaurus':
+            select = get_select(null, { width: '100%' }).addClass('hidden');
+            addThesaurusOptionsToDropdown(obj, select, true);
+            select.data('thesaurusType', 'descendant');
             ctrls.unshift(select);
             break;
     }
@@ -455,7 +478,11 @@ function getFilterOperatorDropdown(row, type) {
         // if cur and new controls are same type, we leave the value controls as is
         if(!$.isArray(curControls)
             || curControls.length !== newControls.length
-            || newControls.some((ctrl, i) => !curControls[i].is(ctrl.prop('tagName')) || curControls[i].attr('type') !== ctrl.attr('type'))
+            || newControls.some((ctrl, i) => {
+                return !curControls[i].is(ctrl.prop('tagName')) 
+                || curControls[i].attr('type') !== ctrl.attr('type') 
+                || curControls[i].data('thesaurusType') !== ctrl.data('thesaurusType')
+            })
         ) {
             cell.empty();
             newControls.forEach(ctrl => cell.append(ctrl));
@@ -641,7 +668,7 @@ function renderRowIngoreSettings() {
     else {
         $('.outputObjectName').text(l10n.filterDiscardTableRowsOutputObjectNameEntity);
     }
-    tableRowSettingsContainer.find('input').prop('disabled', disable);
+    $('#discardTableRows').prop('disabled', disable);
 }
 
 // ------------------------------------------------------------------------------------
@@ -770,7 +797,7 @@ function getHierarchicalPathBreadcrumbs(context) {
     let parent = context;
     while(parent = parent.parentContext) {
         crumbs.prepend('%s » '.with(db.getEntityDetailsLink(
-            parent.id,
+            parent,
             '%s (%s)'.with(parent.name, parent.contextType.name),
             { 'data-navigate': true }
         )));
@@ -812,7 +839,7 @@ function renderEntityDetails(
             .click(() => {
                 renderEntityDetails(container, historyPos + 1);
             }))
-        .append(db.getSpacialistLink(context.id, l10n.entityDetailsShowInSpacialist))
+        .append(db.getSpacialistLink(context, l10n.entityDetailsShowInSpacialist.with(context.contextType.name)))
     );
     let tableContainer = $('<div/>').addClass('table-responsive').appendTo(div);
     let table = $('<table/>').addClass('table table-striped table-sm mb-0 mt-1').appendTo(tableContainer);
@@ -841,7 +868,7 @@ function renderEntityDetails(
             if(!list)
                 list = typeLists[child.contextType.name] = [];
             list.push(db.getEntityDetailsLink(
-                child.id,
+                child,
                 child.name,
                 { 'data-navigate': true },
                 'mr-2'
@@ -1173,7 +1200,7 @@ function addResultMap(contexts, result_div) {
             renderAttributeValue(
                 'html',
                 attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                ? { display: 'html', value: db.getEntityDetailsLink(context.id), order: context.id } 
+                ? { display: 'html', value: db.getEntityDetailsLink(context), order: context.id } 
                 : db.getDisplayValue(value, attr), 
                 tr, attr);
             table.append(tr);
@@ -1617,6 +1644,8 @@ function makeSelect2(box, options) {
     };
     if(options)
         $.extend(opt, options);
+    if(box.data('select2Options'))
+        $.extend(opt, box.data('select2Options'));
     box.select2(opt);
     let initialValue = box.data('initialValue');
     if(typeof initialValue !== 'undefined')

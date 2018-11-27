@@ -23,12 +23,17 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
 
             // ----------------------------------------------------------------------------------------
-            db.thesaurus.getDescendants = /*array*/ function (url) {
+            db.thesaurus.getDescendants = /*array*/ function (
+                url, 
+                exclude_leaf_concepts = false
+            ) {
             // ----------------------------------------------------------------------------------------
                 function recurseThesaurus(concept, curResult, addParent) {
                     if(addParent)
                         curResult.push(concept);
                     concept.childConcepts.forEach(child => {
+                        if(exclude_leaf_concepts && child.childConcepts.length === 0)
+                            return;
                         curResult.push(child);
                         recurseThesaurus(child, curResult, false);
                     });
@@ -599,29 +604,29 @@ function initializeDbVar() {
 
         // --------------------------------------------------------------------------------------------
         getSpacialistLink: function(
-            contextId,
+            context,
             label,
             customClasses = ''
         ) {
         // --------------------------------------------------------------------------------------------
             return ($('<a/>').attr({
                 target: '_spacialist',
-                href: '%s/%s/#/e/%s'.with(spacialistInstance.webRoot, spacialistInstance.folder, contextId),
-                title: l10n.dbSpacialistLinkTitle,
+                href: '%s/%s/#/e/%s'.with(spacialistInstance.webRoot, spacialistInstance.folder, context.id),
+                title: l10n.dbSpacialistLinkTitle.with(context.contextType.name),
             }).addClass('btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
-                '%s %s'.with(Symbols['list-links'], label === undefined? contextId : label).trim()
+                '%s %s'.with(Symbols['list-links'], label === undefined? context.id : label).trim()
             ))[0].outerHTML;
         },
 
         // --------------------------------------------------------------------------------------------
         getEntityDetailsLink: function(
-            contextId,
+            context,
             label,
             customAttrs,
             customClasses = ''
         ) {
         // --------------------------------------------------------------------------------------------
-            let xinfo = DataTableElementInfos.add({ contextId }, 'clickedShowEntityDetails');
+            let xinfo = DataTableElementInfos.add({ context.id }, 'clickedShowEntityDetails');
             let attrs = {
                 href: 'javascript:void(0)',
                 title: l10n.dbEntityDetailsTitle,
@@ -630,7 +635,7 @@ function initializeDbVar() {
             if(customAttrs)
                 $.extend(attrs, customAttrs);
             return ($('<a/>').attr(attrs).addClass('xinfo btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
-                '%s %s'.with(Symbols['list-entities'], label === undefined? contextId : label).trim()
+                '%s %s'.with(Symbols['list-entities'], label === undefined? context.id : label).trim()
             ))[0].outerHTML;
         },
 
@@ -677,7 +682,7 @@ function initializeDbVar() {
                     let row = [];
                     r.attrs.forEach(attr => row.push(
                         attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                        ? { display: 'html', value: this.getEntityDetailsLink(context.id), order: context.id } 
+                        ? { display: 'html', value: this.getEntityDetailsLink(context), order: context.id } 
                         : this.getDisplayValue(context.attributes[attr.id], attr)
                     ));
                     r.body.push(row);
@@ -755,7 +760,7 @@ function initializeDbVar() {
                     if(currentValue === undefined)
                         currentValue = [];
                     let label = context.attributes[attribute.id];
-                    currentValue.push({ label, html: db.getSpacialistLink(context.id, label, undefined, 'mr-2') });
+                    currentValue.push({ label, html: db.getSpacialistLink(context, label, 'mr-2') });
                     return currentValue;
                 }
 
@@ -763,7 +768,7 @@ function initializeDbVar() {
                     if(currentValue === undefined)
                         currentValue = [];
                     let label = context.attributes[attribute.id];
-                    currentValue.push({ label, html: db.getEntityDetailsLink(context.id, label, undefined, 'mr-2') });
+                    currentValue.push({ label, html: db.getEntityDetailsLink(context, label, undefined, 'mr-2') });
                     return currentValue;
                 }
 
@@ -1044,17 +1049,24 @@ function initializeDbVar() {
                             groupColumnValues.push(seenValues);
                         }
                         else {
-                            groupColumnValues.push([undefined]);
+                            groupColumnValues.push([null]);
                         }
                     }
                     else { // single attribute
-                        groupColumnValues.push([ this.getDisplayValue(context.attributes[attr.id], attr) ]);
+                        if(attr.type === 'string-mc') {
+                            let values = context.attributes[attr.id];
+                            if($.isArray(values))
+                                groupColumnValues.push(values.map(val => db.getThesaurusLabel(val.concept_url)));
+                        }
+                        else {
+                            groupColumnValues.push([ this.getDisplayValue(context.attributes[attr.id], attr) ]);
+                        }
                     }
                 });
 
                 if(groupColumns.length === 0) {
                     // add fake grouping
-                    groupColumnValues.push([undefined]);
+                    groupColumnValues.push([null]);
                 }
 
                 // Now we create a row for each value combination
@@ -1069,7 +1081,7 @@ function initializeDbVar() {
                     let breakEvery = cntRows / groupColumnValues[c].length;
                     for(let r = 0; r < cntRows; r++) {
                         if(rows[r] === undefined)
-                            rows[r] = [];
+                            rows[r] = new Array(groupColumns.length).fill(null);
                         rows[r][c] = groupColumnValues[c][groupRowInColumn];
                         if((r + 1) % breakEvery === 0)
                             groupRowInColumn++;
@@ -1401,8 +1413,39 @@ function initializeDbVar() {
                     return contain ? found : !found;
                 }
 
+                case 'descendant-thesaurus':
+                case 'not-descendant-thesaurus':
+                case 'contain-descendant-thesaurus':
+                case 'not-contain-descendant-thesaurus': {
+                    let descendant = ['descendant-thesaurus', 'contain-descendant-thesaurus'].includes(filter.operator);
+                    if(valueToCompare === null || typeof valueToCompare === 'undefined')
+                        return descendant ? false : true;
+                    if(!$.isArray(valueToCompare)) { // single choice -> fake multiple choice
+                        valueToCompare = [{ 
+                            concept_url: valueToCompare.concept_url || valueToCompare
+                        }];
+                    }
+                    let found = db.findDescendantThesaurusConcept(
+                        db.thesaurus[filter.values[0]],
+                        valueToCompare.map(v => v.concept_url)
+                    );
+                    return descendant ? found : !found;
+                }
+
                 default: throw l10n.get('errorUnknownFilterOperator', filter.operation);
             }
+        },
+
+        // --------------------------------------------------------------------------------------------
+        findDescendantThesaurusConcept: function(
+            concept,
+            descendantCandidateUrls
+        ) {
+        // --------------------------------------------------------------------------------------------
+            return concept && concept.childConcepts.some(childConcept => {
+                return descendantCandidateUrls.includes(childConcept.url)
+                    || db.findDescendantThesaurusConcept(childConcept, descendantCandidateUrls);
+            });
         },
 
         // --------------------------------------------------------------------------------------------
