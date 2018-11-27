@@ -51,6 +51,15 @@
     width: 100%;
 }
 
+span.symbol {
+    width: 1rem;
+    text-align: center;
+    font-family: monospace;
+    display: inline-block;
+    line-height: 1rem;
+    font-size: 18px;
+}
+
 .attr-info {
     font-weight: 200;
     font-size: smaller;

@@ -135,12 +135,12 @@ function updateGui(update) {
             let options = { '': '' };
             let displayType = update.outputObject.type;
             AttributeDisplayTypeMapping[displayType].forEach(display => {
-                options[display] = "%s %s".with(Symbols[display], l10n.attributeDisplayTypeLabels[display]);
+                options[display] = l10n.attributeDisplayTypeLabels[display];
             });
             let select;
             div_info.append(
                 $('<p/>').attr('id', 'outputAttributeDisplay').text(l10n.outputSelectPropertyDisplayType).append(
-                    select = $('<select/>').attr('id', 'displayType').change(function(e) {
+                    select = $('<select/>').attr('id', 'displayType').data('hasSymbols', true).change(function(e) {
                         updateAnalysisStatus({
                             outputDisplay: {
                                 type: $(this).val()
@@ -158,15 +158,14 @@ function updateGui(update) {
             select.val(sel).trigger('change');
         }
         else { // ContextType
-            let fmt = '%s %s';
             let options = [
-                { value: 'table', label: fmt.with(Symbols.table, l10n.contextTypeDisplayLabels.table) },
-                { value: 'map', label: fmt.with(Symbols.map, l10n.contextTypeDisplayLabels.map) },
-                { value: 'count', label: fmt.with(Symbols.count, l10n.contextTypeDisplayLabels.count) }
+                { value: 'table', label: l10n.contextTypeDisplayLabels.table },
+                { value: 'map', label: l10n.contextTypeDisplayLabels.map },
+                { value: 'count', label: l10n.contextTypeDisplayLabels.count }
             ];
             div_info.append(
                 $('<p/>').attr('id', 'outputContextTypeDisplay').text(l10n.outputSelectEntityDisplay).append(
-                    get_select({id: 'displayType'}, { initialValue: options[0].value }, options, function() {
+                    get_select({id: 'displayType'}, { initialValue: options[0].value, hasSymbols: true }, options, function() {
                         updateAnalysisStatus({
                             outputDisplay: {
                                 type: $(this).val()
@@ -354,13 +353,13 @@ function getFilterTransformationDropdown(row, object) {
     transformations.forEach((trans) => {
         options.push({
             value: trans,
-            label: '%s %s'.with(Symbols[trans], l10n.objectFilterLabels[trans]),
+            label: l10n.objectFilterLabels[trans],
             data: {
                 type: transformations[trans]
             }
         });
     });
-    let select = get_select(null, { row: row, allowClear: true, width: '100%' }, options, function(e) {
+    let select = get_select(null, { row: row, allowClear: true, width: '100%', hasSymbols: true }, options, function(e) {
         let dropdown = $(this);
         let row = dropdown.data('row');
         row.find('.col-flt-value').empty();
@@ -464,13 +463,14 @@ function getFilterOperatorDropdown(row, type) {
     ObjectFilterOperatorMapping[type].forEach((op) => {
         options.push({
             value: op,
-            label: '%s %s'.with(Symbols[op], l10n.objectFilterLabels[op])
+            label: l10n.objectFilterLabels[op]
         });
     });
     let select = get_select(null, {
         row: row,
         initialValue: ObjectFilterOperatorMapping[type][0],
-        width: '100%'
+        width: '100%',
+        hasSymbols: true
     }, options, () => {
         let cell = row.find('.col-flt-value');
         let curControls = row.data('valueControls');
@@ -1559,10 +1559,17 @@ function addAttributeToGroupingTable(tbody, attr) {
     aggregates.forEach(op => {
         options.push({
             value: op,
-            label: '%s %s'.with(Symbols[op], l10n.attributeDisplayTypeLabels[op])
+            label: l10n.attributeDisplayTypeLabels[op]
         });
     });
-    let box = get_select({ id: 'attrGrouping' + attr.id }, { attribute: attr, allowClear: true, width: '100%' }, options, updateGroupBadge);
+    let box = get_select({ 
+        id: 'attrGrouping' + attr.id 
+    }, { 
+        attribute: attr, 
+        allowClear: true, 
+        width: '100%', 
+        hasSymbols: true 
+    }, options, updateGroupBadge);
     let nameCell = $('<td/>').text(attr.name).append($('<span/>').addClass('attr-info').text(l10n.attributeTypeLabels[attr.type]));
     if(attr.parentAttribute)
         nameCell.css('padding-left', 20).prepend('└ ');
@@ -1645,6 +1652,19 @@ function installTabChangeHandler() {
 }
 
 // ------------------------------------------------------------------------------------
+function formatSymbolOption(state) {
+// ------------------------------------------------------------------------------------
+    if(!state.id)
+        return state.text;
+    let symbol = Symbols[state.id];
+    if(symbol === undefined)
+        return state.text;
+    return $('<span/>').append(
+        $('<span/>').addClass('symbol mr-2').text(symbol)
+    ).append(state.text);
+}
+
+// ------------------------------------------------------------------------------------
 function makeSelect2(box, options) {
 // ------------------------------------------------------------------------------------
     let opt = {
@@ -1654,6 +1674,8 @@ function makeSelect2(box, options) {
         minimumResultsForSearch: 10,
         allowClear: box.data('allowClear') === true
     };
+    if(box.data('hasSymbols'))
+        opt.templateResult = opt.templateSelection = formatSymbolOption;
     if(options)
         $.extend(opt, options);
     if(box.data('select2Options'))
