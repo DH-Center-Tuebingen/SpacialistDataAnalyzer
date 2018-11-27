@@ -626,7 +626,7 @@ function initializeDbVar() {
             customClasses = ''
         ) {
         // --------------------------------------------------------------------------------------------
-            let xinfo = DataTableElementInfos.add({ context.id }, 'clickedShowEntityDetails');
+            let xinfo = DataTableElementInfos.add({ contextId: context.id }, 'clickedShowEntityDetails');
             let attrs = {
                 href: 'javascript:void(0)',
                 title: l10n.dbEntityDetailsTitle,
