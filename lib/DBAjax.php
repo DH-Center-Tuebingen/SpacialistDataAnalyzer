@@ -22,7 +22,7 @@ $thesaurus = array();
 $hierarchy = array();
 
 $labelQuery = function($url_attr_name) {
-    // the order by clause orders by boolean whether short_name is the desired language. 
+    // the order by clause orders by boolean whether short_name is the desired language, and then by concept_label_type (1=preferred, 2=alternative) 
     // false gets ordered on top by postgres, so we use !=, so the desired language concept gets on top, then we limit by 1
     // so even if the concept is not defined in the desired language, we still get the concept in some other language
     return <<<SQL
@@ -31,7 +31,7 @@ $labelQuery = function($url_attr_name) {
         where lbl.language_id = lng.id 
         and con.id = lbl.concept_id 
         and con.concept_url = $url_attr_name
-        order by lng.short_name != :lang
+        order by lng.short_name != :lang, lbl.concept_label_type
         limit 1
 SQL;
 };
