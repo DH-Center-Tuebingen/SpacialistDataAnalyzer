@@ -68,6 +68,24 @@ $.fn.getElementInfo = function(index) {
 }
 
 // ------------------------------------------------------------------------------------
+function getLocalStorageItem(name) {
+// ------------------------------------------------------------------------------------
+    if(!window.localStorage)
+        return null;
+    let data = window.localStorage.getItem('%s.%s'.with(spacialistInstance.db, name));
+    return typeof data === 'string' ? JSON.parse(data) : null;
+}
+
+// ------------------------------------------------------------------------------------
+function setLocalStorageItem(name, data) {
+// ------------------------------------------------------------------------------------
+    window.localStorage && window.localStorage.setItem(
+        '%s.%s'.with(spacialistInstance.db, name), 
+        JSON.stringify(data)
+    );
+}
+
+// ------------------------------------------------------------------------------------
 function get_checkbox(attr, data, checked, label, change_handler) {
 // ------------------------------------------------------------------------------------
     let allAttr = $.extend({}, attr, { type: 'checkbox' });

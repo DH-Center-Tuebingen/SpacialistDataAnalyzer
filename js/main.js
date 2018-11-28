@@ -1232,7 +1232,7 @@ function addResultMap(contexts, result_div) {
         updateWhenIdle: true,
         position: 'bottomright'
     }).addTo(map);
-    $(window).deferredResize(adjustMapHeight);
+    $('#result-container').deferredResize(adjustMapHeight);
     adjustMapHeight();
     map.fitBounds(markers_group.getBounds().pad(.05), {
         animate: true,
@@ -1688,29 +1688,6 @@ function makeSelect2(box, options) {
 }
 
 // ------------------------------------------------------------------------------------
-function installFullscreenToggle() {
-// ------------------------------------------------------------------------------------
-    $('#fullscreen-toggle').click(function() {
-        if($('#tree-container').is(':visible')) {
-            // make full screen
-            $('#tree-container').hide();
-            $('#display-container').removeClass('col-' + (12 - Settings.splitScreen.treeCols)).addClass('col-12');
-            $('#analysis-container').hide();
-            $('#result-container').css('height', '100%').removeClass('border-top');
-        }
-        else {
-            // make split screen
-            $('#tree-container').show();
-            $('#display-container').removeClass('col-12').addClass('col-' + (12 - Settings.splitScreen.treeCols));
-            $('#analysis-container').show();
-            $('#result-container').css('height', (100 - Settings.splitScreen.analysisHeight) + '%').addClass('border-top');
-        }
-        $(window).resize(); // so the DataTable will auto adjust column widths in header and rows
-        adjustMapHeight();
-    });
-}
-
-// ------------------------------------------------------------------------------------
 function installGeoJSONExport() {
 // ------------------------------------------------------------------------------------
     $('#export-geojson').click(function() {
@@ -1950,7 +1927,6 @@ function initializeAnalysisOptions() {
     initializeFilterTab();
     initializeGroupTab();
     installTabChangeHandler();
-    installFullscreenToggle();
     installGeoJSONExport();
     $('#reset-all').click(clearAnalysis);
 }
@@ -2013,6 +1989,180 @@ function localizeGUI() {
 }
 
 // ------------------------------------------------------------------------------------
+function makeResizable() {
+// ------------------------------------------------------------------------------------
+    var isResizingX = false,
+        isResizingY = false,
+        lastDownX,
+        lastDownY,
+        minWidth = 100,
+        minHeight = 100,
+        fullScreen = false,
+        leftCol = $('#tree-container'),
+        rightCol = $('#display-container'),
+        topRow = $('#analysis-container'),
+        bottomRow = $('#result-container'),
+        handleX = $('#resizeX'),
+        handleY = $('#resizeY'),
+        containerMargin = 16;
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    var oldWindowSize = {
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        load: function(loadedCallback) {
+            this.update(true);
+            let v = getLocalStorageItem('oldWindowSize');
+            if(v) {
+                this.leftColPct = v.leftColPct;
+                this.topRowPct = v.topRowPct;
+                if(typeof loadedCallback === 'function') 
+                    loadedCallback();
+            }   
+        },
+        update: function(preventStore = false) {
+            this.h = window.innerHeight;
+            this.w = window.innerWidth;
+            this.leftColPct = leftCol.outerWidth() / window.innerWidth;
+            this.topRowPct = topRow.outerHeight() / (window.innerHeight - containerMargin);
+            if(!preventStore) {
+                setLocalStorageItem('oldWindowSize', this);
+            }
+        }
+    };
+    if(leftCol.hasClass('col-4')) {
+        leftCol.css('width', leftCol.outerWidth()).removeClass('col-4');
+        rightCol.css('width', rightCol.outerWidth()).removeClass('col-8');
+    }
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    handleX
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    .bind('adjustHandle', function() {
+        handleX.offset({
+            left: leftCol.offset().left + leftCol.outerWidth() - 4
+        });
+        return false;
+    })
+    .on('mousedown', function (e) {
+        isResizingX = true;
+        lastDownX = e.clientX;
+        handleX.css('background-color', 'rgba(100,100,100,0.5)');
+        return false;
+    })
+    .trigger('adjustHandle')
+    .show();
+    
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    handleY
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    .bind('adjustHandle', function() {
+        handleY.offset({ 
+            left: rightCol.offset().left + 4, 
+            top: topRow.offset().top + topRow.outerHeight() - 7
+        }).width(
+            rightCol.outerWidth()
+        );
+        return false;
+    })
+    .on('mousedown', function (e) {
+        isResizingY = true;
+        lastDownY = e.clientY;
+        handleY.css('background-color', 'rgba(100,100,100,0.5)');
+        return false;
+    })
+    .trigger('adjustHandle')
+    .show();
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    $(document)
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    .on('mousemove', function (e) {
+        if(isResizingX) {
+            let diff = lastDownX - e.clientX;
+            let newWidthL = leftCol.width() - diff;
+            let newWidthR = rightCol.width() + diff;
+            if(newWidthL < minWidth || newWidthR < minWidth)
+                return;
+            leftCol.width(newWidthL);
+            rightCol.width(newWidthR);
+            lastDownX = e.clientX;
+            handleX.trigger('adjustHandle');
+            handleY.trigger('adjustHandle');
+            oldWindowSize.update();
+        }
+        else if(isResizingY) {
+            let diff = lastDownY - e.clientY;
+            let newHeightT = topRow.height() - diff;
+            let newHeightB = bottomRow.height() + diff;
+            if(newHeightT < minHeight || newHeightB < minHeight)
+                return;
+            topRow.height(newHeightT);
+            bottomRow.height(newHeightB);
+            lastDownY = e.clientY;
+            handleY.trigger('adjustHandle');
+            oldWindowSize.update();
+        }
+        return false;
+    })
+    .on('mouseup', function (e) {
+        isResizingX = isResizingY = false;
+        handleX.css('background-color', '');
+        handleY.css('background-color', '');
+    });
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    oldWindowSize.load(() => {
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        let leftWidthNew = (window.innerWidth - containerMargin) * oldWindowSize.leftColPct;
+        leftCol.outerWidth(leftWidthNew);
+        rightCol.outerWidth(window.innerWidth - containerMargin - leftWidthNew);
+        let topHeightNew = (window.innerHeight - containerMargin) * oldWindowSize.topRowPct;
+        topRow.outerHeight(topHeightNew);
+        bottomRow.outerHeight(window.innerHeight - containerMargin - topHeightNew);
+        handleX.trigger('adjustHandle');
+        handleY.trigger('adjustHandle');
+        oldWindowSize.update();
+    });
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    $(window).on('resize', function() {
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        if(fullScreen) {
+            rightCol.outerWidth(window.innerWidth - containerMargin);
+            bottomRow.outerHeight(window.innerHeight - containerMargin);
+            return;
+        }
+        if(window.innerWidth < 200 || window.innerHeight < 200)
+            return;
+        let diff = {
+            w: window.innerWidth - oldWindowSize.w,
+            h: window.innerHeight - oldWindowSize.h
+        };
+        let leftWidthNew = leftCol.outerWidth() + diff.w * oldWindowSize.leftColPct;
+        leftCol.outerWidth(leftWidthNew);
+        rightCol.outerWidth(window.innerWidth - containerMargin - leftWidthNew);
+        let topHeightNew = topRow.outerHeight() + diff.h * oldWindowSize.topRowPct;
+        topRow.outerHeight(topHeightNew);
+        bottomRow.outerHeight(window.innerHeight - containerMargin - topHeightNew);
+        handleX.trigger('adjustHandle');
+        handleY.trigger('adjustHandle');
+        oldWindowSize.update();
+    });
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    $('#fullscreen-toggle').click(function() {
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        fullScreen = !fullScreen;
+        let elements = [leftCol, topRow, handleX, handleY];
+        if(fullScreen)
+            elements.forEach(e => e.hide());
+        else 
+            elements.forEach(e => e.show());
+        $(window).resize(); // so the DataTable will auto adjust column widths in header and rows
+        adjustMapHeight();
+    });
+}
+
+// ------------------------------------------------------------------------------------
 // MAIN ENTRY POINT
 $(function() {
 // ------------------------------------------------------------------------------------
@@ -2032,6 +2182,7 @@ $(function() {
         }
         buildTree();
         start();
+        makeResizable();
         setStatusText(l10n.statusLoadComputedProperties, 1000);
         db.loadComputedAttributeValues((computedAttributes, error) => {
             clearStatusText();

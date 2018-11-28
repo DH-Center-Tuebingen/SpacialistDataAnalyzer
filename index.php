@@ -68,6 +68,7 @@
 			<div id="tree"></div>
 		</div>
 		<div id="display-container" class="p-0 pl-2 h-100">
+			<div id="resizeX"></div>
 			<div id="analysis-container" class="p-2 overflow-auto">
 				<h5><span data-l10n="analysisOptionsCaption"></span>
 					<button id="reset-all" class="btn btn-sm ml-2 mb-1 pt-0 pb-0 btn-outline-danger" data-tooltip="analysisClearButtonTooltip" data-l10n="analysisClearButton"></button>
@@ -94,7 +95,8 @@
 				  <div class="tab-pane fade" id="group-tab" role="tabpanel" aria-labelledby="nav-group-tab"><!--Aggregates--></div>
 				</div>
 			</div>
-			<div id="result-container" class="border-top overflow-auto">
+			<div id="result-container" class="overflow-auto">
+				<div id="resizeY"></div>
 				<h5 id='result-heading'><button id="fullscreen-toggle" class="btn btn-sm ml-2 btn-outline-secondary" data-tooltip="" data-l10n="resultToggleFullscreen"></button><button id="export-geojson" disabled class="btn btn-sm ml-2 btn-outline-secondary" data-tooltip="" data-l10n="resultDownloadGeoJson"></button></h5>
 				<div id="result"></div>
 			</div>
