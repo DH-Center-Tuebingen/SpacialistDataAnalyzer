@@ -334,12 +334,21 @@ function initializeDbVar() {
 
         // --------------------------------------------------------------------------------------------
         getAtomicValue: function (
+            attribute,
             value,
             ifMissing = ''
         ) {
         // --------------------------------------------------------------------------------------------
-            if(value !== null && typeof value === 'object' && value.concept_url)
-                return this.getThesaurusLabel(value.concept_url, ifMissing);
+            if(value !== null) {
+                if(typeof value === 'object' && value.concept_url) {
+                    return this.getThesaurusLabel(value.concept_url, ifMissing);
+                }
+                else if(attribute.type === 'string-sc' && typeof value === 'string' && value.startsWith('http')) {
+                    // string-sc is stored as plain thesaurus url in normal attributes, 
+                    // but as thesaurus object { concept_url: ... } in string-sc attributes as part of table attributes
+                    return this.getThesaurusLabel(value, value);
+                }
+            }
             return value;
         },
 
@@ -355,8 +364,7 @@ function initializeDbVar() {
                         let vals = [];
                         parentVal.forEach(row => {
                             let val = row[attribute.id];
-                            //if(typeof val !== 'undefined')
-                                vals.push(this.getAtomicValue(val));
+                            vals.push(this.getAtomicValue(attribute, val));
                         });
                         return vals;
 
@@ -365,7 +373,7 @@ function initializeDbVar() {
                 }
             }
             else {
-                return this.getAtomicValue(context.attributes[attribute.id]);
+                return this.getAtomicValue(attribute, context.attributes[attribute.id]);
             }
         },
 
@@ -1352,8 +1360,11 @@ function initializeDbVar() {
                     // FIXME: here we are a bit ugly, because we resolve the filter's thesaurus url and compare resolved URLs;
                     // this is because the valueToCompare has already been resolved in getAtomicValue() ---- shiiiiiet
                     let isEqual;
-                    if(filter.dbAttribute.type === 'string-sc')
-                        isEqual = valueToCompare === filter.values[0];
+                    if(filter.dbAttribute.type === 'string-sc') {
+                        // Problem here: the filter value is certainly a thesaurus URL
+                        // The valueToCompare is normally a thesaurus url, but may be an object when the attribute is part of a table.
+                        isEqual = valueToCompare === this.getThesaurusLabel(filter.values[0]);
+                    }
                     else
                         isEqual = this.isEqualIgnoreCase(valueToCompare, this.getThesaurusLabel(filter.values[0], filter.values[0]));
                     return filter.operator === 'equal-thesaurus' ? isEqual : !isEqual;
@@ -1391,7 +1402,7 @@ function initializeDbVar() {
                     if(filter.dbAttribute.type === 'string-mc') {
                         let found = false;
                         if($.isArray(valueToCompare)) // [{id:24, concept_url:"blah"}, ...]
-                            found = valueToCompare.some(v => this.getAtomicValue(v).toString().toLowerCase().indexOf(filter.values[0].toLowerCase()) !== -1);
+                            found = valueToCompare.some(v => this.getAtomicValue(filter.dbAttribute, v).toString().toLowerCase().indexOf(filter.values[0].toLowerCase()) !== -1);
                         return contain ? found : !found;
                     }
                     else if(filter.dbAttribute.type === 'string-sc' || filter.dbAttribute.isComputed)
@@ -1500,7 +1511,7 @@ function initializeDbVar() {
                                 tableRowMatches[index] = [];
                             let rowMatch = allFilters.every(partialFilter => { // every filter must match within the row
                                 let cellValue = row[partialFilter.dbAttribute.id];
-                                return db.valueMatchesFilter(db.getAtomicValue(cellValue), partialFilter);
+                                return db.valueMatchesFilter(db.getAtomicValue(partialFilter.dbAttribute, cellValue), partialFilter);
                             });
                             if(rowMatch)
                                 tableMatch = true;
@@ -1513,7 +1524,7 @@ function initializeDbVar() {
                         return table.some(row => { // at least one row must match
                             return allFilters.every(partialFilter => { // every filter must match within the row
                                 let cellValue = row[partialFilter.dbAttribute.id];
-                                return db.valueMatchesFilter(db.getAtomicValue(cellValue), partialFilter);
+                                return db.valueMatchesFilter(db.getAtomicValue(partialFilter.dbAttribute, cellValue), partialFilter);
                             });
                         });
                     }
