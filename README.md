@@ -33,4 +33,4 @@ The screenshot below shows the Spacialist Data Analyzer main window, offering a 
 
 Development of Spacialist Data Analyzer was co-funded by the Ministry of Science, Research and the Arts Baden-Württemberg in the "E-Science" funding programme.
 
-[scr_main]: screenshots/main-window.png "Spacialist Data Analyzer"
+[scr_main]: https://eScienceCenter.github.io/assets/SpacialistDataAnalyzer/screenshots/main-window.png "Spacialist Data Analyzer"
