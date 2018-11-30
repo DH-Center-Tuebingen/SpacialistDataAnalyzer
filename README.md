@@ -21,16 +21,23 @@ Direct your browser to the URL of the app folder and provide an parameter `env` 
 
 For instance, if the Spacialist Data Analyzer app is in the folder `data-analyzer`, and you would like to use the app with the Spacialist instance in the folder `test`, then the target URL would be `https://my.spacialist-server.com/spacialist/data-analyzer/?env=test`
 
-If successful, the browser should display a login page.
+If successful, the browser should display a login page. 
+
+Read the **[User Manual](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual)** to learn how to use Spacialist Data Analyzer.
 
 ## Screenshot
 
-The screenshot below shows the Spacialist Data Analyzer main window, offering a hierarchical view of the **structure of data** in the database (tree on the left), various **analysis options** (right-top pane, allowing selecting what kind of data to display, filtering based on entity properties, as well as grouping with and aggregation of property values), and various kinds of **result displays** including geomaps and tabular data (right-bottom pane).
+The screenshot below shows the Spacialist Data Analyzer main window, offering a hierarchical view of the **[structure of data](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Database-Structure-Pane)** in the database (tree on the left), various **[analysis options](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane)** (right-top pane, allowing selecting what kind of data to display, filtering based on entity properties, as well as grouping with and aggregation of property values), and various kinds of **[result displays](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Result-Pane)** including geomaps and tabular data (right-bottom pane).
 
 ![scr_main]
+
+## License
+
+Spacialist Data Analyzer is licensed using the [MIT License](LICENSE.md).\
+(c) 2018 eScience-Center, Univeristy of Tübingen
 
 ## Acknowledgments
 
 Development of Spacialist Data Analyzer was co-funded by the Ministry of Science, Research and the Arts Baden-Württemberg in the "E-Science" funding programme.
 
-[scr_main]: https://eScienceCenter.github.io/assets/SpacialistDataAnalyzer/screenshots/main-window.png "Spacialist Data Analyzer"
+[scr_main]: https://github.com/eScienceCenter/eScienceCenter.github.io/blob/master/assets/SpacialistDataAnalyzer/screenshots/main-window-readme.png?raw=true "Spacialist Data Analyzer"
