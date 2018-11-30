@@ -563,6 +563,9 @@ function updateRemoveFilterButtons(/*e, ui*/) {
             })
         );
     });
+    $('#filtersTable thead tr th').first().text(
+        rows.length > 1 ? l10n.filterConjunctionHeading : ''
+    );
 }
 
 // ------------------------------------------------------------------------------------

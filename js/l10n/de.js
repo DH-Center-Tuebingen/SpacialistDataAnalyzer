@@ -147,6 +147,7 @@ const l10n_de = {
     outputHierarchicalAnalysis: 'Hierarchische Analyse durchführen. Wenn diese Box angekreuzt ist, so wird die hierarchische Ebene der Entitäten des gewählten Typs %s berücksichtigt; es werden dann nur Entitäten auf der im Baum gewählten Ebene für das Ergebnis berücksichtigt. Wenn diese Box nicht angekreuzt ist, werden alle Entitäten des Typs %s für die Analyse berücksigt.',
 
     filterIntro: 'Definieren Sie in der folgenden Tabelle beliebige Filter, um die Analyse auf Entitäten mit bestimmten Eigenschaftswerten zu fokussieren. Sie können Filter hinzufügen, entfernen oder verschieben. Um einen Filter in der aktuellen Tabellenzeile (gelb hinterlegt) zu setzen, klicken Sie auf eine Eigenschaft im Baum. Um eine andere Tabellenzeile zu aktivieren, klicken Sie die gewünschte Zeile. Die Reihung der Filter kann durch Drag & Drop der Tabellenzeilen verändert werden. Bei der Auswertung der Filter wird die hierarchische Position der gewählten Eigenschaft im Baum berücksichtigt.',
+    filterConjunctionHeading: 'Konjunktion',
     filterAndOrCombine: 'Kombiniert mit',
     filterRemoveTooltip: 'Filter entfernen',
     filterObjectAttrParent: ' in %s',

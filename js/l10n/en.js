@@ -147,6 +147,7 @@ const l10n_en = {
     outputHierarchicalAnalysis: 'Perform hierarchical analysis. If this box is checked, the hierarchical level of %s entities will be considered, and only those at the level selected in the tree will be considered for output. If this box is not checked, all %s entities in the database will be considered for output.',
 
     filterIntro: 'Define filters using the following table to limit the analysis focus on entities with specific property values. You can add, remove and rearrange filters for various properties. To define a filter for the highlighted (yellow) row, select a property from the tree. To highlight another filter row, simply click it. You can rearrange the order of filters by dragging and dropping a table row. Each filter will be interpreted according to the hierarchical position of its property selected from the the tree.',
+    filterConjunctionHeading: 'Conjunction',
     filterAndOrCombine: 'Combined With',
     filterRemoveTooltip: 'Remove this filter',
     filterObjectAttrParent: ' in %s',
