@@ -653,7 +653,7 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
             return ($('<a/>').attr({
                 target: '_spacialist',
-                href: '%s/%s/#/e/%s'.with(spacialistInstance.webRoot, spacialistInstance.folder, context.id),
+                href: '%s/%s/s/#/e/%s'.with(spacialistInstance.webRoot, spacialistInstance.folder, context.id),
                 title: l10n.dbSpacialistLinkTitle.with(context.contextType.name),
             }).addClass('btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
                 '%s %s'.with(Symbols['list-links'], label === undefined? context.id : label).trim()
