@@ -134,6 +134,7 @@ const Symbols = {
 const AttributeDisplayTypeMapping = {
     'integer': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
     'double': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
+    'percentage': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
     'boolean': [ 'count', 'distribution' ],
     'string': [ 'count', 'distribution' ],
     'stringf': [ 'count', 'distribution' ],
@@ -149,6 +150,7 @@ const AttributeDisplayTypeMapping = {
 const AttributeGroupMapping = {
     'integer': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
     'double': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
+    'percentage': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
     'boolean': [ 'group', 'count', 'count-true', 'count-false' ],
     'string': [ 'group', 'count' ],
     'stringf': [ 'group', 'count' ],
@@ -206,6 +208,7 @@ const ObjectFilterTransformations = {
 // filter types for the different attribute types and context types
 const ObjectFilterOperatorMapping = {
     'integer':      [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
+    'percentage':   [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
     'double':       [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
     'boolean':      [ 'equal', 'not-equal', 'exist', 'not-exist' ],
     'string':       [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],

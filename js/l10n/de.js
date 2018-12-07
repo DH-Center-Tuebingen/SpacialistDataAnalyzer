@@ -1,6 +1,7 @@
 const l10n_de = {
     attributeTypeLabels: {
         integer: 'Ganzzahl',
+        percentage: 'Prozentsatz',
         double: 'Zahl',
         boolean: 'Ja/Nein',
         string: 'Text',

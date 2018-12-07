@@ -1,6 +1,7 @@
 const l10n_en = {
     attributeTypeLabels: {
         integer: 'Integer',
+        percentage: 'Percentage',
         double: 'Number',
         boolean: 'Boolean',
         string: 'Text',

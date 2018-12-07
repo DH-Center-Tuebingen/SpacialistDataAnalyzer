@@ -202,6 +202,13 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
+        isNumericSpacialistType: function(spacialistType) {
+        // --------------------------------------------------------------------------------------------
+            const numericTypes = ['double', 'integer', 'percentage'];
+            return numericTypes.includes(spacialistType);
+        },
+
+        // --------------------------------------------------------------------------------------------
         _handleAjaxResult: function (
             result,
             startTime,
@@ -253,11 +260,30 @@ function initializeDbVar() {
                 }
             });
             this.attributeValues.forEach(av => {
-                this.contexts[av.context].attributes[av.attribute] = JSON.parse(av.value);
-                /*if(this.attributes[av.attribute].type === 'string-mc')
-                    this.contexts[av.context].attributes[av.attribute] = JSON.parse(av.value);
-                else
-                    this.contexts[av.context].attributes[av.attribute] = JSON.parse(av.value)[0];*/
+                //>> TODO FIXME: es kann sein, dass numerische Tabellenattribute als string gespeichert werden => umwandeln!
+                // sobald das gefixed ist, das hier entfernen
+                let attr = db.attributes[av.attribute];
+                let value = JSON.parse(av.value);
+                if(attr.type === 'table') {
+                    value.forEach(v => {
+                        v.forEachValue((attrId, attrVal) => {
+                            let cellAttr = db.attributes[attrId];
+                            if(typeof attrVal === 'string' && this.isNumericSpacialistType(cellAttr.type)) {
+                                let n = Number(attrVal);
+                                if(isNaN(n)) {
+                                    console.info('Unknown numeric attribute value "%s" in attribute %s of context %s; setting to undefined'.with(
+                                        attrVal, cellAttr.name, av.context
+                                    ));
+                                    v[attrId] = undefined;
+                                }
+                                else
+                                    v[attrId] = n;
+                            }
+                        });
+                    });
+                }
+                // <<
+                this.contexts[av.context].attributes[av.attribute] = value;
             });
             delete this.attributeValues;
             this.thesaurus.forEachValue((url, tc) => {
@@ -416,7 +442,7 @@ function initializeDbVar() {
                 head: ['Value', 'Count'],
                 body: []
             };
-            if(['double', 'integer'].indexOf(attribute.type) !== -1)
+            if(this.isNumericSpacialistType(attribute.type))
                 distr.forEachValue((v, c) => {
                     // Object keys are always stored as strings in JS, even though they were originally nubmers.
                     // For correct formatting of the value in the GUI, we need to convert the value back to a number
@@ -503,6 +529,7 @@ function initializeDbVar() {
             switch(attribute.type) {
                 case 'double':
                 case 'integer':
+                case 'percentage':
                     return rawNumbers ? val : val.toLocaleString();
 
                 case 'date':
