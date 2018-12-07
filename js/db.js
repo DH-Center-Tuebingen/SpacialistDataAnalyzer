@@ -1117,16 +1117,46 @@ function initializeDbVar() {
                 for(let i = groupColumnValues.length - 1; i >= 0; i--)
                     cntRows *= groupColumnValues[i].length;
                 let rows = new Array(cntRows);
-                // fill each cell
+                for(let r = 0; r < rows.length; r++)
+                    rows[r] = new Array(groupColumns.length).fill(null);
+                /*
+                    Now the distinct values for grouped columns looks for example like this:
+                        groupColumnValues = [
+                            [ x, y ],
+                            [ a, b, c, d],
+                            [ k, l, m ]
+                        ]
+                    and therefore the total number of distinct combinations:
+                        cntRows = 2 * 4 * 3 = 24
+
+                    We know that:
+                    - each of [x,y] is repeated 12 rows in the first column, 1 time
+                    - each of [a,b,c,d] is repeated 3 rows in the second column, 2 times
+                    - each of [k,l,m] is repeated 1 row in the third column, 8 times
+
+                    So:
+                    - the repetition count is the product of number of items in successor items ("below") in groupColumnValues
+                    - the number of times this is repeated is the product of number of items in predecessor rows ("above") in groupColumnValues
+
+                    Here we go:
+                */ 
                 for(let c = 0; c < groupColumnValues.length; c++) {
-                    let groupRowInColumn = 0;
-                    let breakEvery = cntRows / groupColumnValues[c].length;
-                    for(let r = 0; r < cntRows; r++) {
-                        if(rows[r] === undefined)
-                            rows[r] = new Array(groupColumns.length).fill(null);
-                        rows[r][c] = groupColumnValues[c][groupRowInColumn];
-                        if((r + 1) % breakEvery === 0)
-                            groupRowInColumn++;
+                    // count how often to repeat these values
+                    let repeatCount = 1;
+                    for(let above = c - 1; above >= 0; above--)
+                        repeatCount *= groupColumnValues[above].length;
+                    // count how many rows to fill in each repetition
+                    let countPerRepetition = 1;
+                    for(let below = c + 1; below < groupColumnValues.length; below++)
+                        countPerRepetition *= groupColumnValues[below].length;
+                    // now fill
+                    let r = 0; // row
+                    for(let repetition = 0; repetition < repeatCount; repetition++) {
+                        groupColumnValues[c].forEach(value => {
+                            for(let count = 0; count < countPerRepetition; count++) {
+                                rows[r++][c] = value;
+                            }
+                        });
                     }
                 }
 
