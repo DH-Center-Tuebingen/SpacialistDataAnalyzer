@@ -1077,9 +1077,10 @@ function initializeDbVar() {
                                 if(!this.isRelevantTableRow(context, attr.parentAttribute, index))
                                     return;
                                 let attrVal = tableRow[attr.id];
-                                if(seenValues.includes(attrVal))
+                                let displayVal = this.getDisplayValue(attrVal, attr);
+                                if(seenValues.includes(displayVal))
                                     return;
-                                seenValues.push(this.getDisplayValue(attrVal, attr));
+                                seenValues.push(displayVal);
                             });
                             groupColumnValues.push(seenValues);
                         }
