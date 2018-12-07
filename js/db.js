@@ -260,24 +260,31 @@ function initializeDbVar() {
                 }
             });
             this.attributeValues.forEach(av => {
-                //>> TODO FIXME: es kann sein, dass numerische Tabellenattribute als string gespeichert werden => umwandeln!
-                // sobald das gefixed ist, das hier entfernen
                 let attr = db.attributes[av.attribute];
                 let value = JSON.parse(av.value);
                 if(attr.type === 'table') {
-                    value.forEach(v => {
-                        v.forEachValue((attrId, attrVal) => {
-                            let cellAttr = db.attributes[attrId];
-                            if(typeof attrVal === 'string' && this.isNumericSpacialistType(cellAttr.type)) {
-                                let n = Number(attrVal);
-                                if(isNaN(n)) {
-                                    console.info('Unknown numeric attribute value "%s" in attribute %s of context %s; setting to undefined'.with(
-                                        attrVal, cellAttr.name, av.context
-                                    ));
-                                    v[attrId] = undefined;
+                    // to allow displaying DataTables correctly, each column needs to have a value. In Spacialist 
+                    // empty values are missing the attribute altogether, so we fix this by setting these values to null
+                    attr.children.forEach(columnAttr => {  // for each column
+                        value.forEach(row => { // for each row
+                            let cellValue = row[columnAttr.id];
+                            if(cellValue === undefined) {
+                                row[columnAttr.id] = null;
+                            }
+                            else {
+                                //>> TODO FIXME: es kann sein, dass numerische Tabellenattribute als string gespeichert werden => umwandeln!
+                                // sobald das gefixed ist, das hier entfernen
+                                if(typeof cellValue === 'string' && this.isNumericSpacialistType(columnAttr.type)) {
+                                    let n = Number(cellValue);
+                                    if(isNaN(n)) {
+                                        console.info('Unknown numeric attribute value "%s" in attribute %s of context %s; setting to undefined'.with(
+                                            cellValue, cellValue.name, av.context
+                                        ));
+                                        row[columnAttr.id] = null;
+                                    }
+                                    else
+                                        row[columnAttr.id] = n;
                                 }
-                                else
-                                    v[attrId] = n;
                             }
                         });
                     });
