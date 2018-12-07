@@ -799,7 +799,7 @@ function initializeDbVar() {
                     return aggregateInfo.count;
 
                 case 'list-links': {
-                    if(currentValue === undefined)
+                    if(!$.isArray(currentValue))
                         currentValue = [];
                     let label = context.attributes[attribute.id];
                     currentValue.push({ label, html: db.getSpacialistLink(context, label, 'mr-2') });
@@ -807,7 +807,7 @@ function initializeDbVar() {
                 }
 
                 case 'list-entities': {
-                    if(currentValue === undefined)
+                    if(!$.isArray(currentValue))
                         currentValue = [];
                     let label = context.attributes[attribute.id];
                     currentValue.push({ label, html: db.getEntityDetailsLink(context, label, undefined, 'mr-2') });
