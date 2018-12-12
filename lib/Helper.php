@@ -15,7 +15,15 @@ function start_the_session($reldir = '.') {
         die('Invalid <b>spacialist_root</b> in global.ini');
     if(!isset($ini['spacialist_webroot']))
         die('Invalid <b>spacialist_root</b> in global.ini');
-    $env = @file($ini['spacialist_root'] . '/' . $_GET['env'] . '/.env');
+    $try_env = array(
+        $ini['spacialist_root'] . '/' . $_GET['env'] . '/.env',
+        $ini['spacialist_root'] . '/' . $_GET['env'] . '/s/.env'
+    );
+    foreach($try_env as $file) {
+        $env = @file($file);
+        if(is_array($env))
+            break;
+    }
     if($env === false || !is_array($env))
         die('<b>.env</b> file not found for Spacialist instance ' . $_GET['env']);
     $_SESSION['ini'] = array(
