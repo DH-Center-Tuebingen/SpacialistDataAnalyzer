@@ -144,8 +144,9 @@ const AttributeDisplayTypeMapping = {
     'string-mc': [ 'count', 'distribution' ],
     'table': [ 'count' ],
     'geometry': [ 'count' ], // TODO : sum-area, etc. (in db.getDescriptiveStatsForAttribute)
-    'epoch': [ 'count', 'distribution' ], 
-    'dimension': [ 'count', 'distribution' ]
+    'epoch': [ 'count', 'distribution' ],
+    'dimension': [ 'count', 'distribution' ],
+    'list': [ 'count', 'distribution' ]
 };
 const AttributeGroupMapping = {
     'integer': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
@@ -165,7 +166,8 @@ const AttributeGroupMapping = {
         'min-bh', 'max-bh', 'avg-bh',
         'min-bt', 'max-bt', 'avg-bt',
         'min-ht', 'max-ht', 'avg-ht',
-        'min-3d', 'max-3d', 'avg-3d' ]
+        'min-3d', 'max-3d', 'avg-3d' ],
+    'list': ['group', 'count']
 };
 // map an aggregator to a type that can be used with ObjectFilterOperatorMapping
 const ObjectFilterTransformations = {
@@ -180,6 +182,9 @@ const ObjectFilterTransformations = {
             rows: 'integer'
         },
         'string-mc': {
+            count: 'integer'
+        },
+        'list': {
             count: 'integer'
         },
         'dimension': {
@@ -216,5 +221,6 @@ const ObjectFilterOperatorMapping = {
     'date':         [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
     'string-mc':    [ 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'contain-descendant-thesaurus', 'not-contain-descendant-thesaurus', 'exist', 'not-exist' ],
     'string-sc':    [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'descendant-thesaurus', 'not-descendant-thesaurus', 'exist', 'not-exist' ],
-    'table':        [ 'exist', 'not-exist' ]
+    'table':        [ 'exist', 'not-exist' ],
+    'list':         [ 'contain', 'not-contain', 'exist', 'not-exist' ]
 };

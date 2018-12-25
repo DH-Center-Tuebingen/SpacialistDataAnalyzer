@@ -124,8 +124,8 @@ function updateGui(update) {
                 expandBtn.trigger('click');
         }
         else {
-            div_info.append($('<p/>').html(l10n.get('outputSelectedProperty', 
-                update.outputObject.label, 
+            div_info.append($('<p/>').html(l10n.get('outputSelectedProperty',
+                update.outputObject.label,
                 update.outputObject.parentAttribute ? l10n.get('outputSelectedPropertyParent', update.outputObject.parentAttribute.label) : '', update.outputObject.parentContextType.name)
             ));
 
@@ -374,8 +374,8 @@ function getFilterTransformationDropdown(row, object) {
 
 // ------------------------------------------------------------------------------------
 function addThesaurusOptionsToDropdown(
-    object, 
-    select, 
+    object,
+    select,
     exclude_leaf_concepts = false
 ) {
 // ------------------------------------------------------------------------------------
@@ -479,8 +479,8 @@ function getFilterOperatorDropdown(row, type) {
         if(!$.isArray(curControls)
             || curControls.length !== newControls.length
             || newControls.some((ctrl, i) => {
-                return !curControls[i].is(ctrl.prop('tagName')) 
-                || curControls[i].attr('type') !== ctrl.attr('type') 
+                return !curControls[i].is(ctrl.prop('tagName'))
+                || curControls[i].attr('type') !== ctrl.attr('type')
                 || curControls[i].data('thesaurusType') !== ctrl.data('thesaurusType')
             })
         ) {
@@ -735,7 +735,7 @@ function showTableModal() {
 
 // ------------------------------------------------------------------------------------
 function tryCutCellText(
-    val, 
+    val,
     attr = undefined
 ) {
 // ------------------------------------------------------------------------------------
@@ -747,7 +747,8 @@ function tryCutCellText(
                 hide: val.substring(Settings.resultTable.textMaxChars)
             };
 
-        case 'string-mc': {
+        case 'string-mc':
+        case 'list': {
             let chars = 0;
             let res = { show: [], hide: [] };
             val.split(Settings.mcSeparator).forEach(item => {
@@ -756,13 +757,13 @@ function tryCutCellText(
                 else {
                     res.show.push(item);
                     chars += item.length;
-                } 
+                }
             });
             res.show = res.show.join(Settings.mcSeparator);
             res.hide = res.hide.length === 0 ? '' : Settings.mcSeparator + res.hide.join(Settings.mcSeparator);
             return res;
         }
-        
+
         default:
             return {
                 show: val,
@@ -821,8 +822,8 @@ function getHierarchicalPathBreadcrumbs(context) {
 
 // ------------------------------------------------------------------------------------
 function renderEntityDetails(
-    container, 
-    historyPos, 
+    container,
+    historyPos,
     context
 ) {
 // ------------------------------------------------------------------------------------
@@ -830,7 +831,7 @@ function renderEntityDetails(
     let history = container.data('history');
     if(context === undefined)
         context = history[historyPos];
-    else if(history[historyPos] !== context) 
+    else if(history[historyPos] !== context)
         history.splice(historyPos, 0, context);
     container.data({ historyPos, history });
     div.append(
@@ -866,7 +867,7 @@ function renderEntityDetails(
     context.contextType.attributes.forEach(attr => {
         if(attr.pseudoAttributeKey === PseudoAttributes.Name)
             return;
-        let value = attr.pseudoAttributeKey === PseudoAttributes.ID 
+        let value = attr.pseudoAttributeKey === PseudoAttributes.ID
             ? context.attributes[attr.id]
             : db.getDisplayValue(context.attributes[attr.id], attr, false);
         if(value === undefined || value === null || value === '')
@@ -929,8 +930,8 @@ function clickedShowEntityDetails() {
         showEntityDetails(parseInt(link.data('contextId')));
     else {
         let container = $('#modalEntityDetails div.modal-content');
-        renderEntityDetails(container, 
-            container.data('historyPos') + 1, 
+        renderEntityDetails(container,
+            container.data('historyPos') + 1,
             db.contexts[link.data('contextId')]
         );
     }
@@ -939,8 +940,8 @@ function clickedShowEntityDetails() {
 // ------------------------------------------------------------------------------------
 function renderAttributeValue(
     type,   // html or data
-    val, 
-    tr, 
+    val,
+    tr,
     attr = undefined // may be undefined for computed attributes
 ) {
 // ------------------------------------------------------------------------------------
@@ -988,11 +989,23 @@ function renderAttributeValue(
                         };
                     }
                 }
+                else {
+                    if(type === 'html') {
+                        tr.append($('<td/>'));
+                        break;
+                    }
+                    else {
+                        return {
+                            v: '',
+                            s: ''
+                        };
+                    }
+                }
             case 'table': {
                 let infoIndex = DataTableElementInfos.add({
                     table: val.value,
                     target: '#modalTableInCell'
-                }, 'showTableModal');    
+                }, 'showTableModal');
                 let btn = $('<button/>').attr({
                     type: 'button',
                     title: l10n.resultShowTableModalTooltip,
@@ -1038,14 +1051,14 @@ function renderAttributeValue(
         if(val === null || val === undefined)
             cell/*.attr('data-order', '')*/.text('');
         else switch(typeof val) {
-            case 'number': 
+            case 'number':
                 cell.attr('data-order', orderVal = val).text(
                     attr && attr.pseudoAttributeKey === PseudoAttributes.ID ? val : val.toLocaleString()
-                ); 
+                );
                 break;
-            
-            case 'date': 
-                cell.attr('data-order', orderVal = val.getTime()).text(val.toLocaleDateString()); 
+
+            case 'date':
+                cell.attr('data-order', orderVal = val.getTime()).text(val.toLocaleDateString());
                 break;
 
             default: {
@@ -1216,8 +1229,8 @@ function addResultMap(contexts, result_div) {
             renderAttributeValue(
                 'html',
                 attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                ? { display: 'html', value: db.getEntityDetailsLink(context), order: context.id } 
-                : db.getDisplayValue(value, attr), 
+                ? { display: 'html', value: db.getEntityDetailsLink(context), order: context.id }
+                : db.getDisplayValue(value, attr),
                 tr, attr);
             table.append(tr);
         });
@@ -1249,18 +1262,18 @@ function tryClearDataTableElementInfos() {
     if($('table.dataTable').length === 0)
         DataTableElementInfos.clear();
 }
-    
+
 // ------------------------------------------------------------------------------------
 function makeDataTable(table, customOptions, domColumns = [4, 4, 4]) {
 // ------------------------------------------------------------------------------------
     let init_button = (foo, node) => node.removeClass('btn-secondary').addClass('btn-outline-secondary btn-sm');
     let buttons = [];
     ['excel', 'copy', 'print', 'colvis'].forEach(i => {
-        buttons.push({ 
-            extend: i, 
-            text: '%s %s'.with(ResultTableIcons[i], l10n.resultTableButtons[i]), 
-            titleAttr: l10n.resultTableButtonTooltips[i], 
-            init: init_button 
+        buttons.push({
+            extend: i,
+            text: '%s %s'.with(ResultTableIcons[i], l10n.resultTableButtons[i]),
+            titleAttr: l10n.resultTableButtonTooltips[i],
+            init: init_button
         });
     });
     let sortTypes = table.data('tableSortTypes');
@@ -1269,11 +1282,11 @@ function makeDataTable(table, customOptions, domColumns = [4, 4, 4]) {
         deferRender: true,
         data: table.data('tableBody'),
         columns: table.data('tableHead').map((title, colIndex) => {
-            return { 
-                title,  
-                data: { 
-                    _: '%s.v'.with(colIndex), 
-                    sort: '%s.s'.with(colIndex) 
+            return {
+                title,
+                data: {
+                    _: '%s.v'.with(colIndex),
+                    sort: '%s.s'.with(colIndex)
                 },
                 type: sortTypes === undefined ? undefined : sortTypes[colIndex]
             }
@@ -1566,13 +1579,13 @@ function addAttributeToGroupingTable(tbody, attr) {
             label: l10n.attributeDisplayTypeLabels[op]
         });
     });
-    let box = get_select({ 
-        id: 'attrGrouping' + attr.id 
-    }, { 
-        attribute: attr, 
-        allowClear: true, 
-        width: '100%', 
-        hasSymbols: true 
+    let box = get_select({
+        id: 'attrGrouping' + attr.id
+    }, {
+        attribute: attr,
+        allowClear: true,
+        width: '100%',
+        hasSymbols: true
     }, options, updateGroupBadge);
     let nameCell = $('<td/>').text(attr.name).append($('<span/>').addClass('attr-info').text(l10n.attributeTypeLabels[attr.type]));
     if(attr.parentAttribute)
@@ -1961,8 +1974,8 @@ function reloadDb() {
 // ------------------------------------------------------------------------------------
 function start() {
 // ------------------------------------------------------------------------------------
-    $(document).on('DOMNodeInserted', 'select', function () { 
-       makeSelect2($(this)) 
+    $(document).on('DOMNodeInserted', 'select', function () {
+       makeSelect2($(this))
     }).on('click', '.xinfo', function(event) {
         let e = $(event.target);
         let info = DataTableElementInfos.get(e.data('xinfo'));
@@ -2018,9 +2031,9 @@ function makeResizable() {
             if(v) {
                 this.leftColPct = v.leftColPct;
                 this.topRowPct = v.topRowPct;
-                if(typeof loadedCallback === 'function') 
+                if(typeof loadedCallback === 'function')
                     loadedCallback();
-            }   
+            }
         },
         update: function(preventStore = false) {
             this.h = window.innerHeight;
@@ -2053,13 +2066,13 @@ function makeResizable() {
     })
     .trigger('adjustHandle')
     .show();
-    
+
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     handleY
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     .bind('adjustHandle', function() {
-        handleY.offset({ 
-            left: rightCol.offset().left + 4, 
+        handleY.offset({
+            left: rightCol.offset().left + 4,
             top: topRow.offset().top + topRow.outerHeight() - 7
         }).width(
             rightCol.outerWidth()
@@ -2158,7 +2171,7 @@ function makeResizable() {
         let elements = [leftCol, topRow, handleX, handleY];
         if(fullScreen)
             elements.forEach(e => e.hide());
-        else 
+        else
             elements.forEach(e => e.show());
         $(window).resize(); // so the DataTable will auto adjust column widths in header and rows
         adjustMapHeight();

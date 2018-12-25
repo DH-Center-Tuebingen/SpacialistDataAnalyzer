@@ -13,7 +13,8 @@ const l10n_en = {
         table: 'Table',
         geometry: 'Geometry',
         epoch: 'Epoch',
-        dimension: 'Dimension'
+        dimension: 'Dimension',
+        list: 'List',
     },
     contextTypeDisplayLabels: {
         table: 'Table',
@@ -199,7 +200,7 @@ const l10n_en = {
     resultButtonLabel: 'Get Result',
     resultTableShowMore: '[show more]',
     resultTableShowMoreListItems: '[show remaining %s items]',
-    
+
     statusAnalysisLoading: 'Loading analysis...',
     statusAnalysisReadFromFile: 'Loading Analysis from File...',
     statusAnalysisLoaded: 'Analysis loaded.',
@@ -207,7 +208,7 @@ const l10n_en = {
     statusInitUI: 'Initializing User Interface',
     statusFetchDB: 'Fetching Database',
     statusLoadComputedProperties: 'Processing in background...',
-    
+
     labelNone: 'None',
     labelLogout: 'Logout',
     labelLoading: 'Loading...',

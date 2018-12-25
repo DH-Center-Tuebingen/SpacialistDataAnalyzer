@@ -24,7 +24,7 @@ function initializeDbVar() {
 
             // ----------------------------------------------------------------------------------------
             db.thesaurus.getDescendants = /*array*/ function (
-                url, 
+                url,
                 exclude_leaf_concepts = false
             ) {
             // ----------------------------------------------------------------------------------------
@@ -263,7 +263,7 @@ function initializeDbVar() {
                 let attr = db.attributes[av.attribute];
                 let value = JSON.parse(av.value);
                 if(attr.type === 'table') {
-                    // to allow displaying DataTables correctly, each column needs to have a value. In Spacialist 
+                    // to allow displaying DataTables correctly, each column needs to have a value. In Spacialist
                     // empty values are missing the attribute altogether, so we fix this by setting these values to null
                     attr.children.forEach(columnAttr => {  // for each column
                         value.forEach(row => { // for each row
@@ -322,7 +322,7 @@ function initializeDbVar() {
             this.pseudoAttributes.forEach(pa => {
                 this.attributes[pa.id] = pa;
                 this.contextTypes.forEachValue((id, ct) => ct.attributes.unshift(pa));
-                this.contexts.forEachValue((id, context) => context.attributes[pa.id] = context[pa.pseudoAttributeKey]);    
+                this.contexts.forEachValue((id, context) => context.attributes[pa.id] = context[pa.pseudoAttributeKey]);
             });
             let elapsed = debugGetElapsedSeconds(startTime);
             console.log('DB loaded in', elapsed, 's');
@@ -377,7 +377,7 @@ function initializeDbVar() {
                     return this.getThesaurusLabel(value.concept_url, ifMissing);
                 }
                 else if(attribute.type === 'string-sc' && typeof value === 'string' && value.startsWith('http')) {
-                    // string-sc is stored as plain thesaurus url in normal attributes, 
+                    // string-sc is stored as plain thesaurus url in normal attributes,
                     // but as thesaurus object { concept_url: ... } in string-sc attributes as part of table attributes
                     return this.getThesaurusLabel(value, value);
                 }
@@ -489,7 +489,7 @@ function initializeDbVar() {
                         cnt++;
                         if(typeof val === 'number')
                             sum += val;
-                        if(typeof val === 'number' 
+                        if(typeof val === 'number'
                             || attribute.type === 'date' // comes as a string "YYYY-MM-DD", so can be compared with > and <
                         ) {
                             if(typeof min === 'undefined' || val < min)
@@ -560,6 +560,13 @@ function initializeDbVar() {
                         mc.push(th ? th.label : url);
                     });
                     return mc.join(Settings.mcSeparator);
+
+                case 'list':
+                    if(!$.isArray(val))
+                        return val;
+                    let list = [];
+                    val.forEach(s => list.push(s));
+                    return list.join(Settings.mcSeparator);
 
                 case 'epoch':
                     if(typeof val === 'object') {
@@ -724,7 +731,7 @@ function initializeDbVar() {
                     let row = [];
                     r.attrs.forEach(attr => row.push(
                         attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                        ? { display: 'html', value: this.getEntityDetailsLink(context), order: context.id } 
+                        ? { display: 'html', value: this.getEntityDetailsLink(context), order: context.id }
                         : this.getDisplayValue(context.attributes[attr.id], attr)
                     ));
                     r.body.push(row);
@@ -1100,6 +1107,11 @@ function initializeDbVar() {
                             if($.isArray(values))
                                 groupColumnValues.push(values.map(val => db.getThesaurusLabel(val.concept_url)));
                         }
+                        else if(attr.type === 'list') {
+                            let values = context.attributes[attr.id];
+                            if($.isArray(values))
+                                groupColumnValues.push(values);
+                        }
                         else {
                             groupColumnValues.push([ this.getDisplayValue(context.attributes[attr.id], attr) ]);
                         }
@@ -1139,7 +1151,7 @@ function initializeDbVar() {
                     - the number of times this is repeated is the product of number of items in predecessor rows ("above") in groupColumnValues
 
                     Here we go:
-                */ 
+                */
                 for(let c = 0; c < groupColumnValues.length; c++) {
                     // count how often to repeat these values
                     let repeatCount = 1;
@@ -1471,6 +1483,12 @@ function initializeDbVar() {
                     }
                     else if(filter.dbAttribute.type === 'string-sc' || filter.dbAttribute.isComputed)
                         valueToCompare = this.getThesaurusLabel(valueToCompare, valueToCompare);
+                    else if(filter.dbAttribute.type === 'list') {
+                        let found = false;
+                        if($.isArray(valueToCompare))
+                            found = valueToCompare.some(v => v.toUpperCase() === filter.values[0].toUpperCase());
+                        return contain ? found : !found;
+                    }
                     let found = this.containIgnoreCase(valueToCompare, filter.values[0]);
                     return contain ? found : !found;
                 }
@@ -1496,7 +1514,7 @@ function initializeDbVar() {
                     if(valueToCompare === null || typeof valueToCompare === 'undefined')
                         return descendant ? false : true;
                     if(!$.isArray(valueToCompare)) { // single choice -> fake multiple choice
-                        valueToCompare = [{ 
+                        valueToCompare = [{
                             concept_url: valueToCompare.concept_url || valueToCompare
                         }];
                     }
