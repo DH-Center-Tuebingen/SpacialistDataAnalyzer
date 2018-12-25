@@ -69,6 +69,8 @@ const Symbols = {
     'equal-thesaurus': '=',
     'not-equal': '≠',
     'not-equal-thesaurus': '≠',
+    /*'equal-entity': '=',
+    'not-equal-entity': '≠',*/
     contain: '∋',
     'contain-thesaurus': '∋',
     'not-contain': '∌',
@@ -146,7 +148,8 @@ const AttributeDisplayTypeMapping = {
     'geometry': [ 'count' ], // TODO : sum-area, etc. (in db.getDescriptiveStatsForAttribute)
     'epoch': [ 'count', 'distribution' ],
     'dimension': [ 'count', 'distribution' ],
-    'list': [ 'count', 'distribution' ]
+    'list': [ 'count', 'distribution' ],
+    'entity': [ 'count', 'distribution' ]
 };
 const AttributeGroupMapping = {
     'integer': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
@@ -167,7 +170,8 @@ const AttributeGroupMapping = {
         'min-bt', 'max-bt', 'avg-bt',
         'min-ht', 'max-ht', 'avg-ht',
         'min-3d', 'max-3d', 'avg-3d' ],
-    'list': ['group', 'count']
+    'list': ['group', 'count'],
+    'entity': [ 'group', 'count' ]
 };
 // map an aggregator to a type that can be used with ObjectFilterOperatorMapping
 const ObjectFilterTransformations = {
@@ -222,5 +226,6 @@ const ObjectFilterOperatorMapping = {
     'string-mc':    [ 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'contain-descendant-thesaurus', 'not-contain-descendant-thesaurus', 'exist', 'not-exist' ],
     'string-sc':    [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'descendant-thesaurus', 'not-descendant-thesaurus', 'exist', 'not-exist' ],
     'table':        [ 'exist', 'not-exist' ],
-    'list':         [ 'contain', 'not-contain', 'exist', 'not-exist' ]
+    'list':         [ 'contain', 'not-contain', 'exist', 'not-exist' ],
+    'entity':       [ 'exist', 'not-exist', 'equal', 'not-equal' ]
 };

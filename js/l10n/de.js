@@ -14,7 +14,8 @@ const l10n_de = {
         geometry: 'Geometrie',
         epoch: 'Epoche',
         dimension: 'Dimension',
-        list: 'Liste'
+        list: 'Liste',
+        entity: 'Entität'
     },
     contextTypeDisplayLabels: {
         table: 'Tabelle',

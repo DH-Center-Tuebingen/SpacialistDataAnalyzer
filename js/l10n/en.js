@@ -15,6 +15,7 @@ const l10n_en = {
         epoch: 'Epoch',
         dimension: 'Dimension',
         list: 'List',
+        entity: 'Entity'
     },
     contextTypeDisplayLabels: {
         table: 'Table',

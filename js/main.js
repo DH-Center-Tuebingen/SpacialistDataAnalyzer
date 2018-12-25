@@ -1050,6 +1050,16 @@ function renderAttributeValue(
         let orderVal;
         if(val === null || val === undefined)
             cell/*.attr('data-order', '')*/.text('');
+        else if(attr && attr.type === 'entity') {
+            let entity = db.contexts[val];
+            if(entity) {
+                cell.attr('data-order', orderVal = entity.name).html(
+                    db.getEntityDetailsLink(entity, entity.name,
+                        type === 'html' ? { 'data-navigate': true } : undefined
+                    )
+                );
+            }
+        }
         else switch(typeof val) {
             case 'number':
                 cell.attr('data-order', orderVal = val).text(

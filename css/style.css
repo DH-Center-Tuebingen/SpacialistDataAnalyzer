@@ -40,6 +40,7 @@
 }
 .leaflet-popup-content .context-name {
     background-color: #ededed;
+    white-space: normal;
 }
 .leaflet-popup-content .context-name div {
     font-size: 125%;
@@ -290,7 +291,7 @@ tr:not(.row-cur) td.col-flt-object {
 #status-text {
     font-size: smaller;
     float: right;
-} 
+}
 
 #reload-area {
     float: right;

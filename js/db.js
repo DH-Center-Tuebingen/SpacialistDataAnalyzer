@@ -386,6 +386,19 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
+        getEntityDisplayObject: function(entityId) {
+        // --------------------------------------------------------------------------------------------
+            let entity = db.contexts[entityId];
+            if(entity)
+                return {
+                    display: 'html',
+                    order: entity.name,
+                    value: this.getEntityDetailsLink(entity, entity.name)
+                };
+            return undefined;
+        },
+
+        // --------------------------------------------------------------------------------------------
         getAttributeValue: function (context, attribute) {
         // --------------------------------------------------------------------------------------------
             if(attribute.parentAttribute) {
@@ -455,6 +468,16 @@ function initializeDbVar() {
                     // For correct formatting of the value in the GUI, we need to convert the value back to a number
                     let num = Number(v);
                     result.body.push([v === null || v === undefined || isNaN(num) ? null : num, c]);
+                });
+            else if(attribute.type === 'entity')
+                distr.forEachValue((v, c) => {
+                    if(!v)
+                        result.body.push([v, c]);
+                    else {
+                        let displayObj = db.getEntityDisplayObject(v);
+                        if(displayObj)
+                            result.body.push([ displayObj, c ]);
+                    }
                 });
             else
                 distr.forEachValue((v, c) => result.body.push([v, c]));
@@ -567,6 +590,9 @@ function initializeDbVar() {
                     let list = [];
                     val.forEach(s => list.push(s));
                     return list.join(Settings.mcSeparator);
+
+                case 'entity':
+                    return val;
 
                 case 'epoch':
                     if(typeof val === 'object') {
@@ -1063,16 +1089,19 @@ function initializeDbVar() {
                 sortTypes: [],
                 grandTotal: 0
             };
+            let colAttrs = [];
             let ct = this.contextTypes[contextType.id];
             let groupColumns = [], aggrColumns = [], rowInfos = [], linkListColumns = [];
             this.query.grouping.group.forEach(attrId => {
                 let attr = db.attributes[attrId];
+                colAttrs.push(attr);
                 groupColumns.push(attr);
                 r.head.push(attr.name);
                 r.sortTypes.push(db.getSortTypeFromAttr(attr));
             });
             this.query.grouping.aggregate.forEachValue((attrId, aggr) => {
                 let attr = db.attributes[attrId];
+                colAttrs.push(attr);
                 aggrColumns.push(attr);
                 let colIndex = r.head.push("%s: %s %s".with(db.attributes[attrId].name, Symbols[aggr], l10n.attributeDisplayTypeLabels[aggr])) - 1;
                 if([PseudoAttributes.ID, PseudoAttributes.Name].includes(attr.pseudoAttributeKey) && ['list-links', 'list-entities'].includes(aggr))
@@ -1166,7 +1195,10 @@ function initializeDbVar() {
                     for(let repetition = 0; repetition < repeatCount; repetition++) {
                         groupColumnValues[c].forEach(value => {
                             for(let count = 0; count < countPerRepetition; count++) {
-                                rows[r++][c] = value;
+                                if(c < groupColumns.length && colAttrs[c].type === 'entity')
+                                    rows[r++][c] = db.getEntityDisplayObject(value);
+                                else
+                                    rows[r++][c] = value;
                             }
                         });
                     }
