@@ -2,6 +2,7 @@ var db;
 var tree;
 var analysis = {};
 var masterTree;
+var entitiesDropdown;
 var DataTableElementInfos = {
     infos: [],
     add: function (data, click) {
@@ -69,8 +70,14 @@ const Symbols = {
     'equal-thesaurus': '=',
     'not-equal': '≠',
     'not-equal-thesaurus': '≠',
-    /*'equal-entity': '=',
-    'not-equal-entity': '≠',*/
+    'entity-equal': '=',
+    'entity-not-equal': '≠',
+    'entity-name-equal': '=',
+    'entity-name-not-equal': '≠',
+    'entity-name-contain': '∋',
+    'entity-name-not-contain': '∌',
+    'entity-type-equal': '=',
+    'entity-type-not-equal': '≠',
     contain: '∋',
     'contain-thesaurus': '∋',
     'not-contain': '∌',
@@ -227,5 +234,5 @@ const ObjectFilterOperatorMapping = {
     'string-sc':    [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'descendant-thesaurus', 'not-descendant-thesaurus', 'exist', 'not-exist' ],
     'table':        [ 'exist', 'not-exist' ],
     'list':         [ 'contain', 'not-contain', 'exist', 'not-exist' ],
-    'entity':       [ 'exist', 'not-exist', 'equal', 'not-equal' ]
+    'entity':       [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ]
 };

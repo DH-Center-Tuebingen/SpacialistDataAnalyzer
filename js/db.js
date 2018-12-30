@@ -1325,7 +1325,7 @@ function initializeDbVar() {
             [0, 1].forEach(i => {
                 if(typeof op[i] === 'string')
                     op[i] = op[i].toUpperCase();
-                if(tryCast && op[i] && op[i].toString)
+                else if(tryCast && op[i] && op[i].toString)
                     op[i] = op[i].toString().toUpperCase();
             });
             return op[0] == op[1];
@@ -1342,7 +1342,7 @@ function initializeDbVar() {
             [0, 1].forEach(i => {
                 if(typeof op[i] === 'string')
                     op[i] = op[i].toUpperCase();
-                if(tryCast && op[i] && op[i].toString)
+                else if(tryCast && op[i] && op[i].toString)
                     op[i] = op[i].toString().toUpperCase();
             });
             return op[0].indexOf(op[1]) !== -1;
@@ -1555,6 +1555,40 @@ function initializeDbVar() {
                         valueToCompare.map(v => v.concept_url)
                     );
                     return descendant ? found : !found;
+                }
+
+                case 'entity-equal':
+                    return Number(valueToCompare) === Number(filter.values[0]);
+
+                case 'entity-not-equal':
+                    return Number(valueToCompare) !== Number(filter.values[0]);
+
+                case 'entity-name-equal':
+                case 'entity-name-not-equal':
+                case 'entity-name-contain':
+                case 'entity-name-not-contain': {
+                    let entity = db.contexts[valueToCompare];
+                    if(!entity)
+                        return false;
+                    let not = filter.operator.includes('-not-');
+                    if(filter.operator.endsWith('-contain')) {
+                        let contains = this.containIgnoreCase(entity.name, filter.values[0]);
+                        return not ? !contains : contains;
+                    }
+                    let equals = this.isEqualIgnoreCase(entity.name, filter.values[0]);
+                    return not? !equals : equals;
+                }
+
+                case 'entity-type-equal':
+                case 'entity-type-not-equal': {
+                    if(filter.values[0] == '')
+                        return false;
+                    let entity = db.contexts[valueToCompare];
+                    if(!entity)
+                        return false;
+                    let not = filter.operator.includes('-not-');
+                    let equals = entity.contextType.id === Number(filter.values[0]);
+                    return not ? !equals : equals;
                 }
 
                 default: throw l10n.get('errorUnknownFilterOperator', filter.operation);

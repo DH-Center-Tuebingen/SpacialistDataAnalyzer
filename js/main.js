@@ -395,6 +395,53 @@ function addThesaurusOptionsToDropdown(
 }
 
 // ------------------------------------------------------------------------------------
+function addEntityTypesToDropdown(
+    select
+) {
+// ------------------------------------------------------------------------------------
+    select.empty().append($('<option/>').attr({ value: '' }).text(''));
+    let options = [];
+    db.contextTypes.forEachValue((id, entityType) => options.push({ id, name: entityType.name }));
+    options.sort((a, b) => a.name.localeCompare(b.name)).forEach(e => select.append(
+        $('<option/>').attr({ value: e.id }).text(e.name)
+    ));
+    select.removeClass('hidden');
+}
+
+// ------------------------------------------------------------------------------------
+function addEntitiesToDropdown(
+    select
+) {
+// ------------------------------------------------------------------------------------
+    select.empty();
+    select.data('select2Options', {
+        minimumInputLength: 3,
+        ajax: {
+            url: 'lib/FakeSelect2Result.php',
+            data: (params) => {
+              select.data('queryTerm', params.term.toUpperCase());
+              return {};
+            },
+            processResults: () => {
+                let options = [];
+                let queryTerm = select.data('queryTerm');
+                db.contexts.forEachValue((id, entity) => {
+                    if(!entity.name.toUpperCase().includes(queryTerm))
+                        return;
+                    options.push({
+                        id,
+                        text: '%s (%s)'.with(entity.name, entity.contextType.name)
+                    });
+                }, true);
+                return {
+                    results: options.sort((a, b) => a.text.localeCompare(b.text))
+                };
+            }
+        }
+    }).removeClass('hidden');
+}
+
+// ------------------------------------------------------------------------------------
 function getFilterValueControls(row) {
 // ------------------------------------------------------------------------------------
     let op = row.data('operatorDropdown');
@@ -417,12 +464,16 @@ function getFilterValueControls(row) {
         case 'not-equal-thesaurus':
             select = get_select(null, { width: '100%' }).addClass('hidden');
             addThesaurusOptionsToDropdown(obj, select);
-            select.data('thesaurusType', 'concept');
+            select.data('dropdownType', 'thesaurusConcept');
             ctrls.unshift(select);
             break;
 
         case 'contain':
         case 'not-contain':
+        case 'entity-name-contain':
+        case 'entity-name-not-contain':
+        case 'entity-name-equal':
+        case 'entity-name-not-equal':
             ctrls.unshift(get_textbox());
             break;
 
@@ -430,7 +481,7 @@ function getFilterValueControls(row) {
         case 'not-contain-thesaurus':
             select = get_select(null, { width: '100%' }).addClass('hidden');
             addThesaurusOptionsToDropdown(obj, select);
-            select.data('thesaurusType', 'concept');
+            select.data('dropdownType', 'thesaurusConcept');
             ctrls.unshift(select);
             break;
 
@@ -440,7 +491,23 @@ function getFilterValueControls(row) {
         case 'not-contain-descendant-thesaurus':
             select = get_select(null, { width: '100%' }).addClass('hidden');
             addThesaurusOptionsToDropdown(obj, select, true);
-            select.data('thesaurusType', 'descendant');
+            select.data('dropdownType', 'thesaurusDescendant');
+            ctrls.unshift(select);
+            break;
+
+        case 'entity-type-equal':
+        case 'entity-type-not-equal':
+            select = get_select(null, { width: '100%' }).addClass('hidden');
+            addEntityTypesToDropdown(select);
+            select.data('dropdownType', 'entityType');
+            ctrls.unshift(select);
+            break;
+
+        case 'entity-equal':
+        case 'entity-not-equal':
+            select = get_select(null, { width: '100%'}).addClass('hidden');
+            addEntitiesToDropdown(select);
+            select.data('dropdownType', 'entity');
             ctrls.unshift(select);
             break;
     }
@@ -481,7 +548,7 @@ function getFilterOperatorDropdown(row, type) {
             || newControls.some((ctrl, i) => {
                 return !curControls[i].is(ctrl.prop('tagName'))
                 || curControls[i].attr('type') !== ctrl.attr('type')
-                || curControls[i].data('thesaurusType') !== ctrl.data('thesaurusType')
+                || curControls[i].data('dropdownType') !== ctrl.data('dropdownType')
             })
         ) {
             cell.empty();
