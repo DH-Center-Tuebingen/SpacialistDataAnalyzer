@@ -3,6 +3,7 @@ var tree;
 var analysis = {};
 var masterTree;
 var entitiesDropdown;
+var EntityDetailsHiddenAttributes = [];
 var DataTableElementInfos = {
     infos: [],
     add: function (data, click) {

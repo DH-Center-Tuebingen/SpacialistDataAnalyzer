@@ -936,6 +936,8 @@ function renderEntityDetails(
     context.contextType.attributes.forEach(attr => {
         if(attr.pseudoAttributeKey === PseudoAttributes.Name)
             return;
+        if(EntityDetailsHiddenAttributes.includes(attr.id))
+            return;
         let value = attr.pseudoAttributeKey === PseudoAttributes.ID
             ? context.attributes[attr.id]
             : db.getDisplayValue(context.attributes[attr.id], attr, false);

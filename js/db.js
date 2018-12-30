@@ -221,6 +221,7 @@ function initializeDbVar() {
                 type: 'table',
                 children: []
             };
+            EntityDetailsHiddenAttributes.push(tableAttr.id);
             let degreeCol = {
                 id: this.getNextAttrId(),
                 info: null,
