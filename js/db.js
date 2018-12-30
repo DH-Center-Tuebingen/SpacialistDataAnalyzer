@@ -761,11 +761,12 @@ function initializeDbVar() {
             customClasses = ''
         ) {
         // --------------------------------------------------------------------------------------------
-            let xinfo = DataTableElementInfos.add({ contextId: context.id }, 'clickedShowEntityDetails');
+            let xinfo = DataTableElementInfos.add({ ctxid: context.id }, 'clickedShowEntityDetails');
             let attrs = {
                 href: 'javascript:void(0)',
                 title: l10n.dbEntityDetailsTitle.with(context.contextType.name),
-                'data-xinfo': xinfo
+                'data-xinfo': xinfo,
+                'data-ctxid': context.id
             };
             if(customAttrs)
                 $.extend(attrs, customAttrs);
@@ -1300,7 +1301,7 @@ function initializeDbVar() {
                     }
                 });
             });
-            
+
             // special attribute displays
             r.body.forEach(row => {
                 for(let i = 0; i < groupColumns.length; i++) {

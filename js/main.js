@@ -744,11 +744,11 @@ function renderRowIngoreSettings() {
 // ------------------------------------------------------------------------------------
 function showReloadDbModal() {
 // ------------------------------------------------------------------------------------
-    $('#reloadDbModal').remove();
+    $('#reloadDbModal').trigger('hidden.bs.modal');
     $('<div/>').addClass('modal').attr({
         id: 'reloadDbModal',
         role: 'dialog'
-    }).append(
+    }).data('modal-dialog', true).append(
         $('<div/>').addClass('modal-dialog modal-md').append(
             $('<div/>').addClass('modal-content p-4')
                 .append($('<h4/>').text(l10n.dbReloadModalTitle))
@@ -774,11 +774,13 @@ function showReloadDbModal() {
 function showTableModal() {
 // ------------------------------------------------------------------------------------
     let btn = $(this);
-    $('#modalTableInCell').remove();
+    let openModal = $('#modalTableInCell');
+    if(openModal.length > 0)
+        openModal.modal('hide');
     let div = $('<div/>').addClass('modal').attr({
         id: 'modalTableInCell',
         role: 'dialog'
-    }).append(
+    }).data('modal-dialog', true).append(
         $('<div/>').addClass('modal-dialog modal-lg').append(
             $('<div/>').addClass('modal-content').append(
                 getResultTable(btn.data('table')).div
@@ -972,11 +974,14 @@ function showEntityDetails(id) {
 // ------------------------------------------------------------------------------------
     let context = db.contexts[id];
     let dialog, container;
-    $('#modalEntityDetails').remove();
+    // can only be open once, close all others
+    let openModal = $('#modalEntityDetails');
+    if(openModal.length > 0)
+        openModal.modal('hide');
     dialog = $('<div/>').addClass('modal').attr({
         id: 'modalEntityDetails',
         role: 'dialog'
-    }).append(
+    }).data('modal-dialog', true).append(
         $('<div/>').addClass('modal-dialog modal-lg').append(
             container = $('<div/>').addClass('modal-content').data({
                 history: []
@@ -992,15 +997,21 @@ function showEntityDetails(id) {
 // ------------------------------------------------------------------------------------
 function clickedShowEntityDetails() {
 // ------------------------------------------------------------------------------------
+    let openModal = $('#modalTableInCell');
+    if(openModal.length > 0)
+        openModal.modal('hide');
     let link = $(this);
-    if(link.attr('data-navigate') === undefined)
-        showEntityDetails(parseInt(link.data('contextId')));
-    else {
-        let container = $('#modalEntityDetails div.modal-content');
+    let openEntityBrowser = $('#modalEntityDetails');
+    if(openEntityBrowser.length > 0) {
+        let container = openEntityBrowser.find('div.modal-content').first();
         renderEntityDetails(container,
             container.data('historyPos') + 1,
-            db.contexts[link.data('contextId')]
+            db.contexts[parseInt(link.data('ctxid'))]
         );
+        openEntityBrowser.fadeIn();
+    }
+    else {
+        showEntityDetails(parseInt(link.data('ctxid')));
     }
 }
 
@@ -2060,6 +2071,18 @@ function start() {
             e.data(info.data);
         if(typeof info.click === 'string')
             window[info.click].apply(event.target, event);
+    }).on('hidden.bs.modal', () => {
+        // we need to hide the background shade
+        let openModalCount = $('div.modal.show').length;
+        if(openModalCount === 0) {
+            $('body').removeClass('modal-open');
+            $('div.modal-backdrop').remove();
+        }
+    }).on('shown.bs.modal', () => {
+        // only show one modal backdrop
+        let modalBackdrops = $('div.modal-backdrop');
+        for(let i = modalBackdrops.length - 1; i >= 1; i--)
+            modalBackdrops.eq(i).remove();
     });
     $('#loading-progress').text(l10n.statusInitUI);
     initUi();
