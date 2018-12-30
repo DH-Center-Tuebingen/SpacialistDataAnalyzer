@@ -209,6 +209,83 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
+        createAncestryTables: function(
+        ) {
+        // --------------------------------------------------------------------------------------------
+            let tableAttr = {
+                id: this.getNextAttrId(),
+                info: null,
+                name: l10n.dbAttributeAncestry,
+                parentAttribute: null,
+                thesaurusRoot: null,
+                type: 'table',
+                children: []
+            };
+            let degreeCol = {
+                id: this.getNextAttrId(),
+                info: null,
+                name: l10n.dbAttributeAncestryDegree,
+                parentAttribute: tableAttr,
+                thesaurusRoot: null,
+                type: 'integer'
+            };
+            let entityCol = {
+                id: this.getNextAttrId(),
+                info: null,
+                name: l10n.dbAttributeAncestryEntity,
+                parentAttribute: tableAttr,
+                thesaurusRoot: null,
+                type: 'entity'
+            };
+            [tableAttr, degreeCol, entityCol].forEach(attr => {
+                this.attributes[attr.id] = attr;
+            });
+            this.contextTypes.forEachValue((id, ct) => ct.attributes.push(tableAttr));
+            [degreeCol, entityCol].forEach(attr => tableAttr.children.push(attr));
+            this.contexts.forEachValue((id, context) => {
+                if(!context.parentContext)
+                    return;
+                let table = [];
+                let parent = context;
+                let degree = 1;
+                while(parent = parent.parentContext) {
+                    let row = {};
+                    row[degreeCol.id] = degree++;
+                    row[entityCol.id] = parent.id;
+                    table.push(row);
+                }
+                context.attributes[tableAttr.id] = table;
+            });
+        },
+
+        // --------------------------------------------------------------------------------------------
+        createPseudoAttributes: function(
+        ) {
+        // --------------------------------------------------------------------------------------------
+            let pseudoInfo = [
+                { name: l10n.dbAttributeGeometry, type: 'geometry', attr: PseudoAttributes.GeoData },
+                { name: l10n.dbAttributeName, type: 'string', attr: PseudoAttributes.Name },
+                { name: l10n.dbAttributeID, type: 'integer', attr: PseudoAttributes.ID },
+            ];
+            // pseudoAttributes
+            this.pseudoAttributes = [];
+            pseudoInfo.forEach(a => this.pseudoAttributes.push({
+                id: this.getNextAttrId(),
+                info: null,
+                name: a.name,
+                parentAttribute: null,
+                thesaurusRoot: null,
+                type: a.type,
+                pseudoAttributeKey: a.attr
+            }));
+            this.pseudoAttributes.forEach(pa => {
+                this.attributes[pa.id] = pa;
+                this.contextTypes.forEachValue((id, ct) => ct.attributes.unshift(pa));
+                this.contexts.forEachValue((id, context) => context.attributes[pa.id] = context[pa.pseudoAttributeKey]);
+            });
+        },
+
+        // --------------------------------------------------------------------------------------------
         _handleAjaxResult: function (
             result,
             startTime,
@@ -303,27 +380,8 @@ function initializeDbVar() {
                 delete tc.parentUrls;
                 delete tc.childUrls;
             });
-            let pseudoInfo = [
-                { name: l10n.dbAttributeGeometry, type: 'geometry', attr: PseudoAttributes.GeoData },
-                { name: l10n.dbAttributeName, type: 'string', attr: PseudoAttributes.Name },
-                { name: l10n.dbAttributeID, type: 'integer', attr: PseudoAttributes.ID },
-            ];
-            // pseudoAttributes
-            this.pseudoAttributes = [];
-            pseudoInfo.forEach(a => this.pseudoAttributes.push({
-                id: this.getNextAttrId(),
-                info: null,
-                name: a.name,
-                parentAttribute: null,
-                thesaurusRoot: null,
-                type: a.type,
-                pseudoAttributeKey: a.attr
-            }));
-            this.pseudoAttributes.forEach(pa => {
-                this.attributes[pa.id] = pa;
-                this.contextTypes.forEachValue((id, ct) => ct.attributes.unshift(pa));
-                this.contexts.forEachValue((id, context) => context.attributes[pa.id] = context[pa.pseudoAttributeKey]);
-            });
+            this.createPseudoAttributes();
+            this.createAncestryTables();
             let elapsed = debugGetElapsedSeconds(startTime);
             console.log('DB loaded in', elapsed, 's');
             this._initMemberFunctions();
@@ -634,6 +692,7 @@ function initializeDbVar() {
                     let table = {
                         head: [],
                         body: [],
+                        attrs: [],
                         sortTypes: []
                     };
                     let colAttrs = {}; // for quicker access than via db.attributes
@@ -645,6 +704,7 @@ function initializeDbVar() {
                             if(i == 0) {
                                 attr = colAttrs[c] = db.attributes[c];
                                 table.head.push(attr ? attr.name : c);
+                                table.attrs.push(attr);
                                 table.sortTypes.push(attr ? db.getSortTypeFromAttr(attr) : undefined);
                             }
                             else
@@ -1195,9 +1255,9 @@ function initializeDbVar() {
                     for(let repetition = 0; repetition < repeatCount; repetition++) {
                         groupColumnValues[c].forEach(value => {
                             for(let count = 0; count < countPerRepetition; count++) {
-                                if(c < groupColumns.length && colAttrs[c].type === 'entity')
+                                /*if(c < groupColumns.length && colAttrs[c].type === 'entity')
                                     rows[r++][c] = db.getEntityDisplayObject(value);
-                                else
+                                else*/
                                     rows[r++][c] = value;
                             }
                         });
@@ -1240,15 +1300,23 @@ function initializeDbVar() {
                     }
                 });
             });
-            linkListColumns.forEach(colIndex => {
-                r.body.forEach(row => {
+            
+            // special attribute displays
+            r.body.forEach(row => {
+                for(let i = 0; i < groupColumns.length; i++) {
+                    if(colAttrs[i].type === 'entity') {
+                        row[i] = db.getEntityDisplayObject(row[i]);
+                    }
+                }
+                linkListColumns.forEach(colIndex => {
                     let linkList = row[colIndex];
                     if($.isArray(linkList)) {
                         linkList.sort((a, b) => a.label > b.label ? 1 : (a.label < b.label ? -1 : 0));
-                        row[colIndex] = { display: 'entityLinkList', value: linkList.map(x => x.html), order: linkList.length }
+                        row[colIndex] = { display: 'entityLinkList', value: linkList.map(x => x.html), order: linkList.length };
                     }
-                })
+                });
             });
+
             r.grandTotal = r.body.length;
             if(r.grandTotal > Settings.resultTable.maxRows)
                 r.body.length = Settings.resultTable.maxRows; // https://stackoverflow.com/questions/26568536/remove-all-items-after-an-index/26568611
