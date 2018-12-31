@@ -148,16 +148,16 @@ const AttributeTypeSymbols = {
     'boolean': '☑',
     'string': '¶',
     'stringf': '¶',
-    'relation': '☍',
+    'relation': '⎌',
     'date': '🗓',
     'string-sc': '·',
     'string-mc': '⋮',
     'table': '⊞',
-    'geometry': '⚐', // TODO : sum-area, etc. (in db.getDescriptiveStatsForAttribute)
+    'geometry': '⏢',
     'epoch': '⥈',
     'dimension': '⛶',
     'list': '☰',
-    'entity': '☍'
+    'entity': '⍟'
 }
 const AttributeDisplayTypeMapping = {
     'integer': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
