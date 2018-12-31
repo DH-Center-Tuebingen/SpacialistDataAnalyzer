@@ -48,7 +48,7 @@
             object: attribute
         });
         let nameCell = getPaddedCell(depth)
-            .text('⚬ '+ attribute.label)
+            .html($('<span class="attr-type"/>').text(AttributeTypeSymbols[attribute.type])).append(attribute.label)
             .append($('<span/>').addClass('attr-info').text(l10n.attributeTypeLabels[attribute.type]));
         attribute.treeRow.append(nameCell);
         attribute.treeRow.on('mouseover mouseout', eventMouse);

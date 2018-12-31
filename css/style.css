@@ -83,6 +83,14 @@ span.symbol {
     font-size: 18px;
 }
 
+.attr-type {
+    width: 1rem;
+    margin-right: .25rem;
+    text-align: center;
+    display: inline-block;
+    color: gray;
+}
+
 .attr-info {
     font-weight: 200;
     font-size: smaller;

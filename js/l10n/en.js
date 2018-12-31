@@ -170,7 +170,7 @@ const l10n_en = {
     filterDiscardTableRowsOutputObjectNameTable: 'table %s',
     filterDiscardTableRowsOutputObjectNameEntity: 'the selected output entity',
     filterTableCols: {
-        what: 'Entity Type / Property',
+        what: 'Property',
         transformation: 'Value Transformation',
         operator: 'Filter Operator',
         value: 'Filter Value'

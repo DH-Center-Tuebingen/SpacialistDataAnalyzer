@@ -674,7 +674,7 @@ function getFilterObjectLabel(object) {
     let attrName = '<b>%s</b>'.with(escapeHtml(object.label ? object.label : object.name));
     let parentAttrName = object.parentAttribute ? l10n.get('filterObjectAttrParent', object.parentAttribute.name) : '';
     let ctName = l10n.get('filterObjectAttrContextType', object.parentContextType.name);
-    return attrName + escapeHtml(parentAttrName + ctName);
+    return ($('<span/>').addClass('attr-type').text(AttributeTypeSymbols[object.type]))[0].outerHTML + attrName + escapeHtml(parentAttrName + ctName);
 }
 
 // ------------------------------------------------------------------------------------
@@ -1677,7 +1677,11 @@ function addAttributeToGroupingTable(tbody, attr) {
         width: '100%',
         hasSymbols: true
     }, options, updateGroupBadge);
-    let nameCell = $('<td/>').text(attr.name).append($('<span/>').addClass('attr-info').text(l10n.attributeTypeLabels[attr.type]));
+    let nameCell = $('<td/>').html(
+        $('<span/>').addClass('attr-type').text(AttributeTypeSymbols[attr.type])
+    ).append(attr.name).append(
+        $('<span/>').addClass('attr-info').text(l10n.attributeTypeLabels[attr.type])
+    );
     if(attr.parentAttribute)
         nameCell.css('padding-left', 20).prepend('└ ');
     tbody.append($('<tr/>').append(nameCell).append($('<td/>').append(box)));

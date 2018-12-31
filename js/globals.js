@@ -141,6 +141,24 @@ const Symbols = {
     'min-ht': '⫫',
     'max-ht': '⫪'
 };
+const AttributeTypeSymbols = {
+    'integer': 'ℤ',
+    'double': 'ℝ',
+    'percentage': '%',
+    'boolean': '☑',
+    'string': '¶',
+    'stringf': '¶',
+    'relation': '☍',
+    'date': '🗓',
+    'string-sc': '·',
+    'string-mc': '⋮',
+    'table': '⊞',
+    'geometry': '⚐', // TODO : sum-area, etc. (in db.getDescriptiveStatsForAttribute)
+    'epoch': '⥈',
+    'dimension': '⛶',
+    'list': '☰',
+    'entity': '☍'
+}
 const AttributeDisplayTypeMapping = {
     'integer': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
     'double': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
