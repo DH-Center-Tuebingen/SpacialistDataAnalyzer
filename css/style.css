@@ -89,6 +89,8 @@ span.symbol {
     text-align: center;
     display: inline-block;
     color: gray;
+    background-color: whitesmoke;
+    border-radius: .25rem;
 }
 
 .attr-info {
