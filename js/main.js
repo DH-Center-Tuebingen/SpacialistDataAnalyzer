@@ -2227,8 +2227,8 @@ function makeResizable() {
     oldWindowSize.load(() => {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         let leftWidthNew = (window.innerWidth - containerMargin) * oldWindowSize.leftColPct;
-        leftCol.outerWidth(leftWidthNew);
-        rightCol.outerWidth(window.innerWidth - containerMargin - leftWidthNew);
+        leftCol.outerWidth(Math.floor(leftWidthNew));
+        rightCol.outerWidth(Math.floor(window.innerWidth - containerMargin - leftWidthNew));
         let topHeightNew = (window.innerHeight - containerMargin) * oldWindowSize.topRowPct;
         topRow.outerHeight(topHeightNew);
         bottomRow.outerHeight(window.innerHeight - containerMargin - topHeightNew);
@@ -2252,8 +2252,8 @@ function makeResizable() {
             h: window.innerHeight - oldWindowSize.h
         };
         let leftWidthNew = leftCol.outerWidth() + diff.w * oldWindowSize.leftColPct;
-        leftCol.outerWidth(leftWidthNew);
-        rightCol.outerWidth(window.innerWidth - containerMargin - leftWidthNew);
+        leftCol.outerWidth(Math.floor(leftWidthNew));
+        rightCol.outerWidth(Math.floor(window.innerWidth - containerMargin - leftWidthNew));
         let topHeightNew = topRow.outerHeight() + diff.h * oldWindowSize.topRowPct;
         topRow.outerHeight(topHeightNew);
         bottomRow.outerHeight(window.innerHeight - containerMargin - topHeightNew);
