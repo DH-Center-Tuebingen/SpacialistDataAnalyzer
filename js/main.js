@@ -131,51 +131,43 @@ function updateGui(update) {
 
         }
         // add additional options
+        let options = [], 
+            introText, 
+            selectBox;
         if(update.outputObject.what === 'Attribute') {
-            let options = { '': '' };
-            let displayType = update.outputObject.type;
-            AttributeDisplayTypeMapping[displayType].forEach(display => {
-                options[display] = l10n.attributeDisplayTypeLabels[display];
+            AttributeDisplayTypeMapping[update.outputObject.type].forEach(display => {
+                options.push({
+                    value: display,
+                    label: l10n.attributeDisplayTypeLabels[display]
+                });
             });
-            let select;
-            div_info.append(
-                $('<p/>').attr('id', 'outputAttributeDisplay').text(l10n.outputSelectPropertyDisplayType).append(
-                    select = $('<select/>').attr('id', 'displayType').data('hasSymbols', true).change(function(e) {
-                        updateAnalysisStatus({
-                            outputDisplay: {
-                                type: $(this).val()
-                            }
-                        })
-                    })
-                )
-            );
-            let sel = '';
-            options.forEach(key => {
-                select.append($('<option/>').attr('value', key).text(options[key]));
-                if(sel == '' && key != '')
-                    sel = key;
-            });
-            select.val(sel).trigger('change');
+            introText = l10n.outputSelectPropertyDisplayType;
         }
         else { // ContextType
-            let options = [
+            options = [
                 { value: 'table', label: l10n.contextTypeDisplayLabels.table },
                 { value: 'map', label: l10n.contextTypeDisplayLabels.map },
                 { value: 'count', label: l10n.contextTypeDisplayLabels.count }
             ];
-            div_info.append(
-                $('<p/>').attr('id', 'outputContextTypeDisplay').text(l10n.outputSelectEntityDisplay).append(
-                    get_select({id: 'displayType'}, { initialValue: options[0].value, hasSymbols: true }, options, function() {
-                        updateAnalysisStatus({
-                            outputDisplay: {
-                                type: $(this).val()
-                            }
-                        })
-                    })
-                )
-            );
-            makeSelect2($('#displayType'), { width: '300px' });
+            introText = l10n.outputSelectEntityDisplay;
         }
+        div_info.append(
+            $('<p/>').attr('id', 'outputContextTypeDisplay').text(introText).append(
+                selectBox = get_select({ 
+                    id: 'displayType'
+                }, { 
+                    initialValue: options[0].value, 
+                    hasSymbols: true 
+                }, options, function() {
+                    updateAnalysisStatus({
+                        outputDisplay: {
+                            type: $(this).val()
+                        }
+                    })
+                }).removeClass('form-control')
+            )
+        );
+        makeSelect2(selectBox, { width: selectBox.width() + 50 });
 
         let ctName = update.outputObject.what == 'ContextType' ? update.outputObject.name : update.outputObject.parentContextType.name;
         $('<div/>').addClass('form-check').append(
