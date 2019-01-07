@@ -149,7 +149,7 @@ const AttributeTypeSymbols = {
     'string': '¶',
     'stringf': '¶',
     'relation': '⎌',
-    'date': '🗓',
+    'date': '▣',
     'string-sc': '·',
     'string-mc': '⋮',
     'table': '⊞',
