@@ -17,11 +17,13 @@ Spacialist Data Analyzer is a web application that allows users to analyze data 
     ```
 
 ## Usage
-Direct your browser to the URL of the app folder and provide an parameter `env` that reflects the name of the folder of the Spacialist instance relative to the `spacialist_root` setting defined in `global.ini`.
+It is assumed that under the Spacialist instance folder, the actual Spacialist frontend will be served from subfolder `s`, and the Spacialist Data Analyzer app will be symbolically linked from a sibling folder `analysis`. In this case, the app will find the `.env` file of the present Spacialist instance automatically, and you simply direct your browser to the app directory, e.g. `https://my.spacialist-server.com/spacialist/some-instance/analysis`
+
+If you are not using this default setup, direct your browser to the URL of the app folder and provide an parameter `env` that reflects the name of the folder of the Spacialist instance relative to the `spacialist_root` setting defined in `global.ini`.
 
 For instance, if the Spacialist Data Analyzer app is in the folder `data-analyzer`, and you would like to use the app with the Spacialist instance in the folder `test`, then the target URL would be `https://my.spacialist-server.com/spacialist/data-analyzer/?env=test`
 
-If successful, the browser should display a login page. 
+If successful, the browser should display a login page. If opened via a hyperlink from within Spacialist, no login will be necessary.
 
 Read the **[User Manual](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual)** to learn how to use Spacialist Data Analyzer.
 
