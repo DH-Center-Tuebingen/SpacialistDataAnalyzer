@@ -6,8 +6,6 @@ function start_the_session($reldir = '.') {
     session_start();
     if(try_set_lang())
         return;
-    if(!isset($_GET['env']))
-        die('Please provide the <b>env</b> parameter pointing to the Spacialist instance folder');
     $ini = @parse_ini_file($reldir . '/global.ini');
     if($ini === false)
         die('Global settings <b>global.ini</b> missing');
@@ -15,23 +13,46 @@ function start_the_session($reldir = '.') {
         die('Invalid <b>spacialist_root</b> in global.ini');
     if(!isset($ini['spacialist_webroot']))
         die('Invalid <b>spacialist_root</b> in global.ini');
-    $try_env = array(
-        $ini['spacialist_root'] . '/' . $_GET['env'] . '/.env',
-        $ini['spacialist_root'] . '/' . $_GET['env'] . '/s/.env'
-    );
-    foreach($try_env as $file) {
-        $env = @file($file);
-        if(is_array($env))
-            break;
+    if(@file_exists('../s/.env')) {
+        // here we are in the instance directory, run without an ?env= parameter
+        $env = @file('../s/.env');
+        // extract instance name
+        // $ini[spacialist_root] is something like:     /var/www/html/spacialist
+        // $_SERVER[script_filename] is something like: /var/www/html/spacialist/demo/vue/analysis/index.php
+        // we want to extract "demo/vue"
+        $script = $_SERVER['script_filename'];
+        $spac_root = $ini['spacialist_root'];
+        $pos = strpos($script, $spac_root);
+        if($pos !== 0)
+            die('Invalid configuration in global.ini (1)');
+        $script = substr($script, strlen($spac_root));
+        $pos = strpos($script, '/analysis/index.php');
+        if($pos === false)
+            die('Invalid configuration in global.ini (2)');
+        $envName = trim(substr($script, 0, $pos), '/'); 
+    }
+    else {
+        if(!isset($_GET['env']))
+            die('Please provide the <b>env</b> parameter pointing to the Spacialist instance folder');
+        $envName = $_GET['env'];
+        $try_env = array(
+            $ini['spacialist_root'] . '/' . $_GET['env'] . '/.env',
+            $ini['spacialist_root'] . '/' . $_GET['env'] . '/s/.env'
+        );
+        foreach($try_env as $file) {
+            $env = @file($file);
+            if(is_array($env))
+                break;
+        }
     }
     if($env === false || !is_array($env))
-        die('<b>.env</b> file not found for Spacialist instance ' . $_GET['env']);
+        die('<b>.env</b> file not found for Spacialist instance');
     $_SESSION['ini'] = array(
         'webRoot' => $ini['spacialist_webroot']
     );
     $instance = array(
-        'name' => $_GET['env'],
-        'folder' => $_GET['env']
+        'name' => $envName,
+        'folder' => $envName
     );
     foreach($env as $line) {
         if(preg_match('/^\s*DB_DATABASE\s*=\s*(?<db>[^$\s]+)/', $line, $match))
