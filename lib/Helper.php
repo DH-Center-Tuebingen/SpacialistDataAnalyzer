@@ -13,23 +13,29 @@ function start_the_session($reldir = '.') {
         die('Invalid <b>spacialist_root</b> in global.ini');
     if(!isset($ini['spacialist_webroot']))
         die('Invalid <b>spacialist_root</b> in global.ini');
-    if(@file_exists('../s/.env')) {
-        // here we are in the instance directory
-        $env = @file('../s/.env');
-        // extract instance name
-        // $ini[spacialist_root] is something like:     /var/www/html/spacialist
-        // $_SERVER[SCRIPT_FILENAME] is something like: /var/www/html/spacialist/demo/vue/analysis/index.php
-        // we want to extract "demo/vue"
-        $script = $_SERVER['SCRIPT_FILENAME'];
-        $spac_root = $ini['spacialist_root'];
-        $pos = strpos($script, $spac_root);
+    if(isset($ini['instance_local'])) {
+        // here we are in the instance directory, need to extract instance folder and .env location
+        /* extract instance name
+            example global.ini:
+                spacialist_root=/var/www/html/spacialist
+                spacialist_webroot=/spacialist
+            
+            $_SERVER[SCRIPT_NAME] is something like: 
+                /spacialist/demo/vue/analysis/index.php
+
+            ==> we want to extract "demo/vue", and get the 
+        */
+        $script = $_SERVER['SCRIPT_NAME'];
+        $webroot = $ini['spacialist_webroot'];
+        $pos = strpos($script, $webroot);
         if($pos !== 0)
             die('Invalid configuration in global.ini (1)');
-        $script = substr($script, strlen($spac_root));
-        $pos = strpos($script, '/analysis/index.php');
+        $script = substr($script, strlen($webroot) + 1);
+        $pos = strpos($script, '/analysis/');
         if($pos === false)
             die('Invalid configuration in global.ini (2)');
-        $envName = trim(substr($script, 0, $pos), '/'); 
+        $envName = trim(substr($script, 0, $pos), '/');
+        $env = @file(sprintf('%s/%s/s/.env', $ini['spacialist_root'], $envName));
     }
     else {
         // get from env parameter -- legacy, should be removed some fine future day
