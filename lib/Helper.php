@@ -13,34 +13,8 @@ function start_the_session($reldir = '.') {
         die('Invalid <b>spacialist_root</b> in global.ini');
     if(!isset($ini['spacialist_webroot']))
         die('Invalid <b>spacialist_root</b> in global.ini');
-    if(!isset($_GET['env']) && isset($ini['instance_local']) && $ini['instance_local']) {
-        /* here we are in the instance directory, need to extract instance folder and .env location
-        
-            example global.ini:
-                spacialist_root=/var/www/html/spacialist
-                spacialist_webroot=/spacialist
-            
-            $_SERVER[SCRIPT_NAME] is something like: 
-                /spacialist/demo/vue/analysis/index.php
-
-            ==> we want to extract "demo/vue"
-        */
-        $script = $_SERVER['SCRIPT_NAME'];
-        $webroot = $ini['spacialist_webroot'];
-        $pos = strpos($script, $webroot);
-        if($pos !== 0)
-            die('Invalid configuration in global.ini (1)');
-        $script = substr($script, strlen($webroot) + 1);
-        $pos = strpos($script, '/analysis/');
-        if($pos === false)
-            die('Invalid configuration in global.ini (2)');
-        $envName = trim(substr($script, 0, $pos), '/');
-        $env = @file(sprintf('%s/%s/s/.env', $ini['spacialist_root'], $envName));
-    }
-    else {
+    if(isset($_GET['env'])) {
         // get from env parameter -- legacy, should be removed some fine future day
-        if(!isset($_GET['env']))
-            die('Please provide the <b>env</b> parameter pointing to the Spacialist instance folder');
         $envName = $_GET['env'];
         $try_env = array(
             $ini['spacialist_root'] . '/' . $_GET['env'] . '/.env',
@@ -50,6 +24,31 @@ function start_the_session($reldir = '.') {
             $env = @file($file);
             if(is_array($env))
                 break;
+        }
+    }
+    else {
+        /* here we are hopefully in the instance directory, try to extract instance folder and .env location
+        
+            example global.ini:
+                spacialist_root=/var/www/html/spacialist
+                spacialist_webroot=/spacialist
+            
+            $_SERVER[SCRIPT_NAME] is something like: 
+                /spacialist/some-instance/analysis/index.php
+
+            ==> we want to extract "some-instance"
+        */
+        $script = $_SERVER['SCRIPT_NAME'];
+        $webroot = $ini['spacialist_webroot'];
+        $pos = strpos($script, $webroot);
+        $env = false;
+        if($pos === 0) {
+            $script = substr($script, strlen($webroot) + 1);
+            $pos = strpos($script, '/analysis/');
+            if($pos !== false) {
+                $envName = trim(substr($script, 0, $pos), '/');
+                $env = @file(sprintf('%s/%s/s/.env', $ini['spacialist_root'], $envName));
+            }
         }
     }
     if($env === false || !is_array($env))
