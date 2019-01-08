@@ -13,9 +13,9 @@ function start_the_session($reldir = '.') {
         die('Invalid <b>spacialist_root</b> in global.ini');
     if(!isset($ini['spacialist_webroot']))
         die('Invalid <b>spacialist_root</b> in global.ini');
-    if(isset($ini['instance_local'])) {
-        // here we are in the instance directory, need to extract instance folder and .env location
-        /* extract instance name
+    if(!isset($_GET['env']) && isset($ini['instance_local']) && $ini['instance_local']) {
+        /* here we are in the instance directory, need to extract instance folder and .env location
+        
             example global.ini:
                 spacialist_root=/var/www/html/spacialist
                 spacialist_webroot=/spacialist
@@ -23,7 +23,7 @@ function start_the_session($reldir = '.') {
             $_SERVER[SCRIPT_NAME] is something like: 
                 /spacialist/demo/vue/analysis/index.php
 
-            ==> we want to extract "demo/vue", and get the 
+            ==> we want to extract "demo/vue"
         */
         $script = $_SERVER['SCRIPT_NAME'];
         $webroot = $ini['spacialist_webroot'];
