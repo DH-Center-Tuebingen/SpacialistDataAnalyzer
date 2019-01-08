@@ -14,11 +14,11 @@ function start_the_session($reldir = '.') {
     if(!isset($ini['spacialist_webroot']))
         die('Invalid <b>spacialist_root</b> in global.ini');
     if(@file_exists('../s/.env')) {
-        // here we are in the instance directory, run without an ?env= parameter
+        // here we are in the instance directory
         $env = @file('../s/.env');
         // extract instance name
         // $ini[spacialist_root] is something like:     /var/www/html/spacialist
-        // $_SERVER[script_filename] is something like: /var/www/html/spacialist/demo/vue/analysis/index.php
+        // $_SERVER[SCRIPT_FILENAME] is something like: /var/www/html/spacialist/demo/vue/analysis/index.php
         // we want to extract "demo/vue"
         $script = $_SERVER['SCRIPT_FILENAME'];
         $spac_root = $ini['spacialist_root'];
@@ -32,6 +32,7 @@ function start_the_session($reldir = '.') {
         $envName = trim(substr($script, 0, $pos), '/'); 
     }
     else {
+        // get from env parameter -- legacy, should be removed some fine future day
         if(!isset($_GET['env']))
             die('Please provide the <b>env</b> parameter pointing to the Spacialist instance folder');
         $envName = $_GET['env'];
