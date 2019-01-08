@@ -20,7 +20,7 @@ function start_the_session($reldir = '.') {
         // $ini[spacialist_root] is something like:     /var/www/html/spacialist
         // $_SERVER[script_filename] is something like: /var/www/html/spacialist/demo/vue/analysis/index.php
         // we want to extract "demo/vue"
-        $script = $_SERVER['script_filename'];
+        $script = $_SERVER['SCRIPT_FILENAME'];
         $spac_root = $ini['spacialist_root'];
         $pos = strpos($script, $spac_root);
         if($pos !== 0)
