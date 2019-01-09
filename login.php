@@ -17,6 +17,7 @@
     <head>
         <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="icon" href="assets/app-icon.ico">
+        <script src="node_modules/jquery/dist/jquery.min.js"></script>
         <script src="js/l10n/de.js"></script>
         <script src="js/l10n/en.js"></script>
         <script src="js/l10n/l10n.js"></script>
@@ -30,7 +31,23 @@
                         e.setAttribute('title', l10n[e.dataset.title]);
                 });
             }
+            function tryLogin() {
+                let authToken = localStorage && localStorage['default_auth_token'];
+                if(!authToken)
+                    return false;
+                $.ajax({
+                    url: 'lib/AuthAjax.php',
+                    headers: {
+                        'Authorization': 'Bearer ' + authToken
+                    },
+                    success: (result) => {
+                        if(result === true)
+                            window.location = './';
+                    }
+                });
+            }
             document.addEventListener('DOMContentLoaded', () => {
+                tryLogin();
                 let lang = <?php echo json_encode(isset($_GET['lang']) && in_array($_GET['lang'], array('en', 'de')) ? $_GET['lang'] : 'en'); ?>;
                 let langBox = document.getElementById('lang');
                 langBox.value = lang;
