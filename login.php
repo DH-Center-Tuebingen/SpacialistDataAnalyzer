@@ -33,7 +33,6 @@
             }
             function tryLogin(callback) {
                 let authToken = localStorage && localStorage['default_auth_token'];
-                authToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9kZW1vX3Z1ZS5zcGFjaWFsaXN0XC9hcGlcL3YxXC9tYXAiLCJpYXQiOjE1NDcwMjMyNjMsImV4cCI6MTU0NzAzMTcwOSwibmJmIjoxNTQ3MDI4MTA5LCJqdGkiOiJ4cnZWQWptbG1HcDY3N2hyIiwic3ViIjo1LCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.WPiSHG1Jtut_u35eWrTVbiVTblA9gwt5mpPA-BiXC_w";
                 if(!authToken)
                     return false;
                 $.ajax({
