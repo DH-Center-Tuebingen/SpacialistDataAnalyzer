@@ -31,8 +31,9 @@
                         e.setAttribute('title', l10n[e.dataset.title]);
                 });
             }
-            function tryLogin() {
+            function tryLogin(callback) {
                 let authToken = localStorage && localStorage['default_auth_token'];
+                authToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOlwvXC9kZW1vX3Z1ZS5zcGFjaWFsaXN0XC9hcGlcL3YxXC9tYXAiLCJpYXQiOjE1NDcwMjMyNjMsImV4cCI6MTU0NzAzMTcwOSwibmJmIjoxNTQ3MDI4MTA5LCJqdGkiOiJ4cnZWQWptbG1HcDY3N2hyIiwic3ViIjo1LCJwcnYiOiI4N2UwYWYxZWY5ZmQxNTgxMmZkZWM5NzE1M2ExNGUwYjA0NzU0NmFhIn0.WPiSHG1Jtut_u35eWrTVbiVTblA9gwt5mpPA-BiXC_w";
                 if(!authToken)
                     return false;
                 $.ajax({
@@ -43,17 +44,22 @@
                     success: (result) => {
                         if(result === true)
                             window.location = './';
-                    }
+                        callback(!!result);
+                    },
+                    error: () => callback(false)
                 });
             }
             document.addEventListener('DOMContentLoaded', () => {
-                tryLogin();
-                let lang = <?php echo json_encode(isset($_GET['lang']) && in_array($_GET['lang'], array('en', 'de')) ? $_GET['lang'] : 'en'); ?>;
-                let langBox = document.getElementById('lang');
-                langBox.value = lang;
-                langBox.addEventListener('change', function() { l10nize(this.options[this.selectedIndex].value) });
-                langBox.dispatchEvent(new Event('change'));
-                document.getElementById('container').classList.remove('hidden');
+                tryLogin((success) => {
+                    if(success)
+                        return; // will be redirected
+                    let lang = <?php echo json_encode(isset($_GET['lang']) && in_array($_GET['lang'], array('en', 'de')) ? $_GET['lang'] : 'en'); ?>;
+                    let langBox = document.getElementById('lang');
+                    langBox.value = lang;
+                    langBox.addEventListener('change', function() { l10nize(this.options[this.selectedIndex].value) });
+                    langBox.dispatchEvent(new Event('change'));
+                    document.getElementById('container').classList.remove('hidden');
+                });
             });
         </script>
         <style>

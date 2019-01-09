@@ -14,7 +14,7 @@ function is_logged_in() {
 }
 
 // ------------------------------------------------------------------------------------
-function jwt_get_user() {
+function jwt_get_user($validateSignature = true) {
 // ------------------------------------------------------------------------------------
     if(!isset($_SESSION['jwt_secret']))
         return false;
@@ -26,7 +26,9 @@ function jwt_get_user() {
             return false;
         $token = $match[1];
         $validator = new TokenValidator;
-        $validator->splitToken($token)->validateSignature($_SESSION['jwt_secret']);
+        $validator->splitToken($token);
+        if($validateSignature)
+            $validator->validateSignature($_SESSION['jwt_secret']);
         $payload = json_decode($validator->getPayload());
         if(!$payload || intval($payload->exp) < time())
             return false;
@@ -38,9 +40,9 @@ function jwt_get_user() {
 }
 
 // ------------------------------------------------------------------------------------
-function try_jwt_login() {
+function try_jwt_login($validateSignature = true) {
 // ------------------------------------------------------------------------------------
-    $jwt_user = jwt_get_user();
+    $jwt_user = jwt_get_user($validateSignature);
     if($jwt_user === false)
         return false;
     $sql = sprintf('select * from users where id = ?');
