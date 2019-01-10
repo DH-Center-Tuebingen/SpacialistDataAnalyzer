@@ -34,7 +34,7 @@
             function tryLogin(callback) {
                 let authToken = localStorage && localStorage['default_auth_token'];
                 if(!authToken)
-                    return false;
+                    callback(false);
                 $.ajax({
                     url: 'lib/AuthAjax.php',
                     headers: {
