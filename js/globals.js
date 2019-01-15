@@ -145,7 +145,7 @@ const AttributeTypeSymbols = {
     'integer': 'ℤ',
     'double': 'ℝ',
     'percentage': '%',
-    'boolean': '☑',
+    'boolean': '🗹',
     'string': '¶',
     'stringf': '¶',
     'relation': '⎌',
