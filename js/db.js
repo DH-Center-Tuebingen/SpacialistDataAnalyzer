@@ -625,7 +625,7 @@ function initializeDbVar() {
                     return val.toLocaleString();
 
                 case 'boolean':
-                    return val ? '☑' : '☐';
+                    return val ? '🗹' : '☐';
 
                 case 'string-sc':
                     if(val.concept_url)
