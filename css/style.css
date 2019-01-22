@@ -161,10 +161,12 @@ body {
 #loading-progress {
     font-size: 28px;
     line-height: 28px;
+    margin-top: 28px;
 }
 
 #loading-text {
     font-size: 96px;
+    line-height: 96px;
     font-weight: bold;
 }
 
