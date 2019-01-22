@@ -133,6 +133,8 @@ const l10n_en = {
     dbReloadModalInfo: 'The analysis tool works with a cached copy of the database to speed up analysis. By clicking the Proceed button, the tool will refresh the database cache based on current live data. This will take a couple of seconds. After that, some data will be processed in the background, which may take several minutes. However, most of the data will be available for analysis during this background processing. During background processing the status line will read "Processing in background". Your current analysis settings will be lost. Do you want to proceed?',
     dbReloadModalOK: 'Proceed',
     dbReloadModalCancel: 'Cancel',
+    dbEmptyHeading: 'Database is empty ☝',
+    dbEmptyMessage: 'The database does not contain any entities, so there is nothing to analyze ☹',
 
     treeCaption: 'Database Structure',
     treeHideProperties: 'Hide Properties',

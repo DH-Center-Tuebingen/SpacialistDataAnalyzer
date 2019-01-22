@@ -133,6 +133,8 @@ const l10n_de = {
     dbReloadModalInfo: 'Das Analysetool verwendet eine zwischengespeicherte Version der Spacialist-Datenbank, um die Analysen zu beschleunigen. Wenn Sie den Fortfahren-Knopf drücken, wird diese lokale Datenbankkopie auf den aktuellen Stand gebracht. Das Neuladen der Datenbank dauert einige Sekunden. Im Hintergrund werden dann noch für die Analyse benötigte Werte berechnet, was einige Minuten dauern kann. Die meisten für das Analysetool benötigten Daten sind aber während dieser Hintergrundberechnungen bereits verfügbar und das Tool ist einsatzbereit. Während dieser Bereichnungen wird in der Statuszeile der Text "Hintergrundberechnungen laufen" angezeigt werden. Ihre derzeitigen Analyseeinstellungen gehen jedenfalls verloren. Wollen Sie fortfahren?',
     dbReloadModalOK: 'Fortfahren',
     dbReloadModalCancel: 'Abbrechen',
+    dbEmptyHeading: 'Datenbank ist leer ☝',
+    dbEmptyMessage: 'Die Datenbank enthält keine Entitäten, also gibt es nichts zu analysieren ☹',
 
     treeCaption: 'Datenbankstruktur',
     treeHideProperties: 'Einklappen',

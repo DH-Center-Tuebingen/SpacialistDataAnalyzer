@@ -2294,6 +2294,11 @@ $(function() {
             enableReloadDb(true);
             return;
         }
+        if(db.contexts.countProperties() === 0) {
+            $('#loading-text').text(l10n.dbEmptyHeading);
+            $('#loading-progress').text(l10n.dbEmptyMessage);
+            return;
+        }
         buildTree();
         start();
         makeResizable();

@@ -125,7 +125,9 @@ try {
         'hierarchy' => $hierarchy
     ), JSON_NUMERIC_CHECK);
 
-    cache_put_data_db($json, $lang);
+    // never cache an empty DB
+    if(count($contexts) > 0)
+        cache_put_data_db($json, $lang);
     echo $json;
 }
 catch(Exception $e) {
