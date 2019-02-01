@@ -745,11 +745,22 @@ function initializeDbVar() {
             customClasses = ''
         ) {
         // --------------------------------------------------------------------------------------------
-            return ($('<a/>').attr({
-                target: '_spacialist',
-                href: '%s/%s/s/#/e/%s'.with(spacialistInstance.webRoot, spacialistInstance.folder, context.id),
-                title: l10n.dbSpacialistLinkTitle.with(context.contextType.name),
-            }).addClass('btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
+            let link;
+            if(window.opener && window.opener.Vue) { // select entity in Spacialist
+                link = $('<a/>').attr({
+                    href: 'javascript:void(0)',
+                    onclick: "window.opener.location='%s/%s/s/#/e/%s'".with(spacialistInstance.webRoot, spacialistInstance.folder, context.id),
+                    title: l10n.dbSpacialistLinkTitle.with(context.contextType.name),
+                });
+            }
+            else {
+                link = $('<a/>').attr({
+                    target: '_spacialist',
+                    href: '%s/%s/s/#/e/%s'.with(spacialistInstance.webRoot, spacialistInstance.folder, context.id),
+                    title: l10n.dbSpacialistLinkTitle.with(context.contextType.name),
+                });
+            }
+            return (link.addClass('btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
                 '%s %s'.with(Symbols['list-links'], label === undefined? context.id : label).trim()
             ))[0].outerHTML;
         },
