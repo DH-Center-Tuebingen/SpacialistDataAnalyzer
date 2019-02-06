@@ -2293,46 +2293,47 @@ function makeResizable() {
 $(function() {
 // ------------------------------------------------------------------------------------
     localizeGUI();
+    $('#loading-progress').text(l10n.statusFetchDB);
     // check special settings
     $.getJSON('settings/%s.json'.with(spacialistInstance.db), data => {
         if(data.settings)
             $.extend(true, Settings, data.settings);
         if(data.attributeOverrides)
             db.setAttributeOverrides(data.attributeOverrides);
-    });
-    $('#loading-progress').text(l10n.statusFetchDB);
-    db.init((error) => {
-        if(error) {
-            $('#loading-text').text(l10n.errorHeading);
-            $('#loading-progress').text(error.message).append($('<div/>')
-                .addClass('loading-error')
-                .text(l10n.get('errorContactWithInfo', error.trace))
-            );
-            $('#loading').css('color', 'darkred');
-            console.error('Error loading database: ' + error.trace);
-            enableReloadDb(true);
-            return;
-        }
-        if(db.contexts.countProperties() === 0) {
-            $('#loading-text').text(l10n.dbEmptyHeading);
-            $('#loading-progress').text(l10n.dbEmptyMessage);
-            return;
-        }
-        buildTree();
-        start();
-        makeResizable();
-        setStatusText(l10n.statusLoadComputedProperties, 1000);
-        db.loadComputedAttributeValues((computedAttributes, error) => {
-            clearStatusText();
+    }).always(() => {
+        db.init((error) => {
             if(error) {
-                alert(l10n.get('errorLoadComputedProperties', error.trace));
-                console.error('Error loading computed attributes: ' + error.trace);
+                $('#loading-text').text(l10n.errorHeading);
+                $('#loading-progress').text(error.message).append($('<div/>')
+                    .addClass('loading-error')
+                    .text(l10n.get('errorContactWithInfo', error.trace))
+                );
+                $('#loading').css('color', 'darkred');
+                console.error('Error loading database: ' + error.trace);
+                enableReloadDb(true);
                 return;
             }
-            masterTree.spacialistTree('addComputedAttributes', computedAttributes);
-            fillGroupTab(true);
-            $('#load-analysis').prop('disabled', false); // only now we allow loading analysis
-            enableReloadDb(true);
+            if(db.contexts.countProperties() === 0) {
+                $('#loading-text').text(l10n.dbEmptyHeading);
+                $('#loading-progress').text(l10n.dbEmptyMessage);
+                return;
+            }
+            buildTree();
+            start();
+            makeResizable();
+            setStatusText(l10n.statusLoadComputedProperties, 1000);
+            db.loadComputedAttributeValues((computedAttributes, error) => {
+                clearStatusText();
+                if(error) {
+                    alert(l10n.get('errorLoadComputedProperties', error.trace));
+                    console.error('Error loading computed attributes: ' + error.trace);
+                    return;
+                }
+                masterTree.spacialistTree('addComputedAttributes', computedAttributes);
+                fillGroupTab(true);
+                $('#load-analysis').prop('disabled', false); // only now we allow loading analysis
+                enableReloadDb(true);
+            });
         });
     });
 });

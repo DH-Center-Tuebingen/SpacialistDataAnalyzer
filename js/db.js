@@ -170,7 +170,10 @@ function initializeDbVar() {
                                     value = db.thesaurus[value].label;
                                 }
 
-                                tableRow[colAttrId] = value; 
+                                if(typeInfo.columnTypes[columnName] === 'string-sc' && typeof value === 'string')
+                                    tableRow[colAttrId] = { concept_url: value };
+                                else
+                                    tableRow[colAttrId] = value; 
 
                                 if(!typeInfo.columnTypes[columnName] && value !== null) {
                                     switch(typeof value) {
@@ -376,6 +379,8 @@ function initializeDbVar() {
             this.attributeValues.forEach(av => {
                 let attr = db.attributes[av.attribute];
                 let value = JSON.parse(av.value);
+                if(attr.type === 'string-sc' && typeof value === 'string') // make object
+                    value = { concept_url: value };
                 if(attr.type === 'table') {
                     // to allow displaying DataTables correctly, each column needs to have a value. In Spacialist
                     // empty values are missing the attribute altogether, so we fix this by setting these values to null
@@ -386,9 +391,12 @@ function initializeDbVar() {
                                 row[columnAttr.id] = null;
                             }
                             else {
+                                if(columnAttr.type === 'string-sc' && typeof cellValue === 'string') {
+                                    cellValue = row[columnAttr.id] = { concept_url: cellValue };
+                                }
                                 //>> TODO FIXME: es kann sein, dass numerische Tabellenattribute als string gespeichert werden => umwandeln!
                                 // sobald das gefixed ist, das hier entfernen
-                                if(typeof cellValue === 'string' && this.isNumericSpacialistType(columnAttr.type)) {
+                                else if(typeof cellValue === 'string' && this.isNumericSpacialistType(columnAttr.type)) {
                                     let n = Number(cellValue);
                                     if(isNaN(n)) {
                                         console.info('Unknown numeric attribute value "%s" in attribute %s of context %s; setting to undefined'.with(
@@ -461,21 +469,14 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
-        getAtomicValue: function (
-            attribute,
+        tryResolveThesaurus: function (
             value,
             ifMissing = ''
         ) {
         // --------------------------------------------------------------------------------------------
-            if(value !== null) {
-                if(typeof value === 'object' && value.concept_url) {
-                    return this.getThesaurusLabel(value.concept_url, ifMissing);
-                }
-                else if(attribute.type === 'string-sc' && typeof value === 'string' && value.startsWith('http')) {
-                    // string-sc is stored as plain thesaurus url in normal attributes,
-                    // but as thesaurus object { concept_url: ... } in string-sc attributes as part of table attributes
-                    return this.getThesaurusLabel(value, value);
-                }
+            if(value && value.concept_url) {
+                let label = this.getThesaurusLabel(value.concept_url, ifMissing);
+                return typeof label === 'string' ? label : ''; // sometimes label is null ?!?! WTF
             }
             return value;
         },
@@ -494,7 +495,7 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
-        getAttributeValue: function (context, attribute) {
+        getAttributeValue: function (context, attribute, resolveThesaurus) {
         // --------------------------------------------------------------------------------------------
             if(attribute.parentAttribute) {
                 let parentVal = context.attributes[attribute.parentAttribute.id];
@@ -505,7 +506,10 @@ function initializeDbVar() {
                         let vals = [];
                         parentVal.forEach(row => {
                             let val = row[attribute.id];
-                            vals.push(this.getAtomicValue(attribute, val));
+                            vals.push(resolveThesaurus ? 
+                                this.tryResolveThesaurus(val) 
+                                : val
+                            );
                         });
                         return vals;
 
@@ -514,7 +518,9 @@ function initializeDbVar() {
                 }
             }
             else {
-                return this.getAtomicValue(attribute, context.attributes[attribute.id]);
+                return resolveThesaurus ? 
+                    this.tryResolveThesaurus(context.attributes[attribute.id])
+                    : context.attributes[attribute.id];
             }
         },
 
@@ -527,7 +533,7 @@ function initializeDbVar() {
                 attribute.parentContextType.typePathToRoot,
                 true,
                 context => {
-                    let values = this.getAttributeValue(context, attribute);
+                    let values = this.getAttributeValue(context, attribute, true);
                     if(typeof values === 'undefined')
                         return;
                     if(!$.isArray(values))
@@ -591,7 +597,7 @@ function initializeDbVar() {
                 attribute.parentContextType.typePathToRoot,
                 true,
                 context => {
-                    let values = this.getAttributeValue(context, attribute);
+                    let values = this.getAttributeValue(context, attribute, true);
                     if(typeof values === 'undefined' || values === null)
                         return;
                     if(attribute.type === 'table') {
@@ -664,10 +670,7 @@ function initializeDbVar() {
                     return val ? '🗹' : '☐';
 
                 case 'string-sc':
-                    if(val.concept_url)
-                        val = val.concept_url;
-                    let th = db.thesaurus[val];
-                    return th ? th.label : val;
+                    return this.tryResolveThesaurus(val);
 
                 case 'string-mc':
                     let mc = [];
@@ -1481,11 +1484,12 @@ function initializeDbVar() {
                     break;
 
                 case 'length':
-                    if(value === null || [ 'undefined', 'object' ].indexOf(typeof value) !== -1)
-                        valueToCompare = '';
-                    else if(['string-sc'].indexOf(filter.dbAttribute.type) !== -1 && typeof valueToCompare === 'string' && valueToCompare.startsWith('http://'))
-                        valueToCompare = this.getThesaurusLabel(value, value);
-                    valueToCompare = String(valueToCompare).length;
+                    if(value === null || value === undefined)
+                        valueToCompare = undefined;
+                    else if(value.concept_url)
+                        valueToCompare = db.getThesaurusLabel(value.concept_url, undefined);
+                    if(typeof valueToCompare === 'string')
+                        valueToCompare = String(valueToCompare).length;
                     break;
 
                 case null:
@@ -1574,7 +1578,9 @@ function initializeDbVar() {
                 case 'equal':
                 case 'not-equal': {
                     let checkEqual = (filter.operator === 'equal');
-                    if(filter.dbAttribute.type === 'string-sc' || filter.dbAttribute.isComputed)
+                    if(filter.dbAttribute.type === 'string-sc')
+                        valueToCompare = this.tryResolveThesaurus(valueToCompare);
+                    else if(filter.dbAttribute.isComputed)
                         valueToCompare = this.getThesaurusLabel(valueToCompare, valueToCompare);
                     let isEqual = this.isEqualIgnoreCase(valueToCompare, filter.values[0]);
                     return checkEqual ? isEqual : !isEqual;
@@ -1582,13 +1588,9 @@ function initializeDbVar() {
 
                 case 'equal-thesaurus':
                 case 'not-equal-thesaurus': {
-                    // FIXME: here we are a bit ugly, because we resolve the filter's thesaurus url and compare resolved URLs;
-                    // this is because the valueToCompare has already been resolved in getAtomicValue() ---- shiiiiiet
                     let isEqual;
                     if(filter.dbAttribute.type === 'string-sc') {
-                        // Problem here: the filter value is certainly a thesaurus URL
-                        // The valueToCompare is normally a thesaurus url, but may be an object when the attribute is part of a table.
-                        isEqual = valueToCompare === this.getThesaurusLabel(filter.values[0]);
+                        isEqual = valueToCompare && valueToCompare.concept_url === filter.values[0];
                     }
                     else
                         isEqual = this.isEqualIgnoreCase(valueToCompare, this.getThesaurusLabel(filter.values[0], filter.values[0]));
@@ -1622,15 +1624,17 @@ function initializeDbVar() {
                 case 'contain':
                 case 'not-contain': {
                     let contain = (filter.operator === 'contain');
-                    if(valueToCompare === null || typeof valueToCompare === 'undefined')
+                    if(valueToCompare === null || valueToCompare === undefined)
                         return contain ? false : true;
                     if(filter.dbAttribute.type === 'string-mc') {
                         let found = false;
                         if($.isArray(valueToCompare)) // [{id:24, concept_url:"blah"}, ...]
-                            found = valueToCompare.some(v => this.getAtomicValue(filter.dbAttribute, v).toString().toLowerCase().indexOf(filter.values[0].toLowerCase()) !== -1);
+                            found = valueToCompare.some(v => this.tryResolveThesaurus(v).toString().toLowerCase().indexOf(filter.values[0].toLowerCase()) !== -1);
                         return contain ? found : !found;
                     }
-                    else if(filter.dbAttribute.type === 'string-sc' || filter.dbAttribute.isComputed)
+                    else if(filter.dbAttribute.type === 'string-sc')
+                        valueToCompare = this.tryResolveThesaurus(valueToCompare);
+                    else if(filter.dbAttribute.isComputed)
                         valueToCompare = this.getThesaurusLabel(valueToCompare, valueToCompare);
                     else if(filter.dbAttribute.type === 'list') {
                         let found = false;
@@ -1776,7 +1780,7 @@ function initializeDbVar() {
                                 tableRowMatches[index] = [];
                             let rowMatch = allFilters.every(partialFilter => { // every filter must match within the row
                                 let cellValue = row[partialFilter.dbAttribute.id];
-                                return db.valueMatchesFilter(db.getAtomicValue(partialFilter.dbAttribute, cellValue), partialFilter);
+                                return db.valueMatchesFilter(db.tryResolveThesaurus(cellValue), partialFilter);
                             });
                             if(rowMatch)
                                 tableMatch = true;
@@ -1789,14 +1793,14 @@ function initializeDbVar() {
                         return table.some(row => { // at least one row must match
                             return allFilters.every(partialFilter => { // every filter must match within the row
                                 let cellValue = row[partialFilter.dbAttribute.id];
-                                return db.valueMatchesFilter(db.getAtomicValue(partialFilter.dbAttribute, cellValue), partialFilter);
+                                return db.valueMatchesFilter(db.tryResolveThesaurus(cellValue), partialFilter);
                             });
                         });
                     }
                 }
             }
             else if(filter.dbAttribute) {
-                let attrValue = this.getAttributeValue(context, filter.dbAttribute);
+                let attrValue = this.getAttributeValue(context, filter.dbAttribute, false);
                 if(filter.dbAttribute.parentAttribute) {
                     // table attribute
                     if(!$.isArray(attrValue) || attrValue.length === 0)
