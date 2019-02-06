@@ -2081,6 +2081,17 @@ function start() {
         let modalBackdrops = $('div.modal-backdrop');
         for(let i = modalBackdrops.length - 1; i >= 1; i--)
             modalBackdrops.eq(i).remove();
+    }).on('DOMNodeInserted', 'div.dt-button-collection.dropdown-menu', function() {
+        // this is to prevent column selection in data table from extending past screen bottom
+        let div = $(this);
+        setTimeout(() => {
+            if(parseInt(div.css('bottom')) < 0) {
+                div.css({
+                    bottom: 0,
+                    'overflow-y': 'scroll'
+                });
+            }
+        }, 0);
     });
     $('#loading-progress').text(l10n.statusInitUI);
     initUi();
