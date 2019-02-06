@@ -14,6 +14,7 @@ function initializeDbVar() {
         thesaurus: {},
         pseudoAttributes: {},
         filteredContexts: {},
+        attributeOverrides: [],
         that: this,
         cache: {},
 
@@ -68,6 +69,25 @@ function initializeDbVar() {
         clearCache: function(callback) {
         // --------------------------------------------------------------------------------------------
             $.get('lib/DBClearCache.php', { lang: l10nLang }, callback);
+        },
+
+        // --------------------------------------------------------------------------------------------
+        setAttributeOverrides: function(attributeOverrides) {
+        // --------------------------------------------------------------------------------------------
+            this.attributeOverrides = attributeOverrides;
+        },
+
+        // --------------------------------------------------------------------------------------------
+        getAttributeOverride: function(attrId, childIndex) {
+        // --------------------------------------------------------------------------------------------
+            let r;
+            this.attributeOverrides.some(a => {
+                if(a.id !== attrId || a.childIndex !== childIndex)
+                    return false;
+                r = a.override;
+                return true;
+            })
+            return r;
         },
 
         // --------------------------------------------------------------------------------------------
@@ -132,26 +152,42 @@ function initializeDbVar() {
                         let tableVal = [];
                         val.forEach(row => {
                             let tableRow = {};
-                            row.forEachValue((columnName, value) => {
-                                if(typeof value === 'string' && value.startsWith('http://') && typeof db.thesaurus[value] !== 'undefined')
+                            row.forEachValue((columnName, value, columnIndex) => {
+                                let colAttrId = columns[columnName];
+                                
+                                let attrOverride = db.getAttributeOverride(parseInt(attrId), columnIndex);
+                                if(attrOverride && !typeInfo.columnTypes[columnName]) {
+                                    $.extend(db.attributes[colAttrId], attrOverride);
+                                    if(attrOverride.type)
+                                        typeInfo.columnTypes[columnName] = attrOverride.type;
+                                }
+
+                                if((!typeInfo.columnTypes[columnName] || typeInfo.columnTypes[columnName] === 'string')
+                                    && typeof value === 'string' 
+                                    && value.startsWith('http://') 
+                                    && typeof db.thesaurus[value] !== 'undefined'
+                                ) {
                                     value = db.thesaurus[value].label;
-                                tableRow[columns[columnName]] = value; // TODO: check whether we need to get the thesaurus label if value is a URL
+                                }
+
+                                tableRow[colAttrId] = value; 
+
                                 if(!typeInfo.columnTypes[columnName] && value !== null) {
                                     switch(typeof value) {
                                         case 'boolean':
-                                            db.attributes[columns[columnName]].type = typeInfo.columnTypes[columnName] = 'boolean';
+                                            db.attributes[colAttrId].type = typeInfo.columnTypes[columnName] = 'boolean';
                                             break;
 
                                         case 'date':
-                                            db.attributes[columns[columnName]].type = typeInfo.columnTypes[columnName] = 'date';
+                                            db.attributes[colAttrId].type = typeInfo.columnTypes[columnName] = 'date';
                                             break;
 
                                         case 'number':
-                                            db.attributes[columns[columnName]].type = typeInfo.columnTypes[columnName] = 'double';
+                                            db.attributes[colAttrId].type = typeInfo.columnTypes[columnName] = 'double';
                                             break;
 
                                         case 'string':
-                                            db.attributes[columns[columnName]].type = typeInfo.columnTypes[columnName] = 'string';
+                                            db.attributes[colAttrId].type = typeInfo.columnTypes[columnName] = 'string';
                                             break;
                                     }
                                 }

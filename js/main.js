@@ -2292,6 +2292,13 @@ function makeResizable() {
 $(function() {
 // ------------------------------------------------------------------------------------
     localizeGUI();
+    // check special settings
+    $.getJSON('settings/%s.json'.with(spacialistInstance.db), data => {
+        if(data.settings)
+            $.extend(true, Settings, data.settings);
+        if(data.attributeOverrides)
+            db.setAttributeOverrides(data.attributeOverrides);
+    });
     $('#loading-progress').text(l10n.statusFetchDB);
     db.init((error) => {
         if(error) {

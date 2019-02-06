@@ -16,9 +16,10 @@ Object.forEachValue || Object.defineProperty(Object.prototype, 'forEachValue', {
 // ------------------------------------------------------------------------------------
     enumerable: false,
     value: function(callback, canBreak = false) {
+        let i = 0;
         for(let k in this)
             if(this.hasOwnProperty(k)) {
-                let r = callback(k, this[k]);
+                let r = callback(k, this[k], i++);
                 if(canBreak && r === false)
                     break;
             }
