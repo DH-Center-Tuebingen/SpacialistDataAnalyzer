@@ -2088,7 +2088,8 @@ function start() {
             if(parseInt(div.css('bottom')) < 0) {
                 div.css({
                     bottom: 0,
-                    'overflow-y': 'scroll'
+                    'overflow-y': 'scroll',
+                    'min-height': '100px'
                 });
             }
         }, 0);
