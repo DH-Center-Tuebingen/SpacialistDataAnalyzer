@@ -133,6 +133,7 @@ span.symbol {
 
 #result-container {
     padding-top: .5em;
+    overflow: auto;
 }
 
 body {

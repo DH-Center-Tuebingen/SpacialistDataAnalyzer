@@ -1179,7 +1179,7 @@ function getResultTable(r, info) {
         });
         r.isRendered = true;
     }
-    res.div = $('<div/>').addClass('table-responsive').append(t);
+    res.div = $('<div/>')./*addClass('table-responsive').*/append(t);
     return res;
 }
 
@@ -1360,7 +1360,7 @@ function makeDataTable(table, customOptions, domColumns = [4, 4, 4]) {
     });
     let sortTypes = table.data('tableSortTypes');
     let options = {
-        scrollX: true,
+        scrollX: false,
         deferRender: true,
         data: table.data('tableBody'),
         columns: table.data('tableHead').map((title, colIndex) => {
