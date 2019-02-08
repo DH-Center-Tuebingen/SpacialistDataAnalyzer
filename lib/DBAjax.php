@@ -8,10 +8,13 @@ if(!is_logged_in()) {
 }
 header('Content-Type: application/json');
 $lang = isset($_GET['lang']) ? $_GET['lang'] : 'de';
-$cached_json = cache_get_data_db($lang);
-if($cached_json !== false) {
-    echo $cached_json;
-    exit;
+$forceLive = isset($_GET['force']) && $_GET['force'] === 'live';
+if(!$forceLive) {
+    $cached_json = cache_get_data_db($lang);
+    if($cached_json !== false) {
+        echo $cached_json;
+        exit;
+    }
 }
 
 $contextTypes = array();

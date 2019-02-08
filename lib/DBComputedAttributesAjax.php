@@ -10,10 +10,13 @@ if(!is_logged_in()) {
 header('Content-Type: application/json');
 if(!$debug) {
     header('Content-Type: application/json');
-    $cached_json = cache_get_data_attr();
-    if($cached_json !== false) {
-        echo $cached_json;
-        exit;
+    $forceLive = isset($_GET['force']) && $_GET['force'] === 'live';
+    if(!$forceLive) {
+        $cached_json = cache_get_data_attr();
+        if($cached_json !== false) {
+            echo $cached_json;
+            exit;
+        }
     }
 }
 else

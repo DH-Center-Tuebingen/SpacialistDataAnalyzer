@@ -237,7 +237,10 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
             console.log('Loading computed attribute values...');
             var startTime = debugStartTiming();
-            $.get('lib/DBComputedAttributesAjax.php', data => db._handleSqlValsResult(data, startTime, callback));
+            let params = {};
+            if(Settings.forceLiveDb)
+                params.force = 'live';
+            $.get('lib/DBComputedAttributesAjax.php', params, data => db._handleSqlValsResult(data, startTime, callback));
         },
 
         // --------------------------------------------------------------------------------------------
@@ -442,7 +445,10 @@ function initializeDbVar() {
             this.that = this;
             console.log('Fetching database...');
             var startTime = debugStartTiming();
-            $.get('lib/DBAjax.php', { lang: l10nLang }, result => db._handleAjaxResult(result, startTime, callback));
+            let params = { lang: l10nLang };
+            if(Settings.forceLiveDb)
+                params.force = 'live';
+            $.get('lib/DBAjax.php', params, result => db._handleAjaxResult(result, startTime, callback));
         },
 
         // --------------------------------------------------------------------------------------------

@@ -25,6 +25,8 @@ For instance, if the Spacialist Data Analyzer app is in the folder `data-analyze
 
 If successful, the browser should display a login page. If opened via a hyperlink from within Spacialist, no login will be necessary.
 
+The properties of the `Settings` object in `js/global.js` can be overridden, by providing a JSON object in a file named like the database and located in the `settings` subfolder. E.g., for the database `test`, putting `{ "Settings": { "forceLiveDb": false } }` into the file `settings/test.json` will override the default setting for this property and make the tool fetch the database from the cache rather than laoding it live every time.
+
 Read the **[User Manual](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual)** to learn how to use Spacialist Data Analyzer.
 
 ## Screenshot

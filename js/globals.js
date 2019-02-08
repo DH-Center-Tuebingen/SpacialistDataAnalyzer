@@ -17,6 +17,7 @@ var DataTableElementInfos = {
     }
 };
 const Settings = {
+    forceLiveDb: true, // determines whether database is fetched live upon each session start
     splitScreen: {
         analysisHeight: 35,
         treeCols: 4
