@@ -191,7 +191,7 @@ function updateGui(update) {
     // Output - first step, object selected
     // ------------------------------------------------------------------------------------
         analysis.outputObject.treeRow.find('td.col-out').text(Symbols[update.outputDisplay.type]);
-        $('#resultButtonIcon').text(Symbols[update.outputDisplay.type] + ' ');
+        $('.result-button-icon').text(Symbols[update.outputDisplay.type] + ' ');
         $('.result-button').prop('disabled', false);
     }
 
@@ -788,7 +788,7 @@ function showTableModal() {
     makeDataTable(div.find('table#result-table'), {
         iDisplayLength: 100,
         order: []
-    }, [3, 5, 4]);
+    }, [3, 5, 4], false);
     div.on('shown.bs.modal', () => {
         $(window).resize(); // will auto adjust DataTables column widths
         $('#modalEntityDetails').hide();
@@ -1205,17 +1205,31 @@ function setResultLoadingTimeout() {
 }
 
 // -----------------------------------------------------------------------------
-function adjustMapHeight() {
+function resultContainerSizeChanged() {
 // -----------------------------------------------------------------------------
     let result_div = $('#result');
+    if(result_div.length === 0)
+        return;
+    
+    // adjust map size
     let map_div = $('#result-map');
-    if(result_div.length > 0 && map_div.length > 0) {
+    if(map_div.length > 0) {
         let oldHeight = result_div.height();
         let newHeight = window.innerHeight - result_div.offset().top - 8;
         if(oldHeight != newHeight) {
             result_div.height(newHeight);
             map_div.data('map').invalidateSize();
         }
+    }
+
+    // adjust result table size
+    let resultTableBody = $('#result .dataTables_scrollBody');
+    if(resultTableBody.length > 0) {
+        resultTableBody.css('max-height', 
+            $('#result-container').offset().top 
+            + $('#result-container').outerHeight() 
+            - resultTableBody.offset().top
+        );
     }
 }
 
@@ -1335,8 +1349,7 @@ function addResultMap(contexts, result_div) {
         updateWhenIdle: true,
         position: 'bottomright'
     }).addTo(map);
-    $('#result-container').deferredResize(adjustMapHeight);
-    adjustMapHeight();
+    resultContainerSizeChanged();
     map.fitBounds(markers_group.getBounds().pad(.05), {
         animate: true,
         duration: .5
@@ -1351,7 +1364,7 @@ function tryClearDataTableElementInfos() {
 }
 
 // ------------------------------------------------------------------------------------
-function makeDataTable(table, customOptions, domColumns = [4, 4, 4]) {
+function makeDataTable(table, customOptions, domColumns, isResultTable) {
 // ------------------------------------------------------------------------------------
     let init_button = (foo, node) => node.removeClass('btn-secondary').addClass('btn-outline-secondary btn-sm');
     let buttons = [];
@@ -1365,7 +1378,9 @@ function makeDataTable(table, customOptions, domColumns = [4, 4, 4]) {
     });
     let sortTypes = table.data('tableSortTypes');
     let options = {
-        scrollX: false,
+        scrollX: isResultTable ? true : false,
+        scrollY: isResultTable ? 10 : '',
+        scrollCollapse: isResultTable ? true : false,
         deferRender: true,
         data: table.data('tableBody'),
         columns: table.data('tableHead').map((title, colIndex) => {
@@ -1390,6 +1405,8 @@ function makeDataTable(table, customOptions, domColumns = [4, 4, 4]) {
     if(typeof customOptions === 'object')
         $.extend(options, customOptions);
     table.DataTable(options);
+    if(isResultTable)
+        resultContainerSizeChanged();
 }
 
 // ------------------------------------------------------------------------------------
@@ -1461,7 +1478,7 @@ function updateResult(callback) {
                         if(analysis.outputDisplay.type === 'distribution')
                             customOrder = { order: [[ 1, 'desc']] }; // order by second column descending
                         let table = result_div.find('table').first();
-                        makeDataTable(table, customOrder, [5, 1, 6]);
+                        makeDataTable(table, customOrder, [5, 1, 6], true);
                         result_div.find('div.dt-buttons').detach().appendTo('#result-heading').addClass('datatable-buttons').removeClass('btn-group dt-buttons');
                     }
                 }
@@ -1506,7 +1523,7 @@ function getResultButton(inPara) {
 // ------------------------------------------------------------------------------------
     return get_result_button(l10n.resultButtonLabel, function() {
         updateResult();
-    }, inPara).prepend($('<span/>').attr('id', 'resultButtonIcon'));
+    }, inPara).prepend($('<span/>').addClass('result-button-icon'));
 }
 
 // ------------------------------------------------------------------------------------
@@ -1993,7 +2010,9 @@ function initUi() {
     $('#tree-container').addClass('col-' + Settings.splitScreen.treeCols);
     $('#display-container').addClass('col-' + (12 - Settings.splitScreen.treeCols));
     $('#analysis-container').css('height', Settings.splitScreen.analysisHeight + '%');
-    $('#result-container').css('height', (100 - Settings.splitScreen.analysisHeight) + '%');
+    $('#result-container')
+        .css('height', (100 - Settings.splitScreen.analysisHeight) + '%')
+        .deferredResize(resultContainerSizeChanged);
     $('#result-heading').prepend(getResultButton(false).addClass('mr-3'));
     $('#analysis-file').on('change', handleAnalysisFile);
     $('#load-analysis').click(function() {
@@ -2018,7 +2037,7 @@ function clearAnalysis() {
     resetOutputSelection();
     clearResultTableButtons();
     $('.result-button').prop('disabled', true);
-    $('#resultButtonIcon').text('');
+    $('.result-button-icon').text('');
     $('#export-geojson').prop('disabled', true);
     $('#result').empty();
     if(analysis.curSection !== 'output') {
@@ -2234,7 +2253,7 @@ function makeResizable() {
         }
         return false;
     })
-    .on('mouseup', function (e) {
+    .on('mouseup', function (e) {   
         isResizingX = isResizingY = false;
         handleX.css('background-color', '');
         handleY.css('background-color', '');
@@ -2245,7 +2264,7 @@ function makeResizable() {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         let leftWidthNew = (window.innerWidth - containerMargin) * oldWindowSize.leftColPct;
         leftCol.outerWidth(Math.floor(leftWidthNew));
-        rightCol.outerWidth(Math.floor(window.innerWidth - containerMargin - leftWidthNew));
+        rightCol.outerWidth(Math.floor(window.innerWidth - containerMargin - leftWidthNew - 1));
         let topHeightNew = (window.innerHeight - containerMargin) * oldWindowSize.topRowPct;
         topRow.outerHeight(topHeightNew);
         bottomRow.outerHeight(window.innerHeight - containerMargin - topHeightNew);
@@ -2270,7 +2289,7 @@ function makeResizable() {
         };
         let leftWidthNew = leftCol.outerWidth() + diff.w * oldWindowSize.leftColPct;
         leftCol.outerWidth(Math.floor(leftWidthNew));
-        rightCol.outerWidth(Math.floor(window.innerWidth - containerMargin - leftWidthNew));
+        rightCol.outerWidth(Math.floor(window.innerWidth - containerMargin - leftWidthNew - 1));
         let topHeightNew = topRow.outerHeight() + diff.h * oldWindowSize.topRowPct;
         topRow.outerHeight(topHeightNew);
         bottomRow.outerHeight(window.innerHeight - containerMargin - topHeightNew);
@@ -2289,7 +2308,7 @@ function makeResizable() {
         else
             elements.forEach(e => e.show());
         $(window).resize(); // so the DataTable will auto adjust column widths in header and rows
-        adjustMapHeight();
+        resultContainerSizeChanged();
     });
 }
 
