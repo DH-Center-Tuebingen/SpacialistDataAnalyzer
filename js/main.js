@@ -180,6 +180,10 @@ function updateGui(update) {
             .text(Symbols[$('#displayType').val()])
             .addClass('selected');
         fillGroupTab();
+
+        if(Settings.jumpToFilterTabAfterOutputSelection) {
+            $('#nav-tab a[data-section="filters"]').tab('show');
+        }
     }
 
     // ------------------------------------------------------------------------------------

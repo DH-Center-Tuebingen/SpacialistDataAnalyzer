@@ -29,7 +29,8 @@ const Settings = {
     },
     mcSeparator: ' ⬥ ',
     epochSeparator: ' ⬥ ',
-    dimensionSeparator: ' × '
+    dimensionSeparator: ' × ',
+    jumpToFilterTabAfterOutputSelection: false
 };
 const PseudoAttributes = { // These must match the context's attribute keys!
     ID: 'id',
