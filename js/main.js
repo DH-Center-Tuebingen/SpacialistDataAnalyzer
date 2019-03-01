@@ -677,12 +677,13 @@ function getFilterObjectLabel(object) {
 function filterObjectSelected(object) {
 // ------------------------------------------------------------------------------------
     let filtersTable = $('#filtersTable');
-    let row =  filtersTable.find('tr.row-cur');
+    let row = filtersTable.find('tr.row-cur');
     if(row.length == 0)
         return;
     let oldObject = row.data('object');
     if(oldObject)
         oldObject.treeRow.find('.col-flt').empty();
+    row.removeData();
     row.data('object', object);
     row.find('td').empty();
     row.find('.col-flt-andor').append(getFilterAndOrDropdown(row));
