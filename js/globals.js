@@ -251,8 +251,8 @@ const ObjectFilterOperatorMapping = {
     'string':       [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'stringf':      [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'date':         [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
-    'string-mc':    [ 'contain', 'not-contain', 'contain-thesaurus', 'not-contain-thesaurus', 'contain-descendant-thesaurus', 'not-contain-descendant-thesaurus', 'exist', 'not-exist' ],
-    'string-sc':    [ 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain', 'not-contain', 'descendant-thesaurus', 'not-descendant-thesaurus', 'exist', 'not-exist' ],
+    'string-mc':    [ 'contain-thesaurus', 'not-contain-thesaurus', 'contain-descendant-thesaurus', 'not-contain-descendant-thesaurus', 'contain', 'not-contain', 'exist', 'not-exist' ],
+    'string-sc':    [ 'equal-thesaurus', 'not-equal-thesaurus', 'descendant-thesaurus', 'not-descendant-thesaurus','equal', 'not-equal', 'contain', 'not-contain', 'exist', 'not-exist' ],
     'table':        [ 'exist', 'not-exist' ],
     'list':         [ 'contain', 'not-contain', 'exist', 'not-exist' ],
     'entity':       [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ]
