@@ -120,7 +120,8 @@ function initializeDbVar() {
             result.attributeValues.forEach(row => {
                 let context = db.contexts[row.contextId];
                 row.values.forEachValue((attrId, val) => {
-                    if(!computedAttrTypes[attrId]) {
+                    // determine attribute type, if some value exists at all
+                    if(!computedAttrTypes[attrId] && val !== null && val !== undefined) {
                         let typeInfo;
                         switch(typeof val) {
                             case 'boolean':
@@ -154,6 +155,10 @@ function initializeDbVar() {
                                     typeInfo.columns[columnName] = attribute.id;
                                     db.attributes[attribute.id] = attribute;
                                 });
+                                break;
+                            
+                            default:
+                                console.log('Unknown type of computed table cell value: ' + (typeof val));
                                 break;
                         }
                         if(typeInfo)
