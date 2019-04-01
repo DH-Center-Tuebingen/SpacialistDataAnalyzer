@@ -25,30 +25,44 @@ function initializeDbVar() {
 
             // ----------------------------------------------------------------------------------------
             db.thesaurus.getDescendants = /*array*/ function (
-                url,
+                attr,
                 exclude_leaf_concepts = false
             ) {
             // ----------------------------------------------------------------------------------------
-                function recurseThesaurus(concept, curResult, addParent) {
-                    if(addParent)
-                        curResult.push(concept);
+                function recurseThesaurus(concept, curResult, curNesting) {
+                    let childNesting = curNesting + 1;
                     concept.childConcepts.forEach(child => {
                         if(exclude_leaf_concepts && child.childConcepts.length === 0)
                             return;
-                        curResult.push(child);
-                        recurseThesaurus(child, curResult, false);
+                        if(attr.controllingNestingLevel === undefined) {
+                            curResult.push(child);
+                            if(attr.isRecursive)
+                                recurseThesaurus(child, curResult, childNesting);
+                        }
+                        else {
+                            if(childNesting > attr.controllingNestingLevel) {
+                                curResult.push(child);
+                                if(attr.isRecursive)
+                                    recurseThesaurus(child, curResult, childNesting);
+                            }
+                            else {
+                                recurseThesaurus(child, curResult, childNesting);
+                            }
+                        }
                     });
                 }
-                let a = [];
-                if(!url) { // we also allow thesaurus selection for non-thesaurus attributes. so if URL does not point to a thesaurus entry, we feed all thesaurus concepts
+                let conceptArray = [];
+                if(!attr.thesaurusRoot) { // we also allow thesaurus selection for non-thesaurus attributes. so if URL does not point to a thesaurus entry, we feed all thesaurus concepts
                     db.thesaurus.forEachValue((key, concept) => {
                         if(key.startsWith('http') && typeof concept === 'object' && concept.label !== null)
-                            a.push(concept);
+                            conceptArray.push(concept);
                     });
                 }
-                else
-                    recurseThesaurus(db.thesaurus[url], a, false);
-                return a;
+                else {
+                    recurseThesaurus(db.thesaurus[attr.thesaurusRoot], conceptArray, 0);
+                }
+                console.log(conceptArray.length, ' thesaurus options')
+                return conceptArray.sort((x, y) => (typeof x.label === 'string' ? x.label : '').localeCompare(y.label));
             }
         },
 
@@ -377,6 +391,28 @@ function initializeDbVar() {
                     if(!a.parentAttribute.children)
                         a.parentAttribute.children = [];
                     a.parentAttribute.children.push(a);
+                }
+                // for attributes whose thesaurusRoot relies on the selection of a controlling attribute:
+                // go up the tree and find the first controllign attribute that that does not have a 
+                // controlling attribute itself. this is the thesaurus root we are looking for.
+                if(a.controllingAttributeId !== null) {
+                    a.isRecursive = true; // need to override whatever it says, we offer the whole tree ...
+                    // ... unless it is an attribute on which some other attribute depends:
+                    this.attributes.forEachValue((id2, a2) => {
+                        if(a2.controllingAttributeId === a.id) {
+                            a.isRecursive = false;
+                            return false;
+                        }
+                    }, true);
+                    a.controllingNestingLevel = 0;
+                    let ca = a;
+                    while(ca = this.attributes[ca.controllingAttributeId]) {
+                        a.controllingNestingLevel++;
+                        if(ca.controllingAttributeId === null) {
+                            a.thesaurusRoot = ca.thesaurusRoot;
+                            break;
+                        }
+                    }
                 }
             });
             this.attributeValues.forEach(av => {

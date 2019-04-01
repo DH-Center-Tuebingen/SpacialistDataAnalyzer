@@ -30,7 +30,8 @@ const Settings = {
     mcSeparator: ' ⬥ ',
     epochSeparator: ' ⬥ ',
     dimensionSeparator: ' × ',
-    jumpToFilterTabAfterOutputSelection: false
+    jumpToFilterTabAfterOutputSelection: false,
+    skipLoadingComputedAttributes: false
 };
 const PseudoAttributes = { // These must match the context's attribute keys!
     ID: 'id',

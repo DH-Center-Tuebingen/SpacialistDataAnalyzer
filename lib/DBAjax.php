@@ -42,6 +42,16 @@ SQL;
 try {
     $db = get_db();
 
+    $migrations = [];
+    $stmt = db_exec(
+        'select migration from migrations',
+        array(), $error, $db
+    );
+    if($stmt === false)
+        throw new Exception('Failed retrieving migrations');
+    while($row = $stmt->fetch(PDO::FETCH_NUM))
+        $migrations[] = $row[0];
+
     $stmt = db_exec(
         sprintf('select id, (%s) "name", coalesce((select json_agg(attribute_id order by "position") from entity_attributes where entity_type_id = ct.id), to_json(array[]::integer[])) "attributes" from entity_types ct', $labelQuery('thesaurus_url')),
         array(':lang' => $lang), $error, $db
@@ -52,7 +62,12 @@ try {
         $contextTypes[$row['id']] = $row;
 
     $stmt = db_exec(
-        sprintf('select id, (%s) "name", datatype "type", thesaurus_root_url "thesaurusRoot", parent_id "parentAttribute", text info from attributes', $labelQuery('thesaurus_url')),
+        sprintf(
+            'select id, (%s) "name", datatype "type", thesaurus_root_url "thesaurusRoot", parent_id "parentAttribute", text info, %s "isRecursive", %s "controllingAttributeId" from attributes', 
+            $labelQuery('thesaurus_url'),
+            in_array('2018_11_16_103656_restrict_attribute_concepts', $migrations) ? 'recursive' : 'true::boolean',
+            in_array('2019_02_14_102442_add_thesaurus_root_id', $migrations) ? 'root_attribute_id' : 'null::integer'
+        ),
         array(':lang' => $lang), $error, $db
     );
     if($stmt === false)

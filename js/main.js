@@ -375,7 +375,7 @@ function addThesaurusOptionsToDropdown(
     exclude_leaf_concepts = false
 ) {
 // ------------------------------------------------------------------------------------
-    let options = db.thesaurus.getDescendants(db.attributes[object.id].thesaurusRoot, exclude_leaf_concepts);
+    let options = db.thesaurus.getDescendants(db.attributes[object.id], exclude_leaf_concepts);
     select.empty().append($('<option/>').attr({ value: '' }).text(''));
     options.forEach(concept => select.append(
         $('<option/>').attr({ value: concept.url }).text(concept.label)
@@ -2313,6 +2313,15 @@ function makeResizable() {
 }
 
 // ------------------------------------------------------------------------------------
+function finishAppInitialization() {
+// ------------------------------------------------------------------------------------
+    clearStatusText();
+    fillGroupTab(true);
+    $('#load-analysis').prop('disabled', false); // only now we allow loading analysis
+    enableReloadDb(true);
+}
+
+// ------------------------------------------------------------------------------------
 // MAIN ENTRY POINT
 $(function() {
 // ------------------------------------------------------------------------------------
@@ -2345,18 +2354,19 @@ $(function() {
             buildTree();
             start();
             makeResizable();
+            if(Settings.skipLoadingComputedAttributes) {
+                finishAppInitialization();
+                return;
+            }
             setStatusText(l10n.statusLoadComputedProperties, 1000);
             db.loadComputedAttributeValues((computedAttributes, error) => {
-                clearStatusText();
                 if(error) {
                     alert(l10n.get('errorLoadComputedProperties', error.trace));
                     console.error('Error loading computed attributes: ' + error.trace);
                     return;
                 }
                 masterTree.spacialistTree('addComputedAttributes', computedAttributes);
-                fillGroupTab(true);
-                $('#load-analysis').prop('disabled', false); // only now we allow loading analysis
-                enableReloadDb(true);
+                finishAppInitialization();
             });
         });
     });

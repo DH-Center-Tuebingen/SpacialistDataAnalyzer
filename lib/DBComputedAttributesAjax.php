@@ -1,5 +1,6 @@
 <?php
 $debug = isset($_GET['debug']) ? true : false;
+$sqlOnly = $debug && isset($_GET['sqlOnly']);
 require_once 'Helper.php';
 require_once 'Login.php';
 start_the_session('..');
@@ -7,7 +8,6 @@ if(!is_logged_in()) {
     header('Location: ../login.php');
     exit;
 }
-header('Content-Type: application/json');
 if(!$debug) {
     header('Content-Type: application/json');
     $forceLive = isset($_GET['force']) && $_GET['force'] === 'live';
@@ -44,8 +44,11 @@ try {
         }
 
         $query = sprintf('select __c__.id, %s from entities __c__', join(', ', $attr_sql));
-        if($debug)
+        if($debug) {
             echo $query, PHP_EOL, PHP_EOL;
+            if($sqlOnly)
+                exit;
+        }
 
         $attr_single_val = array();
         $stmt = db_exec($query, array(), $error, $db);
