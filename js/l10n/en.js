@@ -136,14 +136,15 @@ const l10n_en = {
     dbEmptyHeading: 'Database is empty ☝',
     dbEmptyMessage: 'The database does not contain any entities, so there is nothing to analyze ☹',
 
-    treeCaption: 'Database Structure',
+    treeCaption: 'Database Structure <sup><a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Database-Structure-Pane">🛈</a></sup>',
     treeHideProperties: 'Hide Properties',
     treeShowProperties: 'Show Properties',
+    treeHeadStructure: '',
     treeHeadOutput: 'Output',
     treeHeadFilter: 'Filter',
     treeHeadAggregate: 'Aggregate',
 
-    analysisOptionsCaption: 'Analysis Options',
+    analysisOptionsCaption: 'Analysis Options <sup><a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane">🛈</a></sup>',
     analysisClearButton: '🞬 Clear',
     analysisSaveButton: '🖫 Save',
     analysisLoadButton: '⮬ Load',
@@ -154,7 +155,7 @@ const l10n_en = {
     analysisTabFilters: 'Filters',
     analysisTabAggregates: 'Aggregates',
 
-    outputSelectHint: 'Select what kind of information you would like to display by picking an entity or property from the tree.',
+    outputSelectHint: 'Select what kind of information you would like to display by picking an entity or property from the tree <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#output-tab">🛈</a>.',
     outputSelectedEntityType: 'You have selected entity type <b>%s</b>.',
     outputSelectedProperty: 'You have selected property <b>%s</b>%s of entity type <b>%s</b>.',
     outputSelectedPropertyParent:  ' of composite property <b>%s</b>',
@@ -162,7 +163,7 @@ const l10n_en = {
     outputSelectEntityDisplay: 'Select how the entities of this type shall be presented: ',
     outputHierarchicalAnalysis: 'Perform hierarchical analysis. If this box is checked, the hierarchical level of %s entities will be considered, and only those at the level selected in the tree will be considered for output. If this box is not checked, all %s entities in the database will be considered for output.',
 
-    filterIntro: 'Define filters using the following table to limit the analysis focus on entities with specific property values. You can add, remove and rearrange filters for various properties. To define a filter for the highlighted (yellow) row, select a property from the tree. To highlight another filter row, simply click it. You can rearrange the order of filters by dragging and dropping a table row. Each filter will be interpreted according to the hierarchical position of its property selected from the the tree.',
+    filterIntro: 'Define filters using the following table to limit the analysis focus on entities with specific property values <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#filters-tab">🛈</a>.',
     filterConjunctionHeading: 'Conjunction',
     filterAndOrCombine: 'Combined With',
     filterRemoveTooltip: 'Remove this filter',
@@ -181,7 +182,7 @@ const l10n_en = {
     filterRemoveAll: 'Remove All Filters',
     filterNoDescendantConcepts: 'There are no concepts to choose from',
 
-    groupIntro: 'You may define how to group and aggregate the resulting entities of type <b class="outputObjectName"></span> by the values of their properties. For each unique combination of the grouped properties, you can define what kind of aggregate properties (e.g. the mean value or sum of values of a property) you would like to see in the output table. Note that all properties that are selected neither for grouping nor aggregation will be omitted from the output table.',
+    groupIntro: 'You may define how to group and aggregate the resulting entities of type <b class="outputObjectName"></b> by the values of their properties <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#aggregates-tab">🛈</a>.',
     groupDropdownPlaceholder: 'No Grouping or Aggregation',
     groupReset: 'Reset',
     groupTableColProperty: 'Property of %s',

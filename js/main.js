@@ -1530,7 +1530,7 @@ function getResultButton(inPara) {
 function initializeOutputTab() {
 // ------------------------------------------------------------------------------------
     var div = $('#output-tab');
-    div.empty().append($('<p>').attr('id', 'outputStart').text(l10n.outputSelectHint));
+    div.empty().append($('<p>').attr('id', 'outputStart').html(l10n.outputSelectHint));
     div.append($('<p/>').attr('id', 'outputObject'));
     masterTree.spacialistTree('setStatus', {
         mouseEvent: treeMouseEvent
@@ -1571,7 +1571,7 @@ function addFilterRow() {
 function initializeFilterTab() {
 // ------------------------------------------------------------------------------------
     var div = $('#filters-tab');
-    div.empty().append($('<p>').attr('id', 'filterStart').text(l10n.filterIntro));
+    div.empty().append($('<p>').attr('id', 'filterStart').html(l10n.filterIntro));
     div.append($('<table/>')
         .attr('id', 'filtersTable')
         .addClass('table table-bordered table-nonfluid table-sm')
@@ -2130,9 +2130,11 @@ function start() {
 function localizeGUI() {
 // ------------------------------------------------------------------------------------
     initL10N(l10nLang);
-    $('[data-l10n],[data-tooltip]').each(function() {
+    $('[data-l10n],[data-l10n-html],[data-tooltip]').each(function() {
         let tooltip, e = $(this);
         e.text(l10n[e.data('l10n')]);
+        if(e.data('l10n-html'))
+            e.html(l10n[e.data('l10n-html')]);
         if(tooltip = e.data('tooltip'))
             e.attr('title', l10n[tooltip]);
     });

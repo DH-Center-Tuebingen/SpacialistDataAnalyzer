@@ -64,13 +64,13 @@
 				<div id="status-text"></div>
 				<div style="clear:both"></div>
 			</div>
-			<h5 id="treeCaption"></h5>
+			<h5 id="treeCaption" data-l10n-html="treeCaption"></h5>
 			<div id="tree"></div>
 		</div>
 		<div id="display-container" class="p-0 pl-2 h-100">
 			<div id="resizeX"></div>
 			<div id="analysis-container" class="p-2 overflow-auto">
-				<h5><span data-l10n="analysisOptionsCaption"></span>
+				<h5><span data-l10n-html="analysisOptionsCaption"></span>
 					<button id="reset-all" class="btn btn-sm ml-2 mb-1 pt-0 pb-0 btn-outline-danger" data-tooltip="analysisClearButtonTooltip" data-l10n="analysisClearButton"></button>
 					<button id="save-analysis" class="btn btn-sm ml-2 mb-1 pt-0 pb-0 btn-outline-secondary" data-tooltip="analysisLoadButtonTooltip" data-l10n="analysisSaveButton"></button>
 					<button id="load-analysis" disabled class="btn btn-sm ml-2 mb-1 pt-0 pb-0 btn-outline-secondary" data-tooltip="analysisSaveButtonTooltip" data-l10n="analysisLoadButton"></button>

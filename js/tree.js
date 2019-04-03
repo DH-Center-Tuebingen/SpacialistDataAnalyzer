@@ -143,7 +143,7 @@
     // -----------------------------------------------------------------
         let table = $('<table/>').attr('id', 'masterTree').append(
             $('<tr/>').addClass('master-tree-head')
-                .append($('<th/>').text(''))
+                .append($('<th/>').addClass('text-left').html(l10n.treeHeadStructure))
                 .append($('<th/>').text(l10n.treeHeadOutput))
                 .append($('<th/>').text(l10n.treeHeadFilter))
                 .append($('<th/>').text(l10n.treeHeadAggregate))
