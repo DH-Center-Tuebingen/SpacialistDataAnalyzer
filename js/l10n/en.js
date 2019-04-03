@@ -156,8 +156,8 @@ const l10n_en = {
     analysisTabAggregates: 'Aggregates',
 
     outputSelectHint: 'Select what kind of information you would like to display by picking an entity or property from the tree <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#output-tab">🛈</a>.',
-    outputSelectedEntityType: 'You have selected entity type <b>%s</b>.',
-    outputSelectedProperty: 'You have selected property <b>%s</b>%s of entity type <b>%s</b>.',
+    outputSelectedEntityType: 'You have selected entity type <b>%s</b> <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object">🛈</a>.',
+    outputSelectedProperty: 'You have selected property <b>%s</b>%s of entity type <b>%s</b> <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object">🛈</a>.',
     outputSelectedPropertyParent:  ' of composite property <b>%s</b>',
     outputSelectPropertyDisplayType: 'Select what kind of information about this property shall be presented: ',
     outputSelectEntityDisplay: 'Select how the entities of this type shall be presented: ',
