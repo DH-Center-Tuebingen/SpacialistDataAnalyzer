@@ -215,6 +215,8 @@ const l10n_de = {
     resultButtonLabel: 'Ergebnis Anzeigen',
     resultTableShowMore: '[mehr anzeigen]',
     resultTableShowMoreListItems: '[restliche %s anzeigen]',
+    resultTableHeadValue: 'Wert',
+    resultTableHeadCount: 'Anzahl',
 
     statusAnalysisLoading: 'Lade Analyse...',
     statusAnalysisReadFromFile: 'Lese Analyse aus Datei...',

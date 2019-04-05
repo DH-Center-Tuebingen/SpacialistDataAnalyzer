@@ -607,7 +607,7 @@ function initializeDbVar() {
                 }
             );
             let result = {
-                head: ['Value', 'Count'],
+                head: [attribute.name, l10n.resultTableHeadCount],
                 body: []
             };
             if(this.isNumericSpacialistType(attribute.type))

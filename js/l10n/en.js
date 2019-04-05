@@ -215,6 +215,8 @@ const l10n_en = {
     resultButtonLabel: 'Get Result',
     resultTableShowMore: '[show more]',
     resultTableShowMoreListItems: '[show remaining %s items]',
+    resultTableHeadValue: 'Value',
+    resultTableHeadCount: 'Count',
 
     statusAnalysisLoading: 'Loading analysis...',
     statusAnalysisReadFromFile: 'Loading Analysis from File...',
