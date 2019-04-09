@@ -280,7 +280,8 @@ function initializeDbVar() {
                 parentAttribute: null,
                 thesaurusRoot: null,
                 type: 'table',
-                children: []
+                children: [],
+                isAncestryTable: true
             };
             EntityDetailsHiddenAttributes.push(tableAttr.id);
             let degreeCol = {
@@ -697,7 +698,7 @@ function initializeDbVar() {
 
         // --------------------------------------------------------------------------------------------
         getDisplayValue: function(
-            rawValue, attribute, rawNumbers = true
+            rawValue, attribute, rawNumbers = true, asString = true
         ) {
         // --------------------------------------------------------------------------------------------
             let val = rawValue;
@@ -711,10 +712,10 @@ function initializeDbVar() {
                     return rawNumbers ? val : val.toLocaleString();
 
                 case 'date':
-                    return val.toLocaleString();
+                    return asString ? val.toLocaleString() : val;
 
                 case 'boolean':
-                    return val ? '🗹' : '☐';
+                    return asString ? (val ? '🗹' : '☐') : val;
 
                 case 'string-sc':
                     return this.tryResolveThesaurus(val);
@@ -727,19 +728,26 @@ function initializeDbVar() {
                         let th = db.thesaurus[url];
                         mc.push(th ? th.label : url);
                     });
-                    return mc.join(Settings.mcSeparator);
+                    return asString ? mc.join(Settings.mcSeparator) : mc;
 
                 case 'list':
                     if(!$.isArray(val))
                         return val;
                     let list = [];
                     val.forEach(s => list.push(s));
-                    return list.join(Settings.mcSeparator);
+                    return asString ? list.join(Settings.mcSeparator) : list;
 
                 case 'entity':
                     return val;
 
                 case 'epoch':
+                    if(val && !asString) {
+                        return {
+                            start: db.getEpochStart(val),
+                            end: db.getEpochEnd(val),
+                            epoch: val.epoch ? db.getThesaurusLabel(val.epoch.concept_url, val.epoch.concept_url) : undefined
+                        };
+                    }
                     if(typeof val === 'object') {
                         let disp = '';
                         if(val.start !== undefined && val.start !== null)
@@ -756,6 +764,14 @@ function initializeDbVar() {
                     return val;
 
                 case 'dimension':
+                    if(val && !asString) {
+                        return {
+                            b: val.B,
+                            h: val.H,
+                            d: val.T,
+                            unit: val.unit
+                        };
+                    }
                     if(typeof val === 'object') {
                         let disp = [];
                         ['B', 'H', 'T'].forEach(dim => {
@@ -769,6 +785,8 @@ function initializeDbVar() {
                     return val;
 
                 case 'geometry':
+                    if(!asString)
+                        return val.wkt ? val.wkt : null;
                     if(val.wkt.length > 40)
                         val = val.wkt.trim().replace(/^([a-zA-Z]+)\(.+\)$/, '$1 (⋯)');
                     else
@@ -796,11 +814,13 @@ function initializeDbVar() {
                             }
                             else
                                 attr = colAttrs[c];
-                            tblRow.push(this.getDisplayValue(v, attr));
+                            tblRow.push(this.getDisplayValue(v, attr, true, asString));
                         });
                         table.body.push(tblRow);
                         i++;
                     });
+                    if(!asString)
+                        return table.body;
                     if(i > 0) {
                         val = {
                             display: 'table',

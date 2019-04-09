@@ -1239,13 +1239,20 @@ function getContextMapMarkers(contexts, geoDataProperty, withPopupTooltip) {
     let markers = [];
     contexts.forEach(context => {
         if(context.geoData && typeof context.geoData[geoDataProperty] === 'string') {
+            let properties = {
+                Name: context.name,
+                ID: context.id,
+            };
+            context.attributes.forEachValue((attrId, attrVal) => {
+                let attr = db.attributes[attrId];
+                if(attr.pseudoAttributeKey || attr.isAncestryTable)
+                    return;
+                properties[attr.name] = db.getDisplayValue(attrVal, attr, true, false);
+            });
             let marker = L.geoJson({
                 type: 'Feature',
                 geometry: JSON.parse(context.geoData[geoDataProperty]),
-                properties: {
-                    Name: context.name,
-                    ID: context.id
-                }
+                properties
             });
             if(withPopupTooltip) {
                 marker.bindPopup(context.id.toString());
@@ -1817,7 +1824,7 @@ function installGeoJSONExport() {
     $('#export-geojson').click(function() {
         let map = $('#result-map');
         if(map.length > 0) {
-            createGeoJSONDownloadFile(JSON.stringify(map.data('featureGroup').toGeoJSON()), 'contexts.geojson');
+            createGeoJSONDownloadFile(JSON.stringify(map.data('featureGroup').toGeoJSON()), 'entities.geojson');
             return;
         }
 
@@ -1827,7 +1834,7 @@ function installGeoJSONExport() {
             if(markers.length === 0)
                 alert(l10n.resultGeoJsonNone);
             else
-                createGeoJSONDownloadFile(JSON.stringify(L.featureGroup(markers).toGeoJSON()), 'contexts.geojson');
+                createGeoJSONDownloadFile(JSON.stringify(L.featureGroup(markers).toGeoJSON()), 'entities.geojson');
             return;
         }
     });
