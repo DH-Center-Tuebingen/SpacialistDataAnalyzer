@@ -19,6 +19,7 @@
 	<link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css"></link>
 	<link rel="stylesheet" href="node_modules/leaflet-minimap/dist/Control.MiniMap.min.css"></link>
 	<?php echo_stylesheet("css/style.css"); ?>
+	<?php echo_stylesheet("css/simpleTree.css"); ?>
 	<script src="node_modules/jquery/dist/jquery.min.js"></script>
 	<script src="node_modules/jquery-ui-dist/jquery-ui.min.js"></script>
 	<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
@@ -41,6 +42,7 @@
 	<?php echo_javascript("js/leaflet-fitcontent.js"); ?>
 	<?php echo_javascript("js/helpers.js"); ?>
 	<?php echo_javascript("js/globals.js"); ?>
+	<?php echo_javascript("js/simpleTree.js"); ?>
 	<?php echo_javascript("js/tree.js"); ?>
 	<?php echo_javascript("js/db.js"); ?>
 	<?php echo_javascript("js/main.js"); ?>

@@ -411,11 +411,16 @@ function initializeDbVar() {
                         }
                     }, true);
                     a.controllingNestingLevel = 0;
+                    let controlChain = [ a.id ];
                     let ca = a;
                     while(ca = this.attributes[ca.controllingAttributeId]) {
                         a.controllingNestingLevel++;
+                        controlChain.unshift(ca.id);
                         if(ca.controllingAttributeId === null) {
                             a.thesaurusRoot = ca.thesaurusRoot;
+                            // make sure to store the control chain in each of the attributes in the chain
+                            if(!ca.controlChain || controlChain.length > ca.controlChain.length)
+                                controlChain.forEach(id => db.attributes[id].controlChain = controlChain);
                             break;
                         }
                     }
