@@ -36,11 +36,12 @@ $.fn.simpleTree = function(options, data) {
     // ------------------------------------------------------------------------
     self.simpleTreeToggle = function(node) {
     // ------------------------------------------------------------------------
-        node.children.forEach(child => {
-            node.expanded 
-            ? self._simpleTreeRemoveNode(child) 
-            : self._simpleTreeRenderNode(child)
-        }); 
+        if(node.expanded)
+            node.domChildren.hide();
+        else if(node.domChildren.children().length > 0)
+            node.domChildren.show();
+        else
+            node.children.forEach(child => self._simpleTreeRenderNode(child)); 
         node.expanded = !node.expanded;
         node.domContainer
             .find('.simpleTree-toggle')
@@ -49,16 +50,18 @@ $.fn.simpleTree = function(options, data) {
         return self;
     }
 
-    // ------------------------------------------------------------------------
+    /* ------------------------------------------------------------------------
     self._simpleTreeRemoveNode = function(node) {
     // ------------------------------------------------------------------------
         if(!node.domContainer)
             return;
         node.domContainer.remove();
-        node.domContainer = undefined;
+        node.domContainer = node.domLabel = undefined;
         node.children.forEach(child => self._simpleTreeRemoveNode(child));
+        if(node.domChildren)
+            node.domChildren.hide();
         return self;
-    }
+    } /**/
 
     // ------------------------------------------------------------------------
     self.simpleTreeClearSelection = function(fireEvent = true) {
