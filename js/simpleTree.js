@@ -5,6 +5,8 @@ $.fn.simpleTree = function(options, data) {
     var self = this;
     
     self._simpleTreeOptions = $.extend(true, {
+        searchBox: undefined,
+        searchMinInputLength: 3,
         indentSize: 25,
         childCountShow: true,
         symbols: {
@@ -22,8 +24,8 @@ $.fn.simpleTree = function(options, data) {
     }, options);
 
     self._simpleTreeData = data;
-
     self._simpleTreeSelection = undefined;
+    self._lastSearchTerm = '';
 
     // ------------------------------------------------------------------------
     self.simpleTreeGetSelection = function() {
@@ -44,6 +46,7 @@ $.fn.simpleTree = function(options, data) {
             .find('.simpleTree-toggle')
             .first()
             .text(self._simpleTreeOptions.symbols[node.expanded ? 'expanded' : 'collapsed']);
+        return self;
     }
 
     // ------------------------------------------------------------------------
@@ -54,6 +57,7 @@ $.fn.simpleTree = function(options, data) {
         node.domContainer.remove();
         node.domContainer = undefined;
         node.children.forEach(child => self._simpleTreeRemoveNode(child));
+        return self;
     }
 
     // ------------------------------------------------------------------------
@@ -65,6 +69,7 @@ $.fn.simpleTree = function(options, data) {
         self._simpleTreeSelection = undefined;
         if(fireEvent)
             self.trigger('simpleTree:change', [ self._simpleTreeSelection ]);
+        return self;
     }
 
     // ------------------------------------------------------------------------
@@ -77,6 +82,7 @@ $.fn.simpleTree = function(options, data) {
         self._simpleTreeSelection = node;
         if(fireEvent)
             self.trigger('simpleTree:change', [ self._simpleTreeSelection ]);
+        return self;
     }
 
     // ------------------------------------------------------------------------
@@ -86,6 +92,7 @@ $.fn.simpleTree = function(options, data) {
             self.simpleTreeClearSelection(true);
         else
             self.simpleTreeSelectNode(node);
+        return self;
     }
         
     // ------------------------------------------------------------------------
@@ -130,13 +137,38 @@ $.fn.simpleTree = function(options, data) {
     // ------------------------------------------------------------------------
     self._simpleTreeRender = function() {
     // ------------------------------------------------------------------------
-        //console.log('Tree data:', data);
         self.empty();
         self._simpleTreeData.forEach(node => self._simpleTreeRenderNode(node));
         return self;
     }
 
+    // ------------------------------------------------------------------------
+    self.simpleTreeDoSearch = function(searchTerm) {
+    // ------------------------------------------------------------------------
+        if(self._lastSearchTerm === searchTerm)
+            return;
+        console.log('Searching for:', searchTerm);
+        self.hide();
+        self._lastSearchTerm = searchTerm;
+        self.show();
+        return self;
+    }
+
+    // ------------------------------------------------------------------------
+    self._simpleTreeInstallSearch = function() {
+    // ------------------------------------------------------------------------
+        let box = self._simpleTreeOptions.searchBox;
+        box && box.bind('keyup focus', function() {
+            let v = String(box.val()).trim();
+            self.simpleTreeDoSearch(
+                v.length >= self._simpleTreeOptions.searchMinInputLength ? v : ''
+            );
+        });
+        return self;
+    }    
+
     self._simpleTreeRender();
+    self._simpleTreeInstallSearch();
     return self;
 // ============================================================================
 }
