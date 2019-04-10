@@ -298,5 +298,7 @@ const l10n_de = {
                 "1": "1 Spalte kopiert"
             }
         }
-    }
+    },
+    thesaurusPickerHead: 'Thesaurus-Auswahl: %s',
+    thesaurusPickerSearchPlaceholder: 'Thesaurus durchsuchen',
 };

@@ -1,0 +1,65 @@
+div.tp-search-bar {
+    margin: .75em 0;
+}
+
+div.tp-ok-cancel {
+    margin-top: .75em;
+    text-align: right;
+}
+
+div.tp-ok-cancel button:not(:last-child) {
+    margin-right: 1em;
+}
+
+input#thesaurusSearchBox {
+    width: 100%;
+}
+
+div#thesaurusTreeView {
+    height: 50vh;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    padding: .375rem .75rem;
+    overflow: auto;
+}
+
+.simpleTree-nodeContainer {
+    padding: .1rem 0;
+    line-height: 1.15rem;
+}
+
+.simpleTree-indent {
+    display: inline-block;
+}
+
+.simpleTree-toggle {
+    display: inline-block;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    padding-left: .5rem;
+    cursor: pointer;
+}
+
+.simpleTree-toggle:hover {
+    cursor: pointer;
+    font-size: larger;
+}
+
+.simpleTree-label {
+    display: inline-block;
+    padding: .2rem .25rem;
+    cursor: pointer;
+    margin-left: .25rem;
+    border: 1px solid transparent;
+}
+
+.simpleTree-label:hover {
+    font-weight: bold;
+}
+
+.simpleTree-selected {
+    border: 1px solid gray;
+    background-color: whitesmoke;
+    border-radius: .25rem;
+    font-weight: bold;
+}

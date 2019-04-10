@@ -452,9 +452,11 @@ function getThesaurusPickerData(attr) {
                 data: tc
             });
         });
-        parent.children.forEach(c => recurseThesaurus(c, indent + 1));
+        parent.children.sort((a, b) => {
+            a.label.localeCompare(b.label)
+        }).forEach(c => recurseThesaurus(c, indent + 1));
     }
-    let thConcept = db.thesaurus[attr.thesaurusRoot];
+    /*let thConcept = db.thesaurus[attr.thesaurusRoot];
     let data = [{
         value: thConcept.url,
         label: thConcept.label,
@@ -464,8 +466,29 @@ function getThesaurusPickerData(attr) {
         indent: 0,
         index: 0
     }];
-    recurseThesaurus(data[0]);
+    recurseThesaurus(data[0]);*/
+    let data = [];
+    db.thesaurus[attr.thesaurusRoot].childConcepts.forEach((child, index) => {
+        let node = {
+            value: child.url,
+            label: child.label,
+            expanded: false,
+            children: [],
+            data: child,
+            indent: 0,
+            index
+        };
+        data.push(node);
+        recurseThesaurus(node);
+    });
     return data;
+}
+
+// ------------------------------------------------------------------------------------
+function finishThesaurusHierarchyPicker(filterRow, attr, dropdown, selection) {
+// ------------------------------------------------------------------------------------
+    console.log(selection);
+    // adjust filter row to match selection
 }
 
 // ------------------------------------------------------------------------------------
@@ -478,25 +501,46 @@ function showThesaurusHierarchyPicker(filterRow, attr, dropdown) {
     }).data('modal-dialog', true).append(
         $('<div/>').addClass('modal-dialog modal-lg').append(
             $('<div/>').addClass('modal-content p-4')
-                .append($('<h4/>').text('Yiheaaa'))
+                .append($('<h4/>').text(l10n.thesaurusPickerHead.with(db.thesaurus[attr.thesaurusRoot].label)))
+                .append($('<div/>').addClass('tp-search-bar').append(
+                    $('<input/>').addClass('form-control').attr({
+                        id: 'thesaurusSearchBox',
+                        placeholder: l10n.thesaurusPickerSearchPlaceholder 
+                    })
+                ))
                 .append($('<div/>').attr({ id: 'thesaurusTreeView' }))
+                .append($('<div/>').addClass('tp-ok-cancel')
+                    .append(
+                        $('<button/>').addClass('btn btn-success')
+                            .text('Auswählen').prop('disabled', true)
+                    )
+                    .append(
+                        $('<button/>').addClass('btn btn-outline-secondary')
+                            .attr('data-dismiss', 'modal').text('Abbrechen')
+                    )
+                )
         )
     ).appendTo($('body')).on('hidden.bs.modal', function() {
         $(this).remove();
     }).modal({ show: true });
-    $('#thesaurusTreeView').simpleTree({
+    let tree = $('#thesaurusTreeView').simpleTree({
         searchBox: $('#thesaurusSearchBox')
     }, getThesaurusPickerData(attr)
-    ).on('simpleTree:selected', (e) => {
-        console.log('tree item selected');
+    ).on('simpleTree:change', (event, node) => {
+        $('#thesaurusPickerModal .btn-success').prop('disabled', !node);
     });
+    $('#thesaurusPickerModal .btn-success').on('click', () => {
+        finishThesaurusHierarchyPicker(filterRow, attr, dropdown,
+            tree.simpleTreeGetSelection());
+        $('#thesaurusPickerModal').trigger('hidden.bs.modal');
+    })
 }
 
 // ------------------------------------------------------------------------------------
 function installThesaurusHierarchyOverlay(filterRow, obj, dropdown) {
 // ------------------------------------------------------------------------------------
     let attr = db.attributes[obj.id];
-    if(!attr.controlChain)
+    if(!attr.controlChain || attr.controlChain[0] !== attr.id) // top of the chain only
         return;
 
     dropdown.on('select2:opening', function(e) {
