@@ -503,20 +503,29 @@ function showThesaurusHierarchyPicker(filterRow, attr, dropdown) {
             $('<div/>').addClass('modal-content p-4')
                 .append($('<h4/>').text(l10n.thesaurusPickerHead.with(db.thesaurus[attr.thesaurusRoot].label)))
                 .append($('<div/>').addClass('tp-search-bar').append(
-                    $('<input/>').addClass('form-control').attr({
-                        id: 'thesaurusSearchBox',
-                        placeholder: l10n.thesaurusPickerSearchPlaceholder 
-                    })
+                    $('<div/>')
+                    .addClass('input-group')
+                    .append(
+                        $('<div/>').addClass('input-group-prepend').append(
+                            $('<span/>').addClass('input-group-text tp-search-icon').text('⌕')
+                        )
+                    )
+                    .append(
+                        $('<input/>').addClass('form-control').attr({
+                            id: 'thesaurusSearchBox',
+                            placeholder: l10n.thesaurusPickerSearchPlaceholder 
+                        })
+                    )
                 ))
                 .append($('<div/>').attr({ id: 'thesaurusTreeView' }))
                 .append($('<div/>').addClass('tp-ok-cancel')
                     .append(
                         $('<button/>').addClass('btn btn-success')
-                            .text('Auswählen').prop('disabled', true)
+                            .text(l10n.thesaurusPickerOK).prop('disabled', true)
                     )
                     .append(
                         $('<button/>').addClass('btn btn-outline-secondary')
-                            .attr('data-dismiss', 'modal').text('Abbrechen')
+                            .attr('data-dismiss', 'modal').text(l10n.thesaurusPickerCancel)
                     )
                 )
         )

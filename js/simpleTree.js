@@ -16,7 +16,8 @@ $.fn.simpleTree = function(options, data) {
             indent: 'simpleTree-indent',
             label: 'simpleTree-label',
             childrenContainer: 'simpleTree-childrenContainer',
-            selected: 'simpleTree-selected'
+            selected: 'simpleTree-selected',
+            childCountBadge: 'simpleTree-childCountBadge'
         }
     }, options);
 
@@ -106,6 +107,13 @@ $.fn.simpleTree = function(options, data) {
         node.domLabel = $('<div/>').addClass(options.css.label).text(node.label)
             .on('click', () => self._simpleTreeNodeClicked(node));
         div.append(node.domLabel);
+        if(node.children.length > 0 && options.childCountShow) {
+            div.append($('<span/>')
+                .addClass('badge badge-pill badge-secondary')
+                .addClass(options.css.childCountBadge)
+                .text(node.children.length)
+            );
+        }
         div.data('node', node);
         if(node.parent)
             node.parent.domChildren.append(div);

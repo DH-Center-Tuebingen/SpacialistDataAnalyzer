@@ -301,4 +301,6 @@ const l10n_de = {
     },
     thesaurusPickerHead: 'Thesaurus-Auswahl: %s',
     thesaurusPickerSearchPlaceholder: 'Thesaurus durchsuchen',
+    thesaurusPickerOK: 'Auswählen',
+    thesaurusPickerCancel: 'Abbrechen'
 };

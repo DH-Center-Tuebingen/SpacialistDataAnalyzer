@@ -11,8 +11,12 @@ div.tp-ok-cancel button:not(:last-child) {
     margin-right: 1em;
 }
 
-input#thesaurusSearchBox {
-    width: 100%;
+input#thesaurusSearchBox { 
+}
+
+span.tp-search-icon {
+    font-size: 150%;
+    line-height: 1rem;
 }
 
 div#thesaurusTreeView {
@@ -62,4 +66,10 @@ div#thesaurusTreeView {
     background-color: whitesmoke;
     border-radius: .25rem;
     font-weight: bold;
+}
+
+.simpleTree-childCountBadge {
+    margin-left: .5em;
+    font-weight: normal;
+    opacity: .75;
 }
