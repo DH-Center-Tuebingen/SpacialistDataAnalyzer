@@ -165,8 +165,11 @@ const l10n_en = {
 
     filterIntro: 'Define filters using the following table to limit the analysis focus on entities with specific property values <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#filters-tab">🛈</a>.',
     filterConjunctionHeading: 'Conjunction',
+    filterAnd: 'And',
+    filterOr: 'Or',
     filterAndOrCombine: 'Combined With',
     filterRemoveTooltip: 'Remove this filter',
+    filterObjectSelectFromTree: 'Select from tree',
     filterObjectAttrParent: ' in %s',
     filterObjectAttrContextType: ' of %s',
     filterDiscardTableRows: "During the computation of aggregate values (e.g. <i>count</i>, <i>sum</i>, <i>maximum</i>, etc.), reduce <span class='outputObjectName'></span> tables to those rows that match the table's filters. (Note: this checkbox is only enabled if there is at least one filter on any table property of <span class='outputObjectName'></span>)",
@@ -229,6 +232,7 @@ const l10n_en = {
     labelNone: 'None',
     labelLogout: 'Logout',
     labelLoading: 'Loading...',
+    labelClickToSelect: 'Click to select',
 
     loginHint: 'Sign in with your Spacialist user account',
     loginEmail: 'Email Address',
@@ -257,4 +261,9 @@ const l10n_en = {
     errorUnknownFilterTransformation: 'Unknown filter transformation: %s',
     errorUnknownFilterOperator: 'Unknown filter operator: %s',
     errorMissingFilterOperators: 'One or more filter operators are not defined. These are mandatory!',
+
+    thesaurusPickerHead: 'Thesaurus Picker: %s',
+    thesaurusPickerSearchPlaceholder: 'Filter the thesaurus',
+    thesaurusPickerOK: 'Pick',
+    thesaurusPickerCancel: 'Cancel'
 };

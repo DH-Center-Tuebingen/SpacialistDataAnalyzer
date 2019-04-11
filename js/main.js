@@ -232,7 +232,7 @@ function doIgnoreTableRows() {
 
 
 // ------------------------------------------------------------------------------------
-function getFiltersObject() {
+function getFiltersObject(prepareForAnalysis) {
 // make sure compatible with parseAnalysis() and stringifyAnalysis()
 // ------------------------------------------------------------------------------------
     try {
@@ -255,7 +255,13 @@ function getFiltersObject() {
                     typePathToRoot: getPathToRoot(obj)
                 };
                 let ctrls = row.data('valueControls');
-                ctrls && ctrls.forEach(ctrl => filter.values.push(ctrl.val()));
+                ctrls && ctrls.forEach(ctrl => {
+                    filter.values.push(ctrl.val());
+                    if(prepareForAnalysis && ctrl.data('overrideFilterAttr')) {
+                        // here we need to adjust the filter attribute to the correct hierarchy level for analysis
+                        filter.object = ctrl.data('overrideFilterAttr');
+                    }
+                });
                 if(index > 0 && filter.conjunction === 'combine')
                     filters[filters.length - 1].combinedFilters.push(filter);
                 else
@@ -294,13 +300,13 @@ function getGroupingObject() {
 }
 
 // ------------------------------------------------------------------------------------
-function getFilterAndOrDropdown(row) {
+function getFilterAndOrDropdown(row, initialVal) {
 // ------------------------------------------------------------------------------------
     let options = [
-        { value: 'and', label: 'And' },
-        { value: 'or', label: 'Or' },
+        { value: 'and', label: l10n.filterAnd },
+        { value: 'or', label: l10n.filterOr },
     ];
-    let thisObj; ;
+    let thisObj;
     if(row && (thisObj = row.data('object')) && thisObj.parentAttribute) {
         // check if previous row is a table attribute filter
         let prevRow = row.prev('tr');
@@ -319,6 +325,8 @@ function getFilterAndOrDropdown(row) {
     let s = get_select(null, { width: '100%' }, options);
     if(row)
         row.data('conjunctionDropdown', s);
+    if(options.some(o => o.value === initialVal))
+        s.val(initialVal).change();
     return s;
 }
 
@@ -451,60 +459,37 @@ function addEntitiesToDropdown(
 // ------------------------------------------------------------------------------------
 function getThesaurusPickerData(attr) {
 // ------------------------------------------------------------------------------------
-    function recurseThesaurus(parent, indent = 1) {
-        parent.data.childConcepts.forEach((tc, index) => {
-            parent.children.push({
-                label: tc.label,
-                indent,
-                index,
-                parent,
-                value: tc.url,
-                children: [],
-                data: tc
-            });
-        });
-        parent.children.sort((a, b) => {
-            a.label.localeCompare(b.label)
-        }).forEach(c => recurseThesaurus(c, indent + 1));
-    }
-    /*let thConcept = db.thesaurus[attr.thesaurusRoot];
-    let data = [{
-        value: thConcept.url,
-        label: thConcept.label,
-        expanded: true,
-        children: [],
-        data: thConcept,
-        indent: 0,
-        index: 0
-    }];
-    recurseThesaurus(data[0]);*/
-    let data = [];
-    db.thesaurus[attr.thesaurusRoot].childConcepts.forEach((child, index) => {
-        let node = {
-            value: child.url,
-            label: child.label,
-            expanded: false,
-            children: [],
-            data: child,
-            indent: 0,
-            index
+    let treeData = [];
+    (function buildThesaurusTree(thesaurusNode, treeNodeContainer) {
+        let treeNode = {
+            label: thesaurusNode.label,
+            value: thesaurusNode.url,
+            children: []
         };
-        data.push(node);
-        recurseThesaurus(node);
-    });
-    return data;
+        treeNodeContainer.push(treeNode);
+        thesaurusNode.childConcepts.forEach(child => {
+            buildThesaurusTree(child, treeNode.children);
+        });
+    })(db.thesaurus[attr.thesaurusRoot], treeData);
+    return treeData[0].children;
 }
 
 // ------------------------------------------------------------------------------------
 function finishThesaurusHierarchyPicker(filterRow, attr, dropdown, selection) {
 // ------------------------------------------------------------------------------------
     console.log('Selection', selection);
-    let filterAttr = db.attributes[ // find actual attribute for the filter
-        attr.controlChain[
-            Math.min(selection.indent, attr.controlChain.length - 1)
-        ]
+    let filterAttrDbId = attr.controlChain[
+        Math.min(selection.indent, attr.controlChain.length - 1)
     ];
-    console.log('Filter Attribute', filterAttr);
+    // now we need to find the tree attribute:
+    let filterAttrInternal;
+    filterRow.data('object').parentContextType.attributes.some(internalAttr => {
+        if(internalAttr.id === filterAttrDbId) {
+            filterAttrInternal = internalAttr;
+            return true;
+        }
+    })
+    console.log('Filter Attribute', filterAttrInternal);
     let selectionChain = [ selection.value ];
     let parentAttr = selection;
     while(parentAttr = parentAttr.parent)
@@ -513,7 +498,7 @@ function finishThesaurusHierarchyPicker(filterRow, attr, dropdown, selection) {
     // make the dropdown have only the selected option
     dropdown.empty()
         .data({
-            overrideFilterAttr: filterAttr, // remember actual attribute for filter
+            overrideFilterAttr: filterAttrInternal, // remember actual attribute for filter
             selectionChain
         }) 
         .append($('<option/>').attr({ value: '' }).text(''))
@@ -834,10 +819,14 @@ function filterObjectSelected(object) {
     let oldObject = row.data('object');
     if(oldObject)
         oldObject.treeRow.find('.col-flt').empty();
+    // try to remember conjunction
+    let andOrVal = 'and';
+    if(row.data('conjunctionDropdown'))
+        andOrVal = row.data('conjunctionDropdown').val();
     row.removeData();
     row.data('object', object);
     row.find('td').empty();
-    row.find('.col-flt-andor').append(getFilterAndOrDropdown(row));
+    row.find('.col-flt-andor').append(getFilterAndOrDropdown(row, andOrVal));
     row.find('.col-flt-object').html(getFilterObjectLabel(object));
     row.find('.col-flt-trans').append(getFilterTransformationCell(row, object));
     row.find('.col-flt-op').append(getFilterOperatorCell(row, object));
@@ -1579,7 +1568,7 @@ function updateResult(callback) {
     clearResultTableButtons();
     let result_div = $('#result').empty();
     tryClearDataTableElementInfos();
-    let filterObject = getFiltersObject();
+    let filterObject = getFiltersObject(true);
     if(typeof filterObject === 'string') {
         result_div.append(
             $('<div/>').text(filterObject).addClass('alert alert-danger')
@@ -1714,7 +1703,7 @@ function addFilterRow() {
     table.find('tr').removeClass('row-cur');
     let row = $('<tr/>').addClass('row-cur')
         .append($('<td/>').addClass('col-flt-andor').text(''))
-        .append($('<td/>').addClass('col-flt-object').text('Select from tree'))
+        .append($('<td/>').addClass('col-flt-object').text(l10n.filterObjectSelectFromTree))
         .append($('<td/>').addClass('col-flt-trans').text(''))
         .append($('<td/>').addClass('col-flt-op').text(''))
         .append($('<td/>').addClass('col-flt-value').text(''))
@@ -1952,7 +1941,7 @@ function makeSelect2(box, options) {
 // ------------------------------------------------------------------------------------
     let opt = {
         dropdownAutoWidth: true,
-        placeholder: 'Click to select',
+        placeholder: l10n.labelClickToSelect,
         width: box.data('width') ? box.data('width') : 'resolve',
         minimumResultsForSearch: 10,
         allowClear: box.data('allowClear') === true
@@ -2109,7 +2098,7 @@ function stringifyAnalysis() {
     flat.outputDisplay = analysis.outputDisplay;
     if(analysis.outputObject)
         flat.outputObjectInternalId = analysis.outputObject.internalId;
-    flat.filters = getFiltersObject();
+    flat.filters = getFiltersObject(false);
     // flatten combinedFilters
     flat.filters.forEach(filter => {
         filter.combinedFilters.forEach(cf => flat.filters.push(cf));

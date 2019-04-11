@@ -5,13 +5,16 @@ $.fn.simpleTree = function(options, data) {
     var self = this;
 
     // ------------------------------------------------------------------------
-    self.simpleTreeGetSelection = function() {
+    self.simpleTreeGetSelection = function(
+    ) {
     // ------------------------------------------------------------------------
         return self._simpleTreeSelection;
     }
 
     // ------------------------------------------------------------------------
-    self.simpleTreeScrollToNode = function(node) {
+    self.simpleTreeScrollToNode = function(
+        node
+    ) {
     // ------------------------------------------------------------------------
         let nt = node.domContainer.offset().top,
             nh = node.domContainer.height(),
@@ -26,7 +29,9 @@ $.fn.simpleTree = function(options, data) {
     }
 
     // ------------------------------------------------------------------------
-    self.simpleTreeToggle = function(node) {
+    self.simpleTreeToggle = function(
+        node
+    ) {
     // ------------------------------------------------------------------------
         if(node.expanded)
             node.domChildren.hide();
@@ -56,7 +61,9 @@ $.fn.simpleTree = function(options, data) {
     } /**/
 
     // ------------------------------------------------------------------------
-    self.simpleTreeClearSelection = function(fireEvent = true) {
+    self.simpleTreeClearSelection = function(
+        fireEvent = true
+    ) {
     // ------------------------------------------------------------------------
         if(!self._simpleTreeSelection)
             return;
@@ -109,7 +116,9 @@ $.fn.simpleTree = function(options, data) {
     }
 
     // ------------------------------------------------------------------------
-    self._simpleTreeNodeClicked = function(node) {
+    self._simpleTreeNodeClicked = function(
+        node
+    ) {
     // ------------------------------------------------------------------------
         if(node === self._simpleTreeSelection)
             self.simpleTreeClearSelection(true);
@@ -119,7 +128,9 @@ $.fn.simpleTree = function(options, data) {
     }
         
     // ------------------------------------------------------------------------
-    self._simpleTreeRenderNode = function(node) {
+    self._simpleTreeRenderNode = function(
+        node
+    ) {
     // ------------------------------------------------------------------------
         if(!self._simpleTreeNodeMap[node.value]) // on the fly fill node map
             self._simpleTreeNodeMap[node.value] = node;
@@ -160,7 +171,8 @@ $.fn.simpleTree = function(options, data) {
     }
 
     // ------------------------------------------------------------------------
-    self._simpleTreeRender = function() {
+    self._simpleTreeRender = function(
+    ) {
     // ------------------------------------------------------------------------
         self.empty();
         self._simpleTreeData.forEach(node => self._simpleTreeRenderNode(node));
@@ -168,7 +180,9 @@ $.fn.simpleTree = function(options, data) {
     }
 
     // ------------------------------------------------------------------------
-    self.simpleTreeDoSearch = function(searchTerm) {
+    self.simpleTreeDoSearch = function(
+        searchTerm
+    ) {
     // ------------------------------------------------------------------------
         if(self._lastSearchTerm === searchTerm)
             return;
@@ -180,7 +194,8 @@ $.fn.simpleTree = function(options, data) {
     }
 
     // ------------------------------------------------------------------------
-    self._simpleTreeInstallSearch = function() {
+    self._simpleTreeInstallSearch = function(
+    ) {
     // ------------------------------------------------------------------------
         let box = self._simpleTreeOptions.searchBox;
         box && box.bind('keyup focus', function() {
@@ -215,11 +230,23 @@ $.fn.simpleTree = function(options, data) {
                 selected: 'simpleTree-selected',
                 childCountBadge: 'simpleTree-childCountBadge'
             }
-        }, options);    
+        }, options);
+
+        // augment data object with essential info for processing
+        (function traverseData(nodeArray, indent = 0, parent = undefined) {
+            nodeArray.sort((a, b) => {
+                return a.label.localeCompare(b.label);
+            }).forEach((node, index) => {
+                node.index = index;
+                node.indent = indent;
+                node.parent = parent;
+                traverseData(node.children, indent + 1, node);
+            });
+        })(data);
         self._simpleTreeData = data;
         self._simpleTreeSelection = undefined;
         self._lastSearchTerm = '';
-        self._simpleTreeNodeMap = {};
+        self._simpleTreeNodeMap = {}; // never access directly, only through
     }
 
     self._simpleTreeInit(options, data);

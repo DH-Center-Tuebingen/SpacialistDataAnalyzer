@@ -165,8 +165,11 @@ const l10n_de = {
 
     filterIntro: 'Definieren Sie in der folgenden Tabelle beliebige Filter, um die Analyse auf Entitäten mit bestimmten Eigenschaftswerten zu fokussieren <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#filters-tab">🛈</a>.',
     filterConjunctionHeading: 'Konjunktion',
+    filterAnd: 'Und',
+    filterOr: 'Oder',
     filterAndOrCombine: 'Kombiniert mit',
     filterRemoveTooltip: 'Filter entfernen',
+    filterObjectSelectFromTree: 'Wählen aus Datenbankstruktur',
     filterObjectAttrParent: ' in %s',
     filterObjectAttrContextType: ' von %s',
     filterDiscardTableRows: "Während der Berechnung aggregierter Werte (e.g. <i>Anzahl</i>, <i>Summe</i>, <i>Maximalwert</i>, etc.) sollen <span class='outputObjectName'></span>-Tabellen auf jene Zeilen reduziert werden, die den Filtern für diese Tabelle entsprechen. Hinweis: Diese Box ist ausgegraut, wenn Sie keinen Filter auf Tabelleneigenschaften Entitäten des Typs <span class='outputObjectName'></span> gesetzt haben.",
@@ -229,6 +232,7 @@ const l10n_de = {
     labelNone: 'Keine',
     labelLogout: 'Ausloggen',
     labelLoading: 'Lade...',
+    labelClickToSelect: 'Klicken zum Auswählen',
 
     loginHint: 'Bitte loggen Sie sich mit Ihrem Spacialist-Benutzerkonto ein',
     loginEmail: 'Email-Adresse',
