@@ -102,16 +102,6 @@ $.fn.simpleTree = function(options, data) {
         value
     ) {
     // ------------------------------------------------------------------------
-        let node = self._simpleTreeNodeMap[value];
-        if(node) // found -> return
-            return node;
-        // not found -> fill complete node map on first use
-        (function fillNodeMap(level) {
-            level.forEach(node => {
-                self._simpleTreeNodeMap[node.value] = node;
-                fillNodeMap(node.children);
-            });
-        })(self._simpleTreeData);
         return self._simpleTreeNodeMap[value];
     }
 
@@ -132,8 +122,6 @@ $.fn.simpleTree = function(options, data) {
         node
     ) {
     // ------------------------------------------------------------------------
-        if(!self._simpleTreeNodeMap[node.value]) // on the fly fill node map
-            self._simpleTreeNodeMap[node.value] = node;
         let options = self._simpleTreeOptions;
         let div = $('<div/>').addClass(options.css.nodeContainer);
         div.append($('<div/>').addClass(options.css.indent).css({ 
@@ -152,7 +140,6 @@ $.fn.simpleTree = function(options, data) {
         div.append(node.domLabel);
         if(node.children.length > 0 && options.childCountShow) {
             div.append($('<span/>')
-                .addClass('badge badge-pill badge-secondary')
                 .addClass(options.css.childCountBadge)
                 .text(node.children.length)
             );
@@ -228,10 +215,11 @@ $.fn.simpleTree = function(options, data) {
                 label: 'simpleTree-label',
                 childrenContainer: 'simpleTree-childrenContainer',
                 selected: 'simpleTree-selected',
-                childCountBadge: 'simpleTree-childCountBadge'
+                childCountBadge: 'simpleTree-childCountBadge badge badge-pill badge-secondary'
             }
         }, options);
 
+        self._simpleTreeNodeMap = {};
         // augment data object with essential info for processing
         (function traverseData(nodeArray, indent = 0, parent = undefined) {
             nodeArray.sort((a, b) => {
@@ -240,13 +228,13 @@ $.fn.simpleTree = function(options, data) {
                 node.index = index;
                 node.indent = indent;
                 node.parent = parent;
+                self._simpleTreeNodeMap[node.value] = node;
                 traverseData(node.children, indent + 1, node);
             });
         })(data);
         self._simpleTreeData = data;
         self._simpleTreeSelection = undefined;
         self._lastSearchTerm = '';
-        self._simpleTreeNodeMap = {}; // never access directly, only through
     }
 
     self._simpleTreeInit(options, data);

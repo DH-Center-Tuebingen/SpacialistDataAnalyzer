@@ -259,7 +259,15 @@ function getFiltersObject(prepareForAnalysis) {
                     filter.values.push(ctrl.val());
                     if(prepareForAnalysis && ctrl.data('overrideFilterAttr')) {
                         // here we need to adjust the filter attribute to the correct hierarchy level for analysis
-                        filter.object = ctrl.data('overrideFilterAttr');
+                        // for equals or not-equals, we can take that attribute
+                        if(filter.operator.includes('equal-thesaurus'))
+                            filter.object = ctrl.data('overrideFilterAttr');
+                        // but if descendant-* we need to go to the next lower level in the control chain
+                        else if(filter.operator.includes('descendant-thesaurus')) 
+                            filter.object = ctrl.data('overrideFilterAttrNext');
+                        // otherwise something is screwed
+                        else
+                            console.error('Something is wrong with the filter operator');
                     }
                 });
                 if(index > 0 && filter.conjunction === 'combine')
@@ -480,14 +488,17 @@ function finishThesaurusHierarchyPicker(filterRow, attr, dropdown, selection) {
     console.log('Selection', selection);
     let filterAttrDbId = attr.controlChain[
         Math.min(selection.indent, attr.controlChain.length - 1)
+    ], filterAttrDbIdNext = attr.controlChain[
+        Math.min(selection.indent + 1, attr.controlChain.length - 1)
     ];
     // now we need to find the tree attribute:
-    let filterAttrInternal;
+    let filterAttrInternal, filterAttrInternalNext;
     filterRow.data('object').parentContextType.attributes.some(internalAttr => {
-        if(internalAttr.id === filterAttrDbId) {
+        if(internalAttr.id === filterAttrDbId)
             filterAttrInternal = internalAttr;
-            return true;
-        }
+        else if(internalAttr.id === filterAttrDbIdNext)
+            filterAttrInternalNext = internalAttr;
+        return filterAttrInternal && filterAttrInternalNext;
     })
     console.log('Filter Attribute', filterAttrInternal);
     let selectionChain = [ selection.value ];
@@ -499,6 +510,7 @@ function finishThesaurusHierarchyPicker(filterRow, attr, dropdown, selection) {
     dropdown.empty()
         .data({
             overrideFilterAttr: filterAttrInternal, // remember actual attribute for filter
+            overrideFilterAttrNext: filterAttrInternalNext, // required for descendant
             selectionChain
         }) 
         .append($('<option/>').attr({ value: '' }).text(''))
@@ -562,7 +574,7 @@ function showThesaurusHierarchyPicker(filterRow, attr, dropdown) {
                 tree.simpleTreeSelectNode(node);
                 tree.simpleTreeScrollToNode(node);
             }
-            else if(!node.expanded)
+            else if(!node.expanded && node.children.length > 0)
                 tree.simpleTreeToggle(node);
         });
     }
