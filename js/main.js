@@ -370,22 +370,33 @@ function getFilterTransformationDropdown(row, object) {
 
 // ------------------------------------------------------------------------------------
 function addThesaurusOptionsToDropdown(
+    filterRow,
     object,
     select,
     exclude_leaf_concepts = false
 ) {
 // ------------------------------------------------------------------------------------
-    let options = db.thesaurus.getDescendants(db.attributes[object.id], exclude_leaf_concepts);
     select.empty().append($('<option/>').attr({ value: '' }).text(''));
-    options.forEach(concept => select.append(
-        $('<option/>').attr({ value: concept.url }).text(concept.label)
-    ));
-    if(options.length === 0) {
-        select.data('select2Options', {
-            language: {
-                noResults: () => l10n.filterNoDescendantConcepts
-            }
+    let attr = db.attributes[object.id];
+    if(attr.controlChain && attr.controlChain[0] === attr.id) {
+        select.on('select2:opening', function(e) {
+            // show hierarchy chooser
+            showThesaurusHierarchyPicker(filterRow, attr, select);        
+            return false;
         });
+    }
+    else {
+        let options = db.thesaurus.getDescendants(db.attributes[object.id], exclude_leaf_concepts);
+        options.forEach(concept => select.append(
+            $('<option/>').attr({ value: concept.url }).text(concept.label)
+        ));
+        if(options.length === 0) {
+            select.data('select2Options', {
+                language: {
+                    noResults: () => l10n.filterNoDescendantConcepts
+                }
+            });
+        }
     }
     select.removeClass('hidden');
 }
@@ -487,8 +498,28 @@ function getThesaurusPickerData(attr) {
 // ------------------------------------------------------------------------------------
 function finishThesaurusHierarchyPicker(filterRow, attr, dropdown, selection) {
 // ------------------------------------------------------------------------------------
-    console.log(selection);
-    // adjust filter row to match selection
+    console.log('Selection', selection);
+    let filterAttr = db.attributes[ // find actual attribute for the filter
+        attr.controlChain[
+            Math.min(selection.indent, attr.controlChain.length - 1)
+        ]
+    ];
+    console.log('Filter Attribute', filterAttr);
+    let selectionChain = [ selection.value ];
+    let parentAttr = selection;
+    while(parentAttr = parentAttr.parent)
+        selectionChain.unshift(parentAttr.value);
+    console.log('Selection Chain', selectionChain);
+    // make the dropdown have only the selected option
+    dropdown.empty()
+        .data({
+            overrideFilterAttr: filterAttr, // remember actual attribute for filter
+            selectionChain
+        }) 
+        .append($('<option/>').attr({ value: '' }).text(''))
+        .append($('<option/>').attr({ value: selection.value }).text(selection.label))
+        .val(selection.value)
+        .change();
 }
 
 // ------------------------------------------------------------------------------------
@@ -538,25 +569,22 @@ function showThesaurusHierarchyPicker(filterRow, attr, dropdown) {
     ).on('simpleTree:change', (event, node) => {
         $('#thesaurusPickerModal .btn-success').prop('disabled', !node);
     });
+    let selectionChain = dropdown.data('selectionChain');
+    if(selectionChain) {
+        selectionChain.forEach((value, index) => {
+            let node = tree.simpleTreeGetNode(value);
+            if(index === selectionChain.length - 1) {
+                tree.simpleTreeSelectNode(node);
+                tree.simpleTreeScrollToNode(node);
+            }
+            else if(!node.expanded)
+                tree.simpleTreeToggle(node);
+        });
+    }
     $('#thesaurusPickerModal .btn-success').on('click', () => {
         finishThesaurusHierarchyPicker(filterRow, attr, dropdown,
             tree.simpleTreeGetSelection());
         $('#thesaurusPickerModal').trigger('hidden.bs.modal');
-    })
-}
-
-// ------------------------------------------------------------------------------------
-function installThesaurusHierarchyOverlay(filterRow, obj, dropdown) {
-// ------------------------------------------------------------------------------------
-    let attr = db.attributes[obj.id];
-    if(!attr.controlChain || attr.controlChain[0] !== attr.id) // top of the chain only
-        return;
-
-    dropdown.on('select2:opening', function(e) {
-        // show hierarchy chooser
-        console.log(attr);
-        showThesaurusHierarchyPicker(filterRow, attr, dropdown);        
-        return false;
     })
 }
 
@@ -582,8 +610,7 @@ function getFilterValueControls(row) {
         case 'equal-thesaurus':
         case 'not-equal-thesaurus':
             select = get_select(null, { width: '100%' }).addClass('hidden');
-            addThesaurusOptionsToDropdown(obj, select);
-            installThesaurusHierarchyOverlay(row, obj, select);
+            addThesaurusOptionsToDropdown(row, obj, select);
             select.data('dropdownType', 'thesaurusConcept');
             ctrls.unshift(select);
             break;
@@ -600,7 +627,7 @@ function getFilterValueControls(row) {
         case 'contain-thesaurus':
         case 'not-contain-thesaurus':
             select = get_select(null, { width: '100%' }).addClass('hidden');
-            addThesaurusOptionsToDropdown(obj, select);
+            addThesaurusOptionsToDropdown(row, obj, select);
             select.data('dropdownType', 'thesaurusConcept');
             ctrls.unshift(select);
             break;
@@ -610,7 +637,7 @@ function getFilterValueControls(row) {
         case 'contain-descendant-thesaurus':
         case 'not-contain-descendant-thesaurus':
             select = get_select(null, { width: '100%' }).addClass('hidden');
-            addThesaurusOptionsToDropdown(obj, select, true);
+            addThesaurusOptionsToDropdown(row, obj, select, true);
             select.data('dropdownType', 'thesaurusDescendant');
             ctrls.unshift(select);
             break;
