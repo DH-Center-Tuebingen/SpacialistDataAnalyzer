@@ -86,6 +86,18 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
+        setForceThesaurusPicker: function(arr) {
+        // --------------------------------------------------------------------------------------------
+            this.forceThesaurusPicker = arr;
+        },
+
+        // --------------------------------------------------------------------------------------------
+        getForceThesaurusPicker: function() {
+        // --------------------------------------------------------------------------------------------
+            return this.forceThesaurusPicker || [];
+        },
+
+        // --------------------------------------------------------------------------------------------
         setAttributeOverrides: function(attributeOverrides) {
         // --------------------------------------------------------------------------------------------
             this.attributeOverrides = attributeOverrides;
@@ -96,10 +108,10 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
             let r;
             this.attributeOverrides.some(a => {
-                if(a.id !== attrId || a.childIndex !== childIndex)
-                    return false;
-                r = a.override;
-                return true;
+                if(a.id === attrId && a.childIndex === childIndex) {
+                    r = a.override;
+                    return true;
+                }
             })
             return r;
         },
@@ -241,6 +253,11 @@ function initializeDbVar() {
                     if(ct.attributeIds.indexOf(parseInt(attrId)) >= 0)
                         typeInfo.contextTypes.push(ctId);
                 });
+                if(db.getForceThesaurusPicker().includes(attrId)) {
+                    a.isRecursive = true;
+                    a.controlChain = [ attrId ];
+                    a.controllingAttributeId = null;
+                }
             });
 
             // now we need to notify the caller to include the new attributes into the tree
@@ -477,8 +494,13 @@ function initializeDbVar() {
             });
             this.createPseudoAttributes();
             this.createAncestryTables();
-            let elapsed = debugGetElapsedSeconds(startTime);
-            console.log('DB loaded in', elapsed, 's');
+            db.getForceThesaurusPicker().forEach(attrId => {
+                let a = db.attributes[attrId];
+                a.isRecursive = true;
+                a.controlChain = [ attrId ];
+                a.controllingAttributeId = null;
+            });
+            console.log('DB loaded in', debugGetElapsedSeconds(startTime), 's');
             this._initMemberFunctions();
             if(typeof callback === 'function')
                 callback();

@@ -525,10 +525,14 @@ function finishThesaurusHierarchyPicker(filterRow, attr, dropdown, selection) {
     ];
     // now we need to find the tree attribute:
     let filterAttrInternal, filterAttrInternalNext;
-    filterRow.data('object').parentContextType.attributes.some(internalAttr => {
+    let treeAttr = filterRow.data('object');
+    let treeAttrParentContainer = treeAttr.parentAttribute 
+        ? treeAttr.parentAttribute.children 
+        : treeAttr.parentContextType.attributes;
+    treeAttrParentContainer.some(internalAttr => {
         if(internalAttr.id === filterAttrDbId)
             filterAttrInternal = internalAttr;
-        else if(internalAttr.id === filterAttrDbIdNext)
+        if(internalAttr.id === filterAttrDbIdNext) // could be same, so no "else if" here !
             filterAttrInternalNext = internalAttr;
         return filterAttrInternal && filterAttrInternalNext;
     })
@@ -2543,6 +2547,8 @@ $(function() {
     $.getJSON('settings/%s.json'.with(spacialistInstance.db), data => {
         if(data.settings)
             $.extend(true, Settings, data.settings);
+        if(data.forceThesaurusPicker)
+            db.setForceThesaurusPicker(data.forceThesaurusPicker);
         if(data.attributeOverrides)
             db.setAttributeOverrides(data.attributeOverrides);
     }).always(() => {

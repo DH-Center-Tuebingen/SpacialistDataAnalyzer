@@ -11,7 +11,6 @@
         _tree.status = {};
         _tree.internalIdSequence = 1;
         _tree.objects = {};
-        _tree.objectsLegacy = {};
         return render();
     }
 
@@ -25,7 +24,6 @@
     function setNextInternalId(object) {
     // -----------------------------------------------------------------
         object.legacyInternalId = _tree.internalIdSequence++;
-        _tree.objectsLegacy[object.legacyInternalId] = object;
         object.internalId = String(object.id);
         (function up(orig, cur) {
             if(cur.parentAttribute) {
