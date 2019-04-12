@@ -1993,13 +1993,14 @@ function installGeoJSONExport() {
 }
 
 // ------------------------------------------------------------------------------------
-function getTreeRowFromInternalId(internalId) {
+function getTreeRowFromInternalId(internalId, isLegacy) {
 // ------------------------------------------------------------------------------------
     let ret;
     masterTree.find('tr').each(function() {
         let tr = $(this);
         let obj = tr.data('object');
-        if(obj && obj.internalId === internalId) {
+        // up to (excluding) v3, internalIds were numbers
+        if(obj && (isLegacy ? obj.legacyInternalId : obj.internalId) === internalId) {
             ret = tr;
             return false;
         }
@@ -2058,9 +2059,11 @@ function parseAnalysis(jsonString, complete) {
     $('.remove-filter-button').trigger('click');
     json.filters.forEach((filter, index) => {
         let filterRow = addFilterRow();
-        let treeRow = getTreeRowFromInternalId(filter.object);
-        if(!treeRow)
+        let treeRow = getTreeRowFromInternalId(filter.object, json.version <= 2);
+        if(!treeRow) {
+            console.warn('Object with internal identifier ' + filter.object + ' not found; maybe DB structure was changed');
             return;
+        }
         filterObjectSelected(treeRow.data('object'));
         filterRow.find('.col-flt-object').trigger('click'); // activate current filter row
         if(filter.conjunction)
@@ -2102,8 +2105,14 @@ function parseAnalysis(jsonString, complete) {
 function stringifyAnalysis() {
 // ------------------------------------------------------------------------------------
     let flat = {
-        //version: 1
-        version: 2 // analysis.discardTableRows now available; default = false
+        version: 3
+        /* VERSION DESCRIPTION:
+            3 = object internalId now reflects their database hierarchical position 
+                instead of a meaningless running numeric identifier. This way, changes
+                in the DB structure don't screw up stored analyses so easily
+            2 = analysis.discardTableRows now available; default = false
+            1 = initial version
+        */
     };
     flat.dbName = spacialistInstance.db;
     flat.curSection = analysis.curSection;

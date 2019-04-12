@@ -11,6 +11,7 @@
         _tree.status = {};
         _tree.internalIdSequence = 1;
         _tree.objects = {};
+        _tree.objectsLegacy = {};
         return render();
     }
 
@@ -23,7 +24,19 @@
     // -----------------------------------------------------------------
     function setNextInternalId(object) {
     // -----------------------------------------------------------------
-        object.internalId = _tree.internalIdSequence++;
+        object.legacyInternalId = _tree.internalIdSequence++;
+        _tree.objectsLegacy[object.legacyInternalId] = object;
+        object.internalId = String(object.id);
+        (function up(orig, cur) {
+            if(cur.parentAttribute) {
+                orig.internalId = cur.parentAttribute.id + ':' + orig.internalId;
+                up(orig, cur.parentAttribute);
+            }
+            else if(cur.parentContextType) {
+                orig.internalId = cur.parentContextType.id + ':' + orig.internalId;
+                up(orig, cur.parentContextType);
+            }
+        })(object, object);
         _tree.objects[object.internalId] = object;
     }
 
@@ -37,9 +50,9 @@
         }
         if(attribute.type === 'unknown')
             return // type of computed attribute could not be determined, presumably because there are no values at all; so ignore
-        setNextInternalId(attribute);
         attribute.parentContextType = parent.what == 'ContextType' ? parent : parent.parentContextType;
         attribute.parentAttribute = parent.what == 'Attribute' ? parent : null;
+        setNextInternalId(attribute);
         attribute.treeRow = $('<tr/>').addClass('attribute').data({
             id: attribute.id,
             type: attribute.type,
@@ -89,8 +102,8 @@
     // -----------------------------------------------------------------
     function renderContextType(contextType, parent, table, depth = 0) {
     // -----------------------------------------------------------------
-        setNextInternalId(contextType);
         contextType.parentContextType = parent;
+        setNextInternalId(contextType);
         contextType.typePathToRoot = [ contextType.id ];
         let p = contextType;
         while(p = p.parentContextType)
