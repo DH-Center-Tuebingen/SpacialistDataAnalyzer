@@ -257,17 +257,27 @@ function getFiltersObject(prepareForAnalysis) {
                 let ctrls = row.data('valueControls');
                 ctrls && ctrls.forEach(ctrl => {
                     filter.values.push(ctrl.val());
-                    if(prepareForAnalysis && ctrl.data('overrideFilterAttr')) {
-                        // here we need to adjust the filter attribute to the correct hierarchy level for analysis
-                        // for equals or not-equals, we can take that attribute
-                        if(filter.operator.includes('equal-thesaurus'))
-                            filter.object = ctrl.data('overrideFilterAttr');
-                        // but if descendant-* we need to go to the next lower level in the control chain
-                        else if(filter.operator.includes('descendant-thesaurus')) 
-                            filter.object = ctrl.data('overrideFilterAttrNext');
-                        // otherwise something is screwed
-                        else
-                            console.error('Something is wrong with the filter operator');
+                    if(ctrl.data('overrideFilterAttr')) {
+                        // here we know we're at a filter that uses a thesaurus hierarchy
+                        if(prepareForAnalysis) {
+                            // here we need to adjust the filter attribute to the correct hierarchy level for analysis
+                            // for equals or not-equals, we can take that attribute
+                            if(filter.operator.includes('equal-thesaurus'))
+                                filter.object = ctrl.data('overrideFilterAttr');
+                            // but if descendant-* we need to go to the next lower level in the control chain
+                            else if(filter.operator.includes('descendant-thesaurus')) 
+                                filter.object = ctrl.data('overrideFilterAttrNext');
+                            // otherwise something is screwed
+                            else
+                                console.error('Something is wrong with the filter operator');
+                        } 
+                        else { // this is for saving to file; need to remember hierarchy
+                            filter.thesaurusHierarchyData = {
+                                overrideAttrId: ctrl.data('overrideFilterAttr').internalId,
+                                overrideAttrNextId: ctrl.data('overrideFilterAttrNext').internalId,
+                                selectionChain: ctrl.data('selectionChain')
+                            };
+                        }
                     }
                 });
                 if(index > 0 && filter.conjunction === 'combine')
@@ -483,6 +493,28 @@ function getThesaurusPickerData(attr) {
 }
 
 // ------------------------------------------------------------------------------------
+function setThesaurusHierarchDropdownSelection(
+    dropdown, 
+    value, 
+    label, 
+    filterAttrInternal, 
+    filterAttrInternalNext, 
+    selectionChain
+) {
+// ------------------------------------------------------------------------------------
+    dropdown.empty()
+        .data({
+            overrideFilterAttr: filterAttrInternal, // remember actual attribute for filter
+            overrideFilterAttrNext: filterAttrInternalNext, // required for descendant
+            selectionChain
+        }) 
+        .append($('<option/>').attr({ value: '' }).text(''))
+        .append($('<option/>').attr({ value }).text(label))
+        .val(value)
+        .change();
+}
+
+// ------------------------------------------------------------------------------------
 function finishThesaurusHierarchyPicker(filterRow, attr, dropdown, selection) {
 // ------------------------------------------------------------------------------------
     console.log('Selection', selection);
@@ -507,16 +539,14 @@ function finishThesaurusHierarchyPicker(filterRow, attr, dropdown, selection) {
         selectionChain.unshift(parentAttr.value);
     console.log('Selection Chain', selectionChain);
     // make the dropdown have only the selected option
-    dropdown.empty()
-        .data({
-            overrideFilterAttr: filterAttrInternal, // remember actual attribute for filter
-            overrideFilterAttrNext: filterAttrInternalNext, // required for descendant
-            selectionChain
-        }) 
-        .append($('<option/>').attr({ value: '' }).text(''))
-        .append($('<option/>').attr({ value: selection.value }).text(selection.label))
-        .val(selection.value)
-        .change();
+    setThesaurusHierarchDropdownSelection(
+        dropdown,
+        selection.value,
+        selection.label,
+        filterAttrInternal,
+        filterAttrInternalNext,
+        selectionChain
+    );
 }
 
 // ------------------------------------------------------------------------------------
@@ -2039,19 +2069,18 @@ function parseAnalysis(jsonString, complete) {
     };
 
     if(json.outputObjectInternalId) {
-        masterTree.find('tr').each(function() {
-            let obj = $(this).data('object');
-            if(obj && obj.internalId === json.outputObjectInternalId) {
-                updateAnalysisStatus({
-                    outputObject: obj
-                });
-                if(json.outputDisplay)
-                    $('#displayType').val(json.outputDisplay.type).trigger('change');
-                return false;
-            }
-        });
+        let objRow = getTreeRowFromInternalId(json.outputObjectInternalId, json.version <= 2);
+        if(!objRow)
+            console.warn('Output object internal identifier not found: ' + json.outputObjectInternalId + '; maybe DB structure was changed');
+        else {
+            updateAnalysisStatus({
+                outputObject: objRow.data('object')
+            });
+            if(json.outputDisplay)
+                $('#displayType').val(json.outputDisplay.type).trigger('change');
+        }
     }
-
+  
     if(json.hierarchical !== undefined)
         $('#tree-analysis').prop('checked', json.hierarchical).trigger('change');
 
@@ -2074,8 +2103,21 @@ function parseAnalysis(jsonString, complete) {
             filterRow.find('td.col-flt-op select').val(filter.operator).trigger('change');
         let valueControls = filterRow.data('valueControls');
         !$.isArray(filter.values) || filter.values.forEach((value, index) => {
-            valueControls[index].val(value).trigger('change');
-        })
+            if(json.version >= 3 && filter.thesaurusHierarchyData) {
+                // need to restore dropdown fake setup
+                setThesaurusHierarchDropdownSelection(
+                    valueControls[index],
+                    value,
+                    db.getThesaurusLabel(value, value),
+                    getTreeRowFromInternalId(filter.thesaurusHierarchyData.overrideAttrId).data('object'),
+                    getTreeRowFromInternalId(filter.thesaurusHierarchyData.overrideAttrNextId).data('object'),
+                    filter.thesaurusHierarchyData.selectionChain
+                );
+            }
+            else {
+                valueControls[index].val(value).trigger('change');
+            }
+        });
     });
 
     if(json.version < 2)
