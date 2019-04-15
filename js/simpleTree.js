@@ -35,10 +35,19 @@ $.fn.simpleTree = function(options, data) {
     // ------------------------------------------------------------------------
         if(node.expanded)
             node.domChildren.hide();
-        else if(node.domChildren.children().length > 0)
-            node.domChildren.show();
-        else
-            node.children.forEach(child => self._simpleTreeRenderNode(child)); 
+        else {
+            // expand ancestor nodes if needed
+            let ancestor = node;
+            while(ancestor = ancestor.parent) {
+                if(ancestor.expanded)
+                    break;
+                self.simpleTreeToggle(ancestor);
+            }
+            if(node.domChildren.children().length > 0)
+                node.domChildren.show();
+            else
+                node.children.forEach(child => self._simpleTreeRenderNode(child));
+        }
         node.expanded = !node.expanded;
         node.domContainer
             .find('.simpleTree-toggle')
