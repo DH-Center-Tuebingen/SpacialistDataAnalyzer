@@ -136,7 +136,7 @@ const l10n_de = {
     dbEmptyHeading: 'Datenbank ist leer ☝',
     dbEmptyMessage: 'Die Datenbank enthält keine Entitäten, also gibt es nichts zu analysieren ☹',
 
-    treeCaption: 'Datenbankstruktur <sup><a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Database-Structure-Pane">🛈</a></sup>',
+    treeCaption: 'Datenbankstruktur <sup><a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Database-Structure-Pane"></a></sup>',
     treeHideProperties: 'Einklappen',
     treeShowProperties: 'Ausklappen',
     treeHeadStructure: '',
@@ -144,7 +144,7 @@ const l10n_de = {
     treeHeadFilter: 'Filter',
     treeHeadAggregate: 'Aggregat',
 
-    analysisOptionsCaption: 'Analyse-Einstellungen <sup><a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane">🛈</a></sup>',
+    analysisOptionsCaption: 'Analyse-Einstellungen <sup><a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane"></a></sup>',
     analysisClearButton: '🞬 Zurücksetzen',
     analysisSaveButton: '🖫 Speichern',
     analysisLoadButton: '⮬ Laden',
@@ -155,15 +155,15 @@ const l10n_de = {
     analysisTabFilters: 'Filter',
     analysisTabAggregates: 'Aggregate',
 
-    outputSelectHint: 'Wählen Sie aus, welche Daten Sie darstellen wollen, indem Sie im Baum eine Entität oder Eigenschaft auswählen <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#output-tab">🛈</a>.',
-    outputSelectedEntityType: 'Sie haben Entitätstyp <b>%s</b> ausgewählt <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object">🛈</a>.',
-    outputSelectedProperty: 'Sie haben Eigenschaft <b>%s</b>%s von Entitätstyp <b>%s</b> ausgewählt <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object">🛈</a>.',
+    outputSelectHint: 'Wählen Sie aus, welche Daten Sie darstellen wollen, indem Sie im Baum eine Entität oder Eigenschaft auswählen <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#output-tab"></a>.',
+    outputSelectedEntityType: 'Sie haben Entitätstyp <b>%s</b> ausgewählt <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object"></a>.',
+    outputSelectedProperty: 'Sie haben Eigenschaft <b>%s</b>%s von Entitätstyp <b>%s</b> ausgewählt <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object"></a>.',
     outputSelectedPropertyParent:  ' der zusammengesetzten Eigenschaft <b>%s</b>',
     outputSelectPropertyDisplayType: 'Wählen Sie, welche Information über diese Eigenschaft dargestellt werden soll: ',
     outputSelectEntityDisplay: 'Wählen Sie, wie die Entitäten dieses Typs dargestellt werden sollen: ',
     outputHierarchicalAnalysis: 'Hierarchische Analyse durchführen. Wenn diese Box angekreuzt ist, so wird die hierarchische Ebene der Entitäten des gewählten Typs %s berücksichtigt; es werden dann nur Entitäten auf der im Baum gewählten Ebene für das Ergebnis berücksichtigt. Wenn diese Box nicht angekreuzt ist, werden alle Entitäten des Typs %s für die Analyse berücksigt.',
 
-    filterIntro: 'Definieren Sie in der folgenden Tabelle beliebige Filter, um die Analyse auf Entitäten mit bestimmten Eigenschaftswerten zu fokussieren <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#filters-tab">🛈</a>.',
+    filterIntro: 'Definieren Sie in der folgenden Tabelle beliebige Filter, um die Analyse auf Entitäten mit bestimmten Eigenschaftswerten zu fokussieren <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#filters-tab"></a>.',
     filterConjunctionHeading: 'Konjunktion',
     filterAnd: 'Und',
     filterOr: 'Oder',
@@ -185,7 +185,7 @@ const l10n_de = {
     filterRemoveAll: 'Alle Filter Entfernen',
     filterNoDescendantConcepts: 'Keine Konzepte zur Auswahl',
 
-    groupIntro: 'Hier können Sie definieren, wie die Eigenschaftswerte der Entitäten des Typs <b class="outputObjectName"></b> im Ergebnis gruppiert oder aggregiert werden sollen <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#aggregates-tab">🛈</a>.',
+    groupIntro: 'Hier können Sie definieren, wie die Eigenschaftswerte der Entitäten des Typs <b class="outputObjectName"></b> im Ergebnis gruppiert oder aggregiert werden sollen <a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#aggregates-tab"></a>.',
     groupDropdownPlaceholder: 'Ignorieren',
     groupReset: 'Zurücksetzen',
     groupTableColProperty: 'Eigenschaft von %s',

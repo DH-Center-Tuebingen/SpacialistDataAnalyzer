@@ -136,7 +136,7 @@ const l10n_en = {
     dbEmptyHeading: 'Database is empty ☝',
     dbEmptyMessage: 'The database does not contain any entities, so there is nothing to analyze ☹',
 
-    treeCaption: 'Database Structure <sup><a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Database-Structure-Pane">🛈</a></sup>',
+    treeCaption: 'Database Structure <sup><a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Database-Structure-Pane"></a></sup>',
     treeHideProperties: 'Hide Properties',
     treeShowProperties: 'Show Properties',
     treeHeadStructure: '',
@@ -144,7 +144,7 @@ const l10n_en = {
     treeHeadFilter: 'Filter',
     treeHeadAggregate: 'Aggregate',
 
-    analysisOptionsCaption: 'Analysis Options <sup><a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane">🛈</a></sup>',
+    analysisOptionsCaption: 'Analysis Options <sup><a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane"></a></sup>',
     analysisClearButton: '🞬 Clear',
     analysisSaveButton: '🖫 Save',
     analysisLoadButton: '⮬ Load',
@@ -155,15 +155,15 @@ const l10n_en = {
     analysisTabFilters: 'Filters',
     analysisTabAggregates: 'Aggregates',
 
-    outputSelectHint: 'Select what kind of information you would like to display by picking an entity or property from the tree <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#output-tab">🛈</a>.',
-    outputSelectedEntityType: 'You have selected entity type <b>%s</b> <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object">🛈</a>.',
-    outputSelectedProperty: 'You have selected property <b>%s</b>%s of entity type <b>%s</b> <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object">🛈</a>.',
+    outputSelectHint: 'Select what kind of information you would like to display by picking an entity or property from the tree <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#output-tab"></a>.',
+    outputSelectedEntityType: 'You have selected entity type <b>%s</b> <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object"></a>.',
+    outputSelectedProperty: 'You have selected property <b>%s</b>%s of entity type <b>%s</b> <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual#picking-an-output-object"></a>.',
     outputSelectedPropertyParent:  ' of composite property <b>%s</b>',
     outputSelectPropertyDisplayType: 'Select what kind of information about this property shall be presented: ',
     outputSelectEntityDisplay: 'Select how the entities of this type shall be presented: ',
     outputHierarchicalAnalysis: 'Perform hierarchical analysis. If this box is checked, the hierarchical level of %s entities will be considered, and only those at the level selected in the tree will be considered for output. If this box is not checked, all %s entities in the database will be considered for output.',
 
-    filterIntro: 'Define filters using the following table to limit the analysis focus on entities with specific property values <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#filters-tab">🛈</a>.',
+    filterIntro: 'Define filters using the following table to limit the analysis focus on entities with specific property values <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#filters-tab"></a>.',
     filterConjunctionHeading: 'Conjunction',
     filterAnd: 'And',
     filterOr: 'Or',
@@ -185,7 +185,7 @@ const l10n_en = {
     filterRemoveAll: 'Remove All Filters',
     filterNoDescendantConcepts: 'There are no concepts to choose from',
 
-    groupIntro: 'You may define how to group and aggregate the resulting entities of type <b class="outputObjectName"></b> by the values of their properties <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#aggregates-tab">🛈</a>.',
+    groupIntro: 'You may define how to group and aggregate the resulting entities of type <b class="outputObjectName"></b> by the values of their properties <a title="Help" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane#aggregates-tab"></a>.',
     groupDropdownPlaceholder: 'No Grouping or Aggregation',
     groupReset: 'Reset',
     groupTableColProperty: 'Property of %s',

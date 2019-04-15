@@ -65,6 +65,13 @@
     text-align: left;
 }
 
+a[target="_help"]::before {
+    content: "🛈";
+}
+a[target="_help"]:hover {
+    text-decoration: none;
+}
+
 #tree-container {
     overflow: scroll;
     background-color: #fdfdfd;
