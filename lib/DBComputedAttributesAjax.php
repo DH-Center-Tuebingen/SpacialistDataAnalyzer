@@ -12,6 +12,8 @@ if(!$debug) {
     header('Content-Type: application/json');
     $forceLive = isset($_GET['force']) && $_GET['force'] === 'live';
     if(!$forceLive) {
+        while(cache_is_attr_locked())
+            usleep(250000); // 0.25 seconds
         $cached_json = cache_get_data_attr();
         if($cached_json !== false) {
             echo $cached_json;
@@ -21,6 +23,8 @@ if(!$debug) {
 }
 else
     header('Content-Type: text/plain');
+
+cache_lock_attr();
 
 $attributes = array();
 $attributeValues = array();
@@ -99,4 +103,7 @@ catch(Exception $e) {
         'message' => $e->getMessage(),
         'trace' => (string) $e
     ), JSON_NUMERIC_CHECK);
+}
+finally {
+    cache_unlock_attr();
 }

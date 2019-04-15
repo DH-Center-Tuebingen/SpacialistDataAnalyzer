@@ -10,12 +10,16 @@ header('Content-Type: application/json');
 $lang = isset($_GET['lang']) ? $_GET['lang'] : 'de';
 $forceLive = isset($_GET['force']) && $_GET['force'] === 'live';
 if(!$forceLive) {
+    while(cache_is_db_locked($lang))
+        usleep(250000); // 0.25 seconds
     $cached_json = cache_get_data_db($lang);
     if($cached_json !== false) {
         echo $cached_json;
         exit;
     }
 }
+
+cache_lock_db($lang);
 
 $contextTypes = array();
 $attributes = array();
@@ -154,4 +158,7 @@ catch(Exception $e) {
         'message' => $e->getMessage(),
         'trace' => (string) $e
     ), JSON_NUMERIC_CHECK);
+}
+finally {
+    cache_unlock_db($lang);
 }

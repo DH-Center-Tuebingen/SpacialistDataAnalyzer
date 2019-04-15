@@ -294,12 +294,17 @@ function create_dir_if_not_exists($dir) {
     return true;
 }
 
+//------------------------------------------------------------------------------------------
+function cache_get_db_filename($lang) {
+//------------------------------------------------------------------------------------------
+    return sprintf('../cache/%s_%s_db.json', get_db_name(), $lang);
+}
 
 //------------------------------------------------------------------------------------------
 function cache_get_data_db($lang) {
 //------------------------------------------------------------------------------------------
     create_dir_if_not_exists('../cache');
-    $fn = sprintf('../cache/%s_%s_db.json', get_db_name(), $lang);
+    $fn = cache_get_db_filename($lang);
     if(@file_exists($fn))
         return @file_get_contents($fn);
     return false;
@@ -309,22 +314,46 @@ function cache_get_data_db($lang) {
 function cache_put_data_db($data, $lang) {
 //------------------------------------------------------------------------------------------
     create_dir_if_not_exists('../cache');
-    $fn = sprintf('../cache/%s_%s_db.json', get_db_name(), $lang);
-    return @file_put_contents($fn, $data);
+    $ret = @file_put_contents(cache_get_db_filename($lang), $data);
+    cache_unlock_db($lang);
+    return $ret;
 }
 
 //------------------------------------------------------------------------------------------
 function cache_clear_data_db($lang) {
 //------------------------------------------------------------------------------------------
-    $fn = sprintf('../cache/%s_%s_db.json', get_db_name(), $lang);
-    @unlink($fn);
+    @unlink(cache_get_db_filename($lang));
 }
+
+//------------------------------------------------------------------------------------------
+function cache_is_db_locked($lang) {
+//------------------------------------------------------------------------------------------
+    return @file_exists(cache_get_db_filename($lang) . '.lock');
+}
+
+//------------------------------------------------------------------------------------------
+function cache_lock_db($lang) {
+//------------------------------------------------------------------------------------------
+    @touch(cache_get_db_filename($lang) . '.lock');
+}
+
+//------------------------------------------------------------------------------------------
+function cache_unlock_db($lang) {
+//------------------------------------------------------------------------------------------
+    @unlink(cache_get_db_filename($lang) . '.lock');
+}
+
+//------------------------------------------------------------------------------------------
+function cache_get_attr_filename() {
+//------------------------------------------------------------------------------------------
+    return sprintf('../cache/%s_attr.json', get_db_name());
+}   
 
 //------------------------------------------------------------------------------------------
 function cache_get_data_attr() {
 //------------------------------------------------------------------------------------------
     create_dir_if_not_exists('../cache');
-    $fn = sprintf('../cache/%s_attr.json', get_db_name());
+    $fn = cache_get_attr_filename();
     if(@file_exists($fn))
         return @file_get_contents($fn);
     return false;
@@ -334,15 +363,35 @@ function cache_get_data_attr() {
 function cache_put_data_attr($data) {
 //------------------------------------------------------------------------------------------
     create_dir_if_not_exists('../cache');
-    $fn = sprintf('../cache/%s_attr.json', get_db_name());
-    return @file_put_contents($fn, $data);
+    $fn = cache_get_attr_filename();
+    $ret = @file_put_contents($fn, $data);
+    cache_unlock_attr();
+    return $ret;
 }
 
 //------------------------------------------------------------------------------------------
 function cache_clear_data_attr() {
 //------------------------------------------------------------------------------------------
-    $fn = sprintf('../cache/%s_attr.json', get_db_name());
+    $fn = cache_get_attr_filename();
     @unlink($fn);
+}
+
+//------------------------------------------------------------------------------------------
+function cache_is_attr_locked() {
+//------------------------------------------------------------------------------------------
+    return @file_exists(cache_get_attr_filename() . '.lock');
+}
+
+//------------------------------------------------------------------------------------------
+function cache_lock_attr() {
+//------------------------------------------------------------------------------------------
+    @touch(cache_get_attr_filename() . '.lock');
+}
+
+//------------------------------------------------------------------------------------------
+function cache_unlock_attr() {
+//------------------------------------------------------------------------------------------
+    @unlink(cache_get_attr_filename() . '.lock');
 }
 
 //------------------------------------------------------------------------------------------
