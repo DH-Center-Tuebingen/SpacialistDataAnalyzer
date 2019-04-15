@@ -37,12 +37,8 @@ $.fn.simpleTree = function(options, data) {
             node.domChildren.hide();
         else {
             // expand ancestor nodes if needed
-            let ancestor = node;
-            while(ancestor = ancestor.parent) {
-                if(ancestor.expanded)
-                    break;
-                self.simpleTreeToggle(ancestor);
-            }
+            if(node.parent && !node.parent.expanded) 
+                self.simpleTreeToggle(node.parent);
             if(node.domChildren.children().length > 0)
                 node.domChildren.show();
             else
@@ -56,7 +52,7 @@ $.fn.simpleTree = function(options, data) {
         return self;
     }
 
-    /* ------------------------------------------------------------------------
+    // ------------------------------------------------------------------------
     self._simpleTreeRemoveNode = function(node) {
     // ------------------------------------------------------------------------
         if(!node.domContainer)
@@ -67,7 +63,7 @@ $.fn.simpleTree = function(options, data) {
         if(node.domChildren)
             node.domChildren.hide();
         return self;
-    } /**/
+    } 
 
     // ------------------------------------------------------------------------
     self.simpleTreeClearSelection = function(
@@ -93,12 +89,13 @@ $.fn.simpleTree = function(options, data) {
             return;
         self.simpleTreeClearSelection(false);
         // expand ancestry if needed
-        let iterator = node;
+        /*let iterator = node;
         while(iterator = iterator.parent) {
             if(iterator.expanded)
                 break;
             self.simpleTreeToggle(iterator);
-        }
+        }*/
+        self.simpleTreeExpandDownTo(node);
         node.domLabel.addClass(self._simpleTreeOptions.css.selected);
         self._simpleTreeSelection = node;
         if(fireEvent)
@@ -176,6 +173,15 @@ $.fn.simpleTree = function(options, data) {
     }
 
     // ------------------------------------------------------------------------
+    self.simpleTreeExpandDownTo = function(
+        node
+    ) {
+    // ------------------------------------------------------------------------
+        if(node.parent && !node.parent.expanded)
+            self.simpleTreeToggle(node.parent);
+    }
+
+    // ------------------------------------------------------------------------
     self.simpleTreeDoSearch = function(
         searchTerm
     ) {
@@ -183,8 +189,32 @@ $.fn.simpleTree = function(options, data) {
         if(self._lastSearchTerm === searchTerm)
             return;
         console.log('Searching for:', searchTerm);
-        self.hide();
+        //self.hide();
         self._lastSearchTerm = searchTerm;
+        function setSearchInfo(node) {
+            // first make upper label for comparison
+            if(!node.upperLabel)
+                node.upperLabel = node.label.toUpperCase();
+
+            node.searchInfo = {
+                match: node.upperLabel.includes(searchTerm),
+                expandedBefore: node.expanded,
+                visibleBefore: node.domContainer
+            };
+
+            if(node.searchInfo.match)
+                self.simpleTreeExpandDownTo(node);
+            
+            let anyChildMatches = false;
+            node.children.forEach(child => {
+                if(setSearchInfo(child))
+                    anyChildMatches = true;
+            });
+
+            if(!node.searchInfo.match && !anyChildMatches)
+                self._simpleTreeRemoveNode(node);
+        }
+        self._simpleTreeData.forEach(node => setSearchInfo(node));
         self.show();
         return self;
     }
@@ -195,7 +225,7 @@ $.fn.simpleTree = function(options, data) {
     // ------------------------------------------------------------------------
         let box = self._simpleTreeOptions.searchBox;
         box && box.bind('keyup focus', function() {
-            let v = String(box.val()).trim();
+            let v = String(box.val()).trim().toUpperCase();
             self.simpleTreeDoSearch(
                 v.length >= self._simpleTreeOptions.searchMinInputLength ? v : ''
             );
