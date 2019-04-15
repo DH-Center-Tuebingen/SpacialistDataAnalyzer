@@ -12,8 +12,10 @@ if(!$debug) {
     header('Content-Type: application/json');
     $forceLive = isset($_GET['force']) && $_GET['force'] === 'live';
     if(!$forceLive) {
-        while(cache_is_attr_locked())
+        while(cache_is_attr_locked()) {
             usleep(250000); // 0.25 seconds
+            cache_try_clear_stale_attr_lock();
+        }
         $cached_json = cache_get_data_attr();
         if($cached_json !== false) {
             echo $cached_json;

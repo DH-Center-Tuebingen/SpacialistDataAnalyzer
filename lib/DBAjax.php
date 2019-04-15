@@ -10,8 +10,10 @@ header('Content-Type: application/json');
 $lang = isset($_GET['lang']) ? $_GET['lang'] : 'de';
 $forceLive = isset($_GET['force']) && $_GET['force'] === 'live';
 if(!$forceLive) {
-    while(cache_is_db_locked($lang))
+    while(cache_is_db_locked($lang)) {
         usleep(250000); // 0.25 seconds
+        cache_try_clear_stale_db_lock($lang);
+    }
     $cached_json = cache_get_data_db($lang);
     if($cached_json !== false) {
         echo $cached_json;

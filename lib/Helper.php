@@ -395,6 +395,43 @@ function cache_unlock_attr() {
 }
 
 //------------------------------------------------------------------------------------------
+function cache_try_clear_stale_db_lock($lang) {
+//------------------------------------------------------------------------------------------
+    cache_try_clear_stale_lock(cache_get_db_filename($lang));
+}
+
+//------------------------------------------------------------------------------------------
+function cache_try_clear_stale_attr_lock() {
+//------------------------------------------------------------------------------------------
+    cache_try_clear_stale_lock(cache_get_attr_filename());
+}
+
+//------------------------------------------------------------------------------------------
+function cache_try_clear_stale_lock($lock_filename) {
+//------------------------------------------------------------------------------------------
+    // if age of lock file exceeds max execution time, we know something's wrong, so clear
+    $max_exec = ini_get('max_execution_time');
+    if($max_exec === false || $max_exec === '')
+        $max_exec = 30 * 60 ; // default 30 minutes
+    else { // string like "300" or "2K"
+        $max_exec = trim($max_exec);
+        $last = strtolower($max_exec[strlen($max_exec) - 1]);
+        switch($last) {
+            case 'g': $max_exec *= 1024;
+            case 'm': $max_exec *= 1024;
+            case 'k': $max_exec *= 1024;
+        }
+        $max_exec *= 1; // now we got a number
+    }
+    @clearstatcache(); // prevent getting filetime from PHP's cache
+    $ft = @filemtime($lock_filename);
+    if($ft === false)
+        return; // probably don't exist anyway
+    if(time() - $ft > $max_exec)
+        @unlink($lock_filename); // simply remove the lock file
+}
+
+//------------------------------------------------------------------------------------------
 function cache_clear_data_all($lang) {
 //------------------------------------------------------------------------------------------
     cache_clear_data_db($lang);
