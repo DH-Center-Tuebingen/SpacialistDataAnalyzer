@@ -151,8 +151,11 @@ $.fn.simpleTree = function(options, data) {
             );
         }
         div.data('node', node);
-        if(node.parent)
+        if(node.parent) {
+            if(!node.parent.domChildren)
+                self._simpleTreeRenderNode(node.parent);
             node.parent.domChildren.append(div);
+        }
         else
             self.append(div);
         node.domContainer = div;
@@ -161,6 +164,50 @@ $.fn.simpleTree = function(options, data) {
         if(node.expanded)
             node.children.forEach(child => self._simpleTreeRenderNode(child));
         return self;
+    }
+
+    self._simpleTreeIsNodeRendered = function(
+        node
+    ) {
+        return !!node.domContainer;
+    }
+
+    self._simpleTreeIsNodeVisible = function(
+        node
+    ) {
+        return node.domContainer 
+            && (!node.parent || self._simpleTreeIsNodeVisible(node.parent));
+    }
+
+    self._simpleTreeShowNode = function(
+        node,
+        renderIfNeeded = true
+    ) {
+        if(!self._simpleTreeIsNodeRendered(node))
+            self._simpleTreeRenderNode(node);
+        node.domContainer.removeClass('hidden');
+        node.domChildren && node.domChildren.removeClass('hidden');
+        return self;
+    }
+
+    self._simpleTreeHideNode = function(
+        node,
+        renderIfNeeded = true
+    ) {
+        if(!self._simpleTreeIsNodeRendered(node))
+            self._simpleTreeRenderNode(node);
+        node.domContainer.addClass('hidden');
+        node.domChildren && node.domChildren.addClass('hidden');
+        return self;
+    }
+
+    self._simpleTreeToggleVisibility = function(
+        node,
+        renderIfNeeded = true
+    ) {
+        return self._simpleTreeIsNodeVisible() 
+            ? self._simpleTreeHideNode(node) 
+            : self._simpleTreeShowNode(node, renderIfNeeded);
     }
 
     // ------------------------------------------------------------------------
@@ -197,22 +244,28 @@ $.fn.simpleTree = function(options, data) {
                 node.upperLabel = node.label.toUpperCase();
 
             node.searchInfo = {
-                match: node.upperLabel.includes(searchTerm),
+                match: searchTerm === '' || node.upperLabel.includes(searchTerm),
                 expandedBefore: node.expanded,
-                visibleBefore: node.domContainer
+                visibleBefore: self._simpleTreeIsNodeVisible(node)
             };
 
-            if(node.searchInfo.match)
+            if(node.searchInfo.match) {
+                self._simpleTreeShowNode(node, true);
                 self.simpleTreeExpandDownTo(node);
+            }
             
+            // TODO basically works, need to fix this so we know whether any *descendant* matches
             let anyChildMatches = false;
             node.children.forEach(child => {
                 if(setSearchInfo(child))
                     anyChildMatches = true;
             });
 
-            if(!node.searchInfo.match && !anyChildMatches)
-                self._simpleTreeRemoveNode(node);
+            if(!node.searchInfo.match && !(node.children.length > 0 && !anyChildMatches))
+                self._simpleTreeHideNode(node);
+            if(node.expanded && !anyChildMatches && !node.searchInfo.expandedBefore)
+                self.simpleTreeToggle(node);
+            return node.searchInfo.matches;
         }
         self._simpleTreeData.forEach(node => setSearchInfo(node));
         self.show();
