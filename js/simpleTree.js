@@ -238,36 +238,69 @@ $.fn.simpleTree = function(options, data) {
         console.log('Searching for:', searchTerm);
         //self.hide();
         self._lastSearchTerm = searchTerm;
-        function setSearchInfo(node) {
+        function doNodeSearch(node) {
             // first make upper label for comparison
             if(!node.upperLabel)
                 node.upperLabel = node.label.toUpperCase();
 
-            node.searchInfo = {
-                match: searchTerm === '' || node.upperLabel.includes(searchTerm),
-                expandedBefore: node.expanded,
-                visibleBefore: self._simpleTreeIsNodeVisible(node)
-            };
-
-            if(node.searchInfo.match) {
-                self._simpleTreeShowNode(node, true);
-                self.simpleTreeExpandDownTo(node);
+            if(node.searchInfo) {
+                node.searchInfo.match = searchTerm === '' || node.upperLabel.includes(searchTerm);
             }
-            
-            // TODO basically works, need to fix this so we know whether any *descendant* matches
+            else {
+                node.searchInfo = {
+                    match: searchTerm === '' || node.upperLabel.includes(searchTerm),
+                    expandedBefore: node.expanded,
+                    visibleBefore: self._simpleTreeIsNodeVisible(node)
+                };
+            }
+
+            // TODO: NEEDS DEBUGGING TO SEE WHAT'S WRONG FFS
             let anyChildMatches = false;
             node.children.forEach(child => {
-                if(setSearchInfo(child))
+                if(doNodeSearch(child))
                     anyChildMatches = true;
             });
 
-            if(!node.searchInfo.match && !(node.children.length > 0 && !anyChildMatches))
-                self._simpleTreeHideNode(node);
-            if(node.expanded && !anyChildMatches && !node.searchInfo.expandedBefore)
+            if(node.searchInfo.match) { // MATCH
+                if(!self._simpleTreeIsNodeVisible(node)) {
+                    self._simpleTreeShowNode(node, true);
+                    self.simpleTreeExpandDownTo(node);
+                }
+            }
+            else { // NO MATCH
+                // SHOW IF DESCENDANTS MATCH
+                if(node.children.length > 0 && anyChildMatches && !self._simpleTreeIsNodeVisible(node)) {
+                    self._simpleTreeShowNode(node, true);
+                    self.simpleTreeExpandDownTo(node);
+                }
+                else {
+                    self._simpleTreeHideNode(node);
+                }
+            }
+            if(node.expanded && !node.searchInfo.match && !anyChildMatches)
                 self.simpleTreeToggle(node);
-            return node.searchInfo.matches;
+            return node.searchInfo.match || anyChildMatches;
         }
-        self._simpleTreeData.forEach(node => setSearchInfo(node));
+        function restoreNode(node) {
+            if(node.searchInfo) {
+                let isVisible = self._simpleTreeIsNodeVisible(node);
+                if(node.searchInfo.visibleBefore && !isVisible) {
+                    self._simpleTreeShowNode(node, true);
+                    self.simpleTreeExpandDownTo(node);
+                }
+                else if(!node.searchInfo.visibleBefore && isVisible) {
+                    self._simpleTreeHideNode(node);
+                }
+                node.children.forEach(child => restoreNode(child));
+            }  
+        }
+        if(searchTerm === '') {
+            // restore previous
+            self._simpleTreeData.forEach(node => restoreNode(node));
+        }
+        else {
+            self._simpleTreeData.forEach(node => doNodeSearch(node));
+        }
         self.show();
         return self;
     }
