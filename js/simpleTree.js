@@ -166,48 +166,74 @@ $.fn.simpleTree = function(options, data) {
         return self;
     }
 
+    // ------------------------------------------------------------------------
     self._simpleTreeIsNodeRendered = function(
         node
     ) {
+    // ------------------------------------------------------------------------
         return !!node.domContainer;
     }
 
+    // ------------------------------------------------------------------------
     self._simpleTreeIsNodeVisible = function(
         node
     ) {
-        return node.domContainer 
-            && (!node.parent || self._simpleTreeIsNodeVisible(node.parent));
+    // ------------------------------------------------------------------------
+        // the DOM container must exist
+        if(!node.domContainer)
+            return false;
+
+        // the container must not be hidden
+        if(node.domContainer.hasClass('hidden'))
+            return false;
+        
+        // if there's no parent, we're fine
+        if(!node.parent)
+            return true;
+
+        if(!node.parent.expanded)
+            return false;
+
+        return self._simpleTreeIsNodeVisible(node.parent);
     }
 
+    // ------------------------------------------------------------------------
     self._simpleTreeShowNode = function(
-        node,
-        renderIfNeeded = true
+        node
     ) {
-        if(!self._simpleTreeIsNodeRendered(node))
+    // ------------------------------------------------------------------------
+        if(node.parent && !self._simpleTreeIsNodeVisible(node.parent)) {
+            self._simpleTreeShowNode(node.parent);
+            self.simpleTreeToggle(node.parent);
+        }
+        if(!node.domContainer) {
             self._simpleTreeRenderNode(node);
+        }
         node.domContainer.removeClass('hidden');
         node.domChildren && node.domChildren.removeClass('hidden');
         return self;
     }
 
+    // ------------------------------------------------------------------------
     self._simpleTreeHideNode = function(
-        node,
-        renderIfNeeded = true
+        node
     ) {
+    // ------------------------------------------------------------------------
         if(!self._simpleTreeIsNodeRendered(node))
-            self._simpleTreeRenderNode(node);
+            return self;
         node.domContainer.addClass('hidden');
         node.domChildren && node.domChildren.addClass('hidden');
         return self;
     }
 
+    // ------------------------------------------------------------------------
     self._simpleTreeToggleVisibility = function(
-        node,
-        renderIfNeeded = true
+        node
     ) {
-        return self._simpleTreeIsNodeVisible() 
+    // ------------------------------------------------------------------------
+        return self._simpleTreeIsNodeVisible(node) 
             ? self._simpleTreeHideNode(node) 
-            : self._simpleTreeShowNode(node, renderIfNeeded);
+            : self._simpleTreeShowNode(node);
     }
 
     // ------------------------------------------------------------------------
@@ -235,7 +261,7 @@ $.fn.simpleTree = function(options, data) {
     // ------------------------------------------------------------------------
         if(self._lastSearchTerm === searchTerm)
             return;
-        console.log('Searching for:', searchTerm);
+        console.log('Searching for: "' + searchTerm + '"');
         //self.hide();
         self._lastSearchTerm = searchTerm;
         function doNodeSearch(node) {
@@ -263,14 +289,14 @@ $.fn.simpleTree = function(options, data) {
 
             if(node.searchInfo.match) { // MATCH
                 if(!self._simpleTreeIsNodeVisible(node)) {
-                    self._simpleTreeShowNode(node, true);
+                    self._simpleTreeShowNode(node);
                     self.simpleTreeExpandDownTo(node);
                 }
             }
             else { // NO MATCH
                 // SHOW IF DESCENDANTS MATCH
                 if(node.children.length > 0 && anyChildMatches && !self._simpleTreeIsNodeVisible(node)) {
-                    self._simpleTreeShowNode(node, true);
+                    self._simpleTreeShowNode(node);
                     self.simpleTreeExpandDownTo(node);
                 }
                 else {
@@ -285,12 +311,19 @@ $.fn.simpleTree = function(options, data) {
             if(node.searchInfo) {
                 let isVisible = self._simpleTreeIsNodeVisible(node);
                 if(node.searchInfo.visibleBefore && !isVisible) {
-                    self._simpleTreeShowNode(node, true);
-                    self.simpleTreeExpandDownTo(node);
+                    self._simpleTreeShowNode(node);
+                    //self.simpleTreeExpandDownTo(node);
                 }
                 else if(!node.searchInfo.visibleBefore && isVisible) {
+
                     self._simpleTreeHideNode(node);
                 }
+                if((node.searchInfo.expandedBefore && !node.expanded)
+                    || (!node.searchInfo.expandedBefore && node.expanded)
+                ) {
+                    self.simpleTreeToggle(node);
+                }
+                delete node.searchInfo;
                 node.children.forEach(child => restoreNode(child));
             }  
         }
