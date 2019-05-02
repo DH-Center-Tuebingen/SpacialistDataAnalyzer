@@ -27,6 +27,10 @@ div#thesaurusTreeView {
     overflow: auto;
 }
 
+div#thesaurusTreeView.countHidden span.simpleTree-childCountBadge {
+    display: none;
+}
+
 .simpleTree-nodeContainer {
     padding: .1rem 0;
     line-height: 1.15rem;

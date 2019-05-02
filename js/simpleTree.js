@@ -281,10 +281,9 @@ $.fn.simpleTree = function(options, data) {
         //self.hide();
         self._lastSearchTerm = searchTerm;
         function doNodeSearch(node) {
-            // first make upper label for comparison
-            if(!node.upperLabel)
+            if(!node.upperLabel) {
                 node.upperLabel = node.label.toUpperCase();
-
+            }
             if(node.searchInfo) {
                 node.searchInfo.matches = searchTerm === '' || node.upperLabel.includes(searchTerm);
             }
@@ -294,15 +293,11 @@ $.fn.simpleTree = function(options, data) {
                     expandedBefore: !!node.expanded
                 };
             }
-
             node.searchInfo.anyChildMatches = false;
             node.children.forEach(child => {
                 if(doNodeSearch(child))
                     node.searchInfo.anyChildMatches = true;
             });
-
-            //console.log(node.searchInfo.matches, node.searchInfo.anyChildMatches, node.label);
-
             return node.searchInfo.matches || node.searchInfo.anyChildMatches;
         }
         function setSearchVisibility(node) {
@@ -350,12 +345,19 @@ $.fn.simpleTree = function(options, data) {
         if(searchTerm === '') {
             // restore previous
             self._simpleTreeData.forEach(node => restoreNode(node));
+            self.removeClass('countHidden');
+            // restore selection
+            if(self._simpleTreeSelection) {
+                self.simpleTreeExpandDownTo(self._simpleTreeSelection);
+                self.simpleTreeScrollToNode(self._simpleTreeSelection);
+            }
         }
         else {
             self._simpleTreeData.forEach(node => {
                 doNodeSearch(node);
                 setSearchVisibility(node);
             });
+            self.addClass('countHidden');
         }
         self.show();
         return self;
