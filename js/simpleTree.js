@@ -124,19 +124,32 @@ $.fn.simpleTree = function(options, data) {
     }
 
     // ------------------------------------------------------------------------
-    // not used yet - also needs be made case insensitive
     self._renderNodeLabelText = function(
-        node,
-        searchMatch
+        node
     ) {
     // ------------------------------------------------------------------------
-        if(!searchMatch)
+        if(!node.domLabel)
+            return self;
+        if(!self._lastSearchTerm)
             node.domLabel.text(node.label);
         else {
-            let a = node.label.split(searchMatch);
-            for(let i = 0; i < a.length; i++)
-                a[i] = a[i].replace(/<\/?[^>]+(>|$)/g, '');
-            node.domLabel.html(a.join('<span class="search-match">' + searchMatch + '</span>'));
+            let remaining = node.label;
+            let label = '';
+            while(remaining !== '') {
+                let pos = remaining.toUpperCase().indexOf(self._lastSearchTerm);
+                if(pos === -1) {
+                    label += remaining;
+                    remaining = '';
+                }
+                else {
+                    label += "%s<span class='search-match'>%s</span>".with(
+                        remaining.substr(0, pos),
+                        remaining.substr(pos, self._lastSearchTerm.length)
+                    );
+                    remaining = remaining.substr(pos + self._lastSearchTerm.length);
+                }
+            }
+            node.domLabel.html(label);
         }
         return self;
     }
@@ -162,8 +175,9 @@ $.fn.simpleTree = function(options, data) {
             });
             div.append(node.domToggle);
         }  
-        node.domLabel = $('<div/>').addClass(options.css.label).text(node.label)
+        node.domLabel = $('<div/>').addClass(options.css.label)
             .on('click', () => self._simpleTreeNodeClicked(node));
+        self._renderNodeLabelText(node);
         div.append(node.domLabel);
         if(node.children.length > 0 && options.childCountShow) {
             div.append($('<span/>')
@@ -277,14 +291,15 @@ $.fn.simpleTree = function(options, data) {
     // ------------------------------------------------------------------------
         if(self._lastSearchTerm === searchTerm)
             return;
-        console.log('Searching for: "' + searchTerm + '"');
-        //self.hide();
+        //console.log('Searching for: "' + searchTerm + '"');
+        self.hide();
         self._lastSearchTerm = searchTerm;
-        function doNodeSearch(node) {
+        function setSearchInfo(node) {
             if(!node.upperLabel) {
                 node.upperLabel = node.label.toUpperCase();
             }
             if(node.searchInfo) {
+                node.searchInfo.prevMatched = node.searchInfo.matches;
                 node.searchInfo.matches = searchTerm === '' || node.upperLabel.includes(searchTerm);
             }
             else {
@@ -295,7 +310,7 @@ $.fn.simpleTree = function(options, data) {
             }
             node.searchInfo.anyChildMatches = false;
             node.children.forEach(child => {
-                if(doNodeSearch(child))
+                if(setSearchInfo(child))
                     node.searchInfo.anyChildMatches = true;
             });
             return node.searchInfo.matches || node.searchInfo.anyChildMatches;
@@ -317,6 +332,7 @@ $.fn.simpleTree = function(options, data) {
             ) {
                 self._simpleTreeHideNode(node);
             }
+            self._renderNodeLabelText(node);
             node.children.forEach(child => setSearchVisibility(child));
             if(node.children.length > 0 && node.domToggle) {
                 if(!node.searchInfo.anyChildMatches)
@@ -338,7 +354,11 @@ $.fn.simpleTree = function(options, data) {
                         self.simpleTreeToggle(node);
                     }
                 }
+                let hasMatched = node.searchInfo.matches;
                 delete node.searchInfo;
+                if(hasMatched) {
+                    self._renderNodeLabelText(node);
+                }
                 node.children.forEach(child => restoreNode(child));
             }  
         }
@@ -354,7 +374,7 @@ $.fn.simpleTree = function(options, data) {
         }
         else {
             self._simpleTreeData.forEach(node => {
-                doNodeSearch(node);
+                setSearchInfo(node);
                 setSearchVisibility(node);
             });
             self.addClass('countHidden');
