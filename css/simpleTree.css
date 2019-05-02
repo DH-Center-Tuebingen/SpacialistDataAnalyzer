@@ -44,9 +44,14 @@ div#thesaurusTreeView {
     cursor: pointer;
 }
 
-.simpleTree-toggle:hover {
+.simpleTree-toggle:not(.disabled):hover {
     cursor: pointer;
     font-size: larger;
+}
+
+.simpleTree-toggle.disabled {
+    color: gray;
+    cursor: default !important;
 }
 
 .simpleTree-label {
