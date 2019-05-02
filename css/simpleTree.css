@@ -14,6 +14,10 @@ div.tp-ok-cancel button:not(:last-child) {
 input#thesaurusSearchBox { 
 }
 
+.search-match {
+    background-color: greenyellow;
+}
+
 span.tp-search-icon {
     font-size: 150%;
     line-height: 1rem;
@@ -25,6 +29,10 @@ div#thesaurusTreeView {
     border-radius: .25rem;
     padding: .375rem .75rem;
     overflow: auto;
+}
+
+div#thesaurusTreeView.countHidden span.simpleTree-childCountBadge {
+    display: none;
 }
 
 .simpleTree-nodeContainer {
@@ -44,9 +52,14 @@ div#thesaurusTreeView {
     cursor: pointer;
 }
 
-.simpleTree-toggle:hover {
+.simpleTree-toggle:not(.disabled):hover {
     cursor: pointer;
     font-size: larger;
+}
+
+.simpleTree-toggle.disabled {
+    color: gray;
+    cursor: default !important;
 }
 
 .simpleTree-label {

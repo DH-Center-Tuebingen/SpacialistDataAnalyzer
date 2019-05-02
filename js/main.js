@@ -564,7 +564,7 @@ function showThesaurusHierarchyPicker(filterRow, attr, dropdown) {
         $('<div/>').addClass('modal-dialog modal-lg').append(
             $('<div/>').addClass('modal-content p-4')
                 .append($('<h4/>').text(l10n.thesaurusPickerHead.with(db.thesaurus[attr.thesaurusRoot].label)))
-                .append($('<div/>').addClass('tp-search-bar hidden').append(
+                .append($('<div/>').addClass('tp-search-bar').append(
                     $('<div/>')
                     .addClass('input-group')
                     .append(
@@ -595,7 +595,7 @@ function showThesaurusHierarchyPicker(filterRow, attr, dropdown) {
         $(this).remove();
     }).modal({ show: true });
     let tree = $('#thesaurusTreeView').simpleTree({
-        searchBox: undefined //$('#thesaurusSearchBox')
+        searchBox: $('#thesaurusSearchBox')
     }, getThesaurusPickerData(attr)
     ).on('simpleTree:change', (event, node) => {
         $('#thesaurusPickerModal .btn-success').prop('disabled', !node);
