@@ -345,3 +345,31 @@ input[type="checkbox"]:disabled ~ * {
 .font-sm {
     font-size: .875rem;
 }
+
+/* THESAURUS PICKER >> ====================== */
+div#thesaurusTreeView {
+    height: 50vh;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    padding: .375rem .75rem;
+    overflow: auto;
+}
+
+div.tp-search-bar {
+    margin: .75em 0;
+}
+
+div.tp-ok-cancel {
+    margin-top: .75em;
+    text-align: right;
+}
+
+div.tp-ok-cancel button:not(:last-child) {
+    margin-right: 1em;
+}
+
+span.tp-search-icon {
+    font-size: 150%;
+    line-height: 1rem;
+}
+/* << THESAURUS PICKER ======================== */

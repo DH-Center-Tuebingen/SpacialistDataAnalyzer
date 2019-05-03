@@ -603,18 +603,18 @@ function showThesaurusHierarchyPicker(filterRow, attr, dropdown) {
     let selectionChain = dropdown.data('selectionChain');
     if(selectionChain) {
         selectionChain.forEach((value, index) => {
-            let node = tree.simpleTreeGetNode(value);
+            let node = tree.getNodeFromValue(value);
             if(index === selectionChain.length - 1) {
-                tree.simpleTreeSelectNode(node);
-                tree.simpleTreeScrollToNode(node);
+                tree.setSelectedNode(node);
+                tree.scrollTo(node);
             }
             else if(!node.expanded && node.children.length > 0)
-                tree.simpleTreeToggle(node);
+                tree.toggleSubtree(node);
         });
     }
     $('#thesaurusPickerModal .btn-success').on('click', () => {
         finishThesaurusHierarchyPicker(filterRow, attr, dropdown,
-            tree.simpleTreeGetSelection());
+            tree.getSelectedNode());
         $('#thesaurusPickerModal').trigger('hidden.bs.modal');
     })
 }

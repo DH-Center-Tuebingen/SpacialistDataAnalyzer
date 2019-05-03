@@ -18,8 +18,8 @@
 	<link href="node_modules/datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css" rel="stylesheet">
 	<link rel="stylesheet" href="node_modules/leaflet/dist/leaflet.css"></link>
 	<link rel="stylesheet" href="node_modules/leaflet-minimap/dist/Control.MiniMap.min.css"></link>
+	<link rel="stylesheet" href="node_modules/@esciencecenter/simple-tree/simpleTree.css"></link>
 	<?php echo_stylesheet("css/style.css"); ?>
-	<?php echo_stylesheet("css/simpleTree.css"); ?>
 	<script src="node_modules/jquery/dist/jquery.min.js"></script>
 	<script src="node_modules/jquery-ui-dist/jquery-ui.min.js"></script>
 	<script src="node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
@@ -35,6 +35,7 @@
 	<script src="node_modules/datatables.net-buttons/js/buttons.flash.js"></script>
 	<script src="node_modules/leaflet/dist/leaflet.js"></script>
 	<script src="node_modules/leaflet-minimap/dist/Control.MiniMap.min.js"></script>
+	<script src="node_modules/@esciencecenter/simple-tree/simpleTree.js"></script>
 	<?php echo_javascript("js/l10n/en.js"); ?>
 	<?php echo_javascript("js/l10n/de.js"); ?>
 	<?php echo_javascript("js/l10n/l10n.js"); ?>
@@ -42,7 +43,6 @@
 	<?php echo_javascript("js/leaflet-fitcontent.js"); ?>
 	<?php echo_javascript("js/helpers.js"); ?>
 	<?php echo_javascript("js/globals.js"); ?>
-	<?php echo_javascript("js/simpleTree.js"); ?>
 	<?php echo_javascript("js/tree.js"); ?>
 	<?php echo_javascript("js/db.js"); ?>
 	<?php echo_javascript("js/main.js"); ?>
