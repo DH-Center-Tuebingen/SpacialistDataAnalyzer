@@ -2544,11 +2544,12 @@ $(function() {
 // ------------------------------------------------------------------------------------
     localizeGUI();
     $('#loading-progress').text(l10n.statusFetchDB);
+    // must set this, to init with app's default:
+    db.setForceThesaurusPicker(undefined);
     // check special settings
     $.getJSON('settings/%s.json'.with(spacialistInstance.db), data => {
         if(data.settings)
             $.extend(true, Settings, data.settings);
-        // must set this even if undefined, to work with app's default:
         db.setForceThesaurusPicker(data.forceThesaurusPicker); 
         if(data.attributeOverrides)
             db.setAttributeOverrides(data.attributeOverrides);
