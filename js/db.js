@@ -86,9 +86,38 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
-        setForceThesaurusPicker: function(arr) {
+        /* value can be:
+            - undefined: by default resolves to 'recursive-non-flat'
+            - 'recursive-non-flat': thesaurus picker for all recursive attributes with descendants
+            - array of attribute IDs: specific attributes that will show thesaurus picker
+        */
+        setForceThesaurusPicker: function(value) {
         // --------------------------------------------------------------------------------------------
-            this.forceThesaurusPicker = arr;
+            if(value === undefined)
+                value = 'recursive-non-flat';
+            this.forceThesaurusPicker = value;
+        },
+
+        // --------------------------------------------------------------------------------------------
+        // this must be invoked after the db.attributes have been loaded
+        resolveForceThesaurusPicker: function() {
+        // --------------------------------------------------------------------------------------------
+            if(this.forceThesaurusPicker === 'recursive-non-flat') {
+                // force thesaurus picker on all recursive thesaurus attributes that are not flat lists
+                this.forceThesaurusPicker = [];
+                this.attributes.forEachValue((attrId, attr) => {
+                    if(!attr.thesaurusRoot // doesn't have an thesaurus attached
+                        || !attr.isRecursive // is not defined as recursive -> flat per definition
+                        || attr.controllingAttributeId // has a controlling attribute - is handled separately
+                    ) { 
+                        return;
+                    }
+                    let rootConcept = db.thesaurus[attr.thesaurusRoot];
+                    if(rootConcept && rootConcept.childConcepts.some(child => child.childConcepts.length > 0))
+                        this.forceThesaurusPicker.push(attr.id);
+                    return;
+                });
+            }
         },
 
         // --------------------------------------------------------------------------------------------
@@ -494,6 +523,7 @@ function initializeDbVar() {
             });
             this.createPseudoAttributes();
             this.createAncestryTables();
+            this.resolveForceThesaurusPicker();
             db.getForceThesaurusPicker().forEach(attrId => {
                 let a = db.attributes[attrId];
                 a.isRecursive = true;

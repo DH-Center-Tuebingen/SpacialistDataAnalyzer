@@ -594,6 +594,7 @@ function showThesaurusHierarchyPicker(filterRow, attr, dropdown) {
     ).appendTo($('body')).on('hidden.bs.modal', function() {
         $(this).remove();
     }).modal({ show: true });
+    $('#thesaurusSearchBox').focus();
     let tree = $('#thesaurusTreeView').simpleTree({
         searchBox: $('#thesaurusSearchBox')
     }, getThesaurusPickerData(attr)
@@ -2547,8 +2548,8 @@ $(function() {
     $.getJSON('settings/%s.json'.with(spacialistInstance.db), data => {
         if(data.settings)
             $.extend(true, Settings, data.settings);
-        if(data.forceThesaurusPicker)
-            db.setForceThesaurusPicker(data.forceThesaurusPicker);
+        // must set this even if undefined, to work with app's default:
+        db.setForceThesaurusPicker(data.forceThesaurusPicker); 
         if(data.attributeOverrides)
             db.setAttributeOverrides(data.attributeOverrides);
     }).always(() => {
