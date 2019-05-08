@@ -595,12 +595,16 @@ function showThesaurusHierarchyPicker(filterRow, attr, dropdown) {
         $(this).remove();
     }).modal({ show: true });
     $('#thesaurusSearchBox').focus();
+    let treeData = getThesaurusPickerData(attr);
     let tree = $('#thesaurusTreeView').simpleTree({
         searchBox: $('#thesaurusSearchBox')
-    }, getThesaurusPickerData(attr)
+    }, treeData
     ).on('simpleTree:change', (event, node) => {
         $('#thesaurusPickerModal .btn-success').prop('disabled', !node);
     });
+    // expand according to threshold
+    if(tree.getNodeCount() <= Settings.thesaurusPickerExpandAllMax)
+        tree.expandAll();
     let selectionChain = dropdown.data('selectionChain');
     if(selectionChain) {
         selectionChain.forEach((value, index) => {

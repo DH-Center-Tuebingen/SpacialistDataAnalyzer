@@ -31,7 +31,8 @@ const Settings = {
     epochSeparator: ' ⬥ ',
     dimensionSeparator: ' × ',
     jumpToFilterTabAfterOutputSelection: false,
-    skipLoadingComputedAttributes: false
+    skipLoadingComputedAttributes: false,
+    thesaurusPickerExpandAllMax: 100
 };
 const PseudoAttributes = { // These must match the context's attribute keys!
     ID: 'id',
