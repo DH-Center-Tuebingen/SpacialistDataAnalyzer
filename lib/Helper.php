@@ -60,19 +60,28 @@ function start_the_session($reldir = '.') {
         'name' => $envName,
         'folder' => $envName
     );
+    function ini_unquote($val) {
+        $val = trim($val);
+        $len = strlen($val);
+        if($len < 2)
+            return $val;
+        if($val[0] === '"' && $val[$len - 1] === '"')
+            return substr($val, 1, $len - 2);
+        return $val;
+    }
     foreach($env as $line) {
         if(preg_match('/^\s*DB_DATABASE\s*=\s*(?<db>[^$\s]+)/', $line, $match))
-            $instance['db'] = $match['db'];
+            $instance['db'] = ini_unquote($match['db']);
         else if(preg_match('/^\s*DB_HOST\s*=\s*(?<host>[^$\s]+)/', $line, $match))
-            $instance['host'] = $match['host'];
+            $instance['host'] = ini_unquote($match['host']);
         else if(preg_match('/^\s*DB_PORT\s*=\s*(?<port>[^$\s]+)/', $line, $match))
-            $instance['port'] = $match['port'];
+            $instance['port'] = ini_unquote($match['port']);
         else if(preg_match('/^\s*DB_USERNAME\s*=\s*(?<user>[^$\s]+)/', $line, $match))
-            $instance['user'] = $match['user'];
+            $instance['user'] = ini_unquote($match['user']);
         else if(preg_match('/^\s*DB_PASSWORD\s*=\s*(?<pass>[^$\s]+)/', $line, $match))
-            $instance['pass'] = $match['pass'];
+            $instance['pass'] = ini_unquote($match['pass']);
         else if(preg_match('/^\s*JWT_SECRET\s*=\s*(?<jwt>[^$\s]+)/', $line, $match))
-            $_SESSION['jwt_secret'] = $match['jwt'];
+            $_SESSION['jwt_secret'] = ini_unquote($match['jwt']);
     }
     if(!isset($instance['db']) || !isset($instance['host']) || !isset($instance['port']) || !isset($instance['user']) || !isset($instance['pass']))
         die('Error: One or more required settings not found in .env file!');
