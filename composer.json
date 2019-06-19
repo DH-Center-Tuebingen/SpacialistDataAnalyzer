@@ -1,5 +1,6 @@
 {
     "require": {
-        "rbdwllr/reallysimplejwt": "0.2"
+        "rbdwllr/reallysimplejwt": "0.2",
+        "vlucas/phpdotenv": "^3"
     }
 }

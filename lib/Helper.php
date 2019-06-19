@@ -13,6 +13,7 @@ function start_the_session($reldir = '.') {
         die('Invalid <b>spacialist_root</b> in global.ini');
     if(!isset($ini['spacialist_webroot']))
         die('Invalid <b>spacialist_root</b> in global.ini');
+    $envFile = false;
     if(isset($_GET['env'])) {
         // get from env parameter -- legacy, should be removed some fine future day
         $envName = $_GET['env'];
@@ -21,9 +22,10 @@ function start_the_session($reldir = '.') {
             $ini['spacialist_root'] . '/' . $_GET['env'] . '/s/.env'
         );
         foreach($try_env as $file) {
-            $env = @file($file);
-            if(is_array($env))
+            if(@file_exists($file)) {
+                $envFile = substr($file, 0, strlen($file) - 5);
                 break;
+            }
         }
     }
     else {
@@ -47,11 +49,11 @@ function start_the_session($reldir = '.') {
             $pos = strpos($script, '/analysis/');
             if($pos !== false) {
                 $envName = trim(substr($script, 0, $pos), '/');
-                $env = @file(sprintf('%s/%s/s/.env', $ini['spacialist_root'], $envName));
+                $envFile = sprintf('%s/%s/s', $ini['spacialist_root'], $envName);
             }
         }
     }
-    if($env === false || !is_array($env))
+    if($envFile === false)
         die('<b>.env</b> file not found for Spacialist instance');
     $_SESSION['ini'] = array(
         'webRoot' => $ini['spacialist_webroot']
@@ -60,31 +62,21 @@ function start_the_session($reldir = '.') {
         'name' => $envName,
         'folder' => $envName
     );
-    function ini_unquote($val) {
-        $val = trim($val);
-        $len = strlen($val);
-        if($len < 2)
-            return $val;
-        if($val[0] === '"' && $val[$len - 1] === '"')
-            return substr($val, 1, $len - 2);
-        return $val;
-    }
-    foreach($env as $line) {
-        if(preg_match('/^\s*DB_DATABASE\s*=\s*(?<db>[^$\s]+)/', $line, $match))
-            $instance['db'] = ini_unquote($match['db']);
-        else if(preg_match('/^\s*DB_HOST\s*=\s*(?<host>[^$\s]+)/', $line, $match))
-            $instance['host'] = ini_unquote($match['host']);
-        else if(preg_match('/^\s*DB_PORT\s*=\s*(?<port>[^$\s]+)/', $line, $match))
-            $instance['port'] = ini_unquote($match['port']);
-        else if(preg_match('/^\s*DB_USERNAME\s*=\s*(?<user>[^$\s]+)/', $line, $match))
-            $instance['user'] = ini_unquote($match['user']);
-        else if(preg_match('/^\s*DB_PASSWORD\s*=\s*(?<pass>[^$\s]+)/', $line, $match))
-            $instance['pass'] = ini_unquote($match['pass']);
-        else if(preg_match('/^\s*JWT_SECRET\s*=\s*(?<jwt>[^$\s]+)/', $line, $match))
-            $_SESSION['jwt_secret'] = ini_unquote($match['jwt']);
-    }
-    if(!isset($instance['db']) || !isset($instance['host']) || !isset($instance['port']) || !isset($instance['user']) || !isset($instance['pass']))
+    $dotenv = Dotenv\Dotenv::create($envFile);
+    $dotenv->load();
+
+    $instance['db'] = getenv('DB_DATABASE');
+    $instance['host'] = getenv('DB_HOST');
+    $instance['port'] = getenv('DB_PORT');
+    $instance['user'] = getenv('DB_USERNAME');
+    $instance['pass'] = getenv('DB_PASSWORD');
+    $_SESSION['jwt_secret'] = getenv('JWT_SECRET');
+
+    if(!$instance['db'] || !$instance['host'] || !$instance['port'] 
+        || !$instance['user'] || !$instance['pass']
+    ) {
         die('Error: One or more required settings not found in .env file!');
+    }
     $_SESSION['instance'] = $instance;
     if(get_db() === false) {
         session_unset();
