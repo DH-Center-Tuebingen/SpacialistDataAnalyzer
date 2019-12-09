@@ -2,16 +2,16 @@
     "license": "MIT",
     "private": true,
     "dependencies": {
-        "jquery": "3.1.1",
-        "jquery-ui-dist": "1.12.1",
+        "@esciencecenter/simple-tree": "^1.1.1",
         "bootstrap": "4.1.2",
-        "popper.js": "1.14.3",
-        "select2": "4.0.6-rc.1",
         "datatables.net-bs4": "1.10.19",
         "datatables.net-buttons-bs4": "1.5.3",
+        "jquery": "3.1.1",
+        "jquery-ui-dist": "1.12.1",
         "jszip": "3.1.5",
         "leaflet": "1.3.1",
         "leaflet-minimap": "3.6.1",
-        "@esciencecenter/simple-tree": "^1.0.0"
+        "popper.js": "1.14.3",
+        "select2": "4.0.6-rc.1"
     }
 }
