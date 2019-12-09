@@ -1060,6 +1060,9 @@ function initializeDbVar() {
             if(typeof attrVal === 'number')
                 aggregateInfo.sum += attrVal;
 
+            if(currentValue === null)
+                currentValue = undefined;
+
             switch(aggregateType) {
                 case 'avg': // double
                     return aggregateInfo.sum === undefined || aggregateInfo.count === 0 ? undefined : 1. * aggregateInfo.sum / aggregateInfo.count;
