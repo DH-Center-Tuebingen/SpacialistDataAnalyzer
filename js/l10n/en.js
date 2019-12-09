@@ -13,6 +13,7 @@ const l10n_en = {
         table: 'Table',
         geometry: 'Geometry',
         epoch: 'Epoch',
+        timeperiod: 'Timespan',
         dimension: 'Dimension',
         list: 'List',
         entity: 'Entity'
@@ -48,6 +49,9 @@ const l10n_en = {
         'min-end': 'Earliest end time',
         'max-end': 'Latest end time',
         'avg-end': 'Average end time',
+        'min-span': 'Shortest time span',
+        'max-span': 'Longest time span',
+        'avg-span': 'Average time span',
         'avg-b': 'Average breadth',
         'min-b': 'Shortest breadth',
         'max-b': 'Longest breadth',

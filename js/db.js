@@ -798,6 +798,7 @@ function initializeDbVar() {
                     return val;
 
                 case 'epoch':
+                case 'timeperiod':
                     if(val && !asString) {
                         return {
                             start: db.getEpochStart(val),
@@ -1166,6 +1167,29 @@ function initializeDbVar() {
                         return currentValue;
                     }
                     return 1. * (aggregateInfo.sum += this.getEpochEnd(attrVal)) / aggregateInfo.count;
+
+                case 'min-span': { // epoch
+                    let start = this.getEpochStart(attrVal);
+                    let end = this.getEpochEnd(attrVal);
+                    if(start === undefined || end === undefined)
+                        return currentValue;
+                    return currentValue === undefined || (end - start) < currentValue ? (end - start) : currentValue;
+                }
+
+                case 'max-span': { // epoch
+                    let start = this.getEpochStart(attrVal);
+                    let end = this.getEpochEnd(attrVal);
+                    if(start === undefined || end === undefined)
+                        return currentValue;
+                    return currentValue === undefined || (end - start) > currentValue ? (end - start) : currentValue;
+                }
+
+                case 'avg-span':// epoch
+                    if(typeof attrVal.end !== 'number' || typeof attrVal.start !== 'number') {
+                        aggregateInfo.count--;
+                        return currentValue;
+                    }
+                    return 1. * (aggregateInfo.sum += (this.getEpochEnd(attrVal) - this.getEpochStart(attrVal))) / aggregateInfo.count;
 
                 case 'avg-b': // dimension
                     if(typeof attrVal.B !== 'number') {

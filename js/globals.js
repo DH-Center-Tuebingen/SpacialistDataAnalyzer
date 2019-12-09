@@ -123,6 +123,9 @@ const Symbols = {
     'min-end': '⫫',
     'max-end': '⫪',
     'avg-end': '⌀',
+    'min-span': '⫫',
+    'max-span': '⫪',
+    'avg-span': '⌀',
     'avg-b': '⌀',
     'min-b': '⫫',
     'max-b': '⫪',
@@ -159,6 +162,7 @@ const AttributeTypeSymbols = {
     'table': '⊞',
     'geometry': '⏢',
     'epoch': '⥈',
+    'timeperiod': '↦',
     'dimension': '⛶',
     'list': '☰',
     'entity': '⍟'
@@ -177,6 +181,7 @@ const AttributeDisplayTypeMapping = {
     'table': [ 'count' ],
     'geometry': [ 'count' ], // TODO : sum-area, etc. (in db.getDescriptiveStatsForAttribute)
     'epoch': [ 'count', 'distribution' ],
+    'timeperiod': [ 'count', 'distribution' ],
     'dimension': [ 'count', 'distribution' ],
     'list': [ 'count', 'distribution' ],
     'entity': [ 'count', 'distribution' ]
@@ -194,7 +199,8 @@ const AttributeGroupMapping = {
     'string-mc': [ 'group', 'count' ],
     'table': [ 'count', 'count-rows-total', 'count-rows-avg' ],
     'geometry': [ 'group', 'count', 'sum-area', 'avg-area', 'min-area', 'max-area' ],
-    'epoch': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end' ],
+    'epoch': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end', 'min-span', 'max-span', 'avg-span' ],
+    'timeperiod': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end', 'min-span', 'max-span', 'avg-span' ],
     'dimension': [ 'count', 'avg-b', 'avg-h', 'avg-t', 'max-b', 'max-h', 'max-t', 'min-b', 'min-h', 'min-t',
         'min-bh', 'max-bh', 'avg-bh',
         'min-bt', 'max-bt', 'avg-bt',
@@ -235,6 +241,11 @@ const ObjectFilterTransformations = {
             'epoch-start': 'integer',
             'epoch-end': 'integer',
             'epoch-concept': 'string',
+            'epoch-timespan': 'integer'
+        },
+        'timeperiod': {
+            'epoch-start': 'integer',
+            'epoch-end': 'integer',
             'epoch-timespan': 'integer'
         },
         'geometry': {
