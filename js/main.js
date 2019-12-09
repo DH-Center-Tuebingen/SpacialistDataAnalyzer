@@ -54,6 +54,14 @@ function buildTree() {
         }
     });
     masterTree = $('#tree').spacialistTree(tree);
+
+    // set database name
+    if(spacialistInstance && typeof spacialistInstance.name === 'string' && spacialistInstance.name.length > 0) {
+        $('#treeCaption .db-name').remove();
+        $('#treeCaption').append(
+            $('<small/>').addClass('db-name').text(spacialistInstance.name).prepend('<br />')
+        );
+    }
 }
 
 // ------------------------------------------------------------------------------------
