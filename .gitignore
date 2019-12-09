@@ -4,6 +4,7 @@
 global.ini
 composer.lock
 package.lock
+package-lock.json
 /vendor/
 /settings/
 /.vscode/
