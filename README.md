@@ -3,17 +3,17 @@
 Spacialist Data Analyzer is a web application that allows users to analyze data in any of their [Spacialist](https://github.com/eScienceCenter/Spacialist) databases.
 
 ## Prerequisites
-* Spacialist v0.6 running on your server with at least one database (see [Spacialist installation instructions](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md))
+* Spacialist (at least v0.6, appears to be compatible also with more recent versions up to v0.7.x) running on your server with at least one database (see [Spacialist installation instructions](https://github.com/eScienceCenter/Spacialist/blob/master/INSTALL.md))
 * PHP with extension `PDO_PGSQL` enabled
 * Configure your web server to serve `index.php` as a directory index, e.g. in Apache: `DirectoryIndex index.php`
 
 ## Installation
 * Clone this repository into any folder served by your web server. The target folder is hereafter referred to as the app folder
 * Run `npm install` and `composer install` in the app folder
-* In the app folder, create a `global.ini` file with an entry `spacialist_root` that reflects the absolute local filesystem location of the parent folder of your Spacialist instances, and an entry `spacialist_webroot` pointing to its external URL. For example:
+* In the app folder, create a `global.ini` file with an entry `spacialist_root` that reflects the absolute local filesystem location of the parent folder of your Spacialist instances, and an entry `spacialist_webroot` pointing to the path portion of its external URL. For example:
     ```
     spacialist_root=/var/www/spacialist
-    spacialist_webroot=https://my.spacialist-server.com/spacialist
+    spacialist_webroot=/spacialist
     ```
 
 ## Usage
