@@ -213,3 +213,28 @@ function createGeoJSONDownloadFile(data, filename) {
 // ------------------------------------------------------------------------------------
     createDownloadFile('application/geo+json', data, filename);
 }
+
+// ------------------------------------------------------------------------------------
+function observeDOMNodeInserted(elementName, cssClasses, callback) {
+// ------------------------------------------------------------------------------------
+    elementName = elementName.toUpperCase();
+    const insertionObserver = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+            if (mutation.type === "childList") {
+                for (const added of mutation.addedNodes) {
+                    if ((!elementName || added.nodeName === elementName)
+                        && cssClasses.every(c => added.classList.contains(c))) 
+                    {
+                        //insertionObserver.disconnect();
+                        callback(added);
+                        return;
+                    }
+                }
+            }
+        }
+    });
+    insertionObserver.observe(document.firstElementChild, {
+        childList: true,
+        subtree: true
+    });
+}

@@ -2311,9 +2311,29 @@ function reloadDb() {
 // ------------------------------------------------------------------------------------
 function start() {
 // ------------------------------------------------------------------------------------
-    $(document).on('DOMNodeInserted', 'select', function () {
-       makeSelect2($(this))
-    }).on('click', '.xinfo', function(event) {
+    // On Chrome, DOMNodeInserted is not available any more, and MutationObserver 
+    // does not work with select2 elements. So we run a function every 100ms to
+    // make any Dropdown a select2 dropdown if it isn't already
+    (function convertAllDropdownsToSelect2() {
+        document.querySelectorAll('select:not(.select2-hidden-accessible)').forEach(node => makeSelect2($(node)));
+        setTimeout(convertAllDropdownsToSelect2, 100);
+    })();
+
+    observeDOMNodeInserted('div', ['dt-button-collection', 'dropdown-menu'], node => {
+        // this is to prevent column selection in data table from extending past screen bottom
+        let div = $(node);
+        setTimeout(() => {
+            if(parseInt(div.css('bottom')) < 0) {
+                div.css({
+                    bottom: 0,
+                    'overflow-y': 'scroll',
+                    'min-height': '100px'
+                });
+            }
+        }, 0);
+    });
+
+    $(document).on('click', '.xinfo', function(event) {
         let e = $(event.target);
         let info = DataTableElementInfos.get(e.data('xinfo'));
         if(info.data)
@@ -2332,18 +2352,6 @@ function start() {
         let modalBackdrops = $('div.modal-backdrop');
         for(let i = modalBackdrops.length - 1; i >= 1; i--)
             modalBackdrops.eq(i).remove();
-    }).on('DOMNodeInserted', 'div.dt-button-collection.dropdown-menu', function() {
-        // this is to prevent column selection in data table from extending past screen bottom
-        let div = $(this);
-        setTimeout(() => {
-            if(parseInt(div.css('bottom')) < 0) {
-                div.css({
-                    bottom: 0,
-                    'overflow-y': 'scroll',
-                    'min-height': '100px'
-                });
-            }
-        }, 0);
     });
     $('#loading-progress').text(l10n.statusInitUI);
     initUi();
