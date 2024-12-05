@@ -69,6 +69,8 @@ const Symbols = {
     rows: '▤',
     'list-links': '⇶',
     'list-entities': '☰',
+    entity: '⍟',
+    'entity-spacialist': '⟴',
     exist: '∃',
     'not-exist': '∄',
     lower: '<',

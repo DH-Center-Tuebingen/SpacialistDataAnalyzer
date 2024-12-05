@@ -196,7 +196,7 @@ const l10n_de = {
     groupTableColSelect: 'Gruppierung/Aggregat auswählen',
 
     resultToggleFullscreen: '◨ Vollbildschirm',
-    resultDownloadGeoJson: '⇩ GeoJSON',
+    resultDownloadGeoJson: '⏢ GeoJSON',
     resultToggleFullscreenTooltip: 'Vollbildschirm ein- bzw. ausschalten',
     resultDownloadGeoJsonTooltip: 'Ergebnis als GeoJSON-Datei herunterladen',
     resultShowTableModal: 'Anzeigen',

@@ -925,7 +925,7 @@ function initializeDbVar() {
                 });
             }
             return (link.addClass('btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
-                '%s %s'.with(Symbols['list-links'], label === undefined? context.id : label).trim()
+                '%s %s'.with(Symbols['entity-spacialist'], label === undefined? context.id : label).trim()
             ))[0].outerHTML;
         },
 
@@ -947,7 +947,7 @@ function initializeDbVar() {
             if(customAttrs)
                 $.extend(attrs, customAttrs);
             return ($('<a/>').attr(attrs).addClass('xinfo btn btn-sm btn-outline-dark pb-0 pt-0 ' + customClasses).text(
-                '%s %s'.with(Symbols['list-entities'], label === undefined? context.id : label).trim()
+                '%s %s'.with(Symbols['entity'], label === undefined? context.id : label).trim()
             ))[0].outerHTML;
         },
 

@@ -196,7 +196,7 @@ const l10n_en = {
     groupTableColSelect: 'Select Grouping or Aggregate',
 
     resultToggleFullscreen: '◨ Toggle Fullscreen',
-    resultDownloadGeoJson: '⇩ GeoJSON',
+    resultDownloadGeoJson: '⏢ GeoJSON',
     resultToggleFullscreenTooltip: 'Toggle full screen display for result box',
     resultDownloadGeoJsonTooltip: 'Download result as GeoJSON file',
     resultShowTableModal: 'Show',
