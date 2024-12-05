@@ -79,9 +79,10 @@ function start_the_session($reldir = '.') {
     }
     $_SESSION['instance'] = $instance;
     if(get_db() === false) {
+        $msg = "Cannot connect to DB. Probably invalid database connection details in .env file!<br><br>Error: {$_SESSION['error']}";        
         session_unset();
         session_destroy();
-        die('Invalid database connection details in .env file!');
+        die($msg);
     }
     set_instance_name();
 }
@@ -190,6 +191,7 @@ function get_db($db = null) {
         );
     }
     catch(PDOException $e) {
+        $_SESSION['error'] = $e->getMessage();
         return false;
     }
 }
