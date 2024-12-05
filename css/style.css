@@ -24,6 +24,10 @@ body {
     /*background-color: rgba(255,0,0,.5)*/
 }
 
+.boldfont {
+    font-weight: bold;
+}
+
 #result-map {
     width: 100%;
     height: 100%;

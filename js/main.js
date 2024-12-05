@@ -814,9 +814,9 @@ function updateRemoveFilterButtons(/*e, ui*/) {
         }
 
         tr.find('.col-flt-actions').empty().append(
-            $('<button/>').addClass('btn btn-outline-danger btn-sm remove-filter-button').attr({
+            $('<button/>').addClass('btn btn-outline-danger btn-sm remove-filter-button boldfont').attr({
                 title: l10n.filterRemoveTooltip
-            }).text('🞬').click(function() {
+            }).text(Symbols.remove).click(function() {
                 removeFilter($(this).parents('tr').first());
             })
         );
