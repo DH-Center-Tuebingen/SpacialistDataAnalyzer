@@ -1761,10 +1761,10 @@ function initializeDbVar() {
                     return valueToCompare <= filter.values[0];
 
                 case 'exist':
-                    return typeof valueToCompare !== 'undefined';
+                    return typeof valueToCompare !== 'undefined' && valueToCompare !== null;
 
                 case 'not-exist':
-                    return typeof valueToCompare === 'undefined';
+                    return typeof valueToCompare === 'undefined' || valueToCompare === null;
 
                 case 'empty':
                     return valueToCompare === null;
