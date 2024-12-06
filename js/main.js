@@ -850,7 +850,7 @@ function addFilterIndicator(object) {
     if(ind.length > 0)
         ind.text(parseInt(ind.text()) + 1);
     else
-        cell.text('⛛').append($('<span/>').addClass('flt-count-indicator').text('1'));
+        cell.text(Symbols.filter).append($('<span/>').addClass('flt-count-indicator').text('1'));
 }
 
 // ------------------------------------------------------------------------------------
@@ -1400,7 +1400,7 @@ function clearResultLoadingTimeout() {
 function setResultLoadingTimeout() {
 // ------------------------------------------------------------------------------------
     clearResultLoadingTimeout();
-    $('#result').text('⏳');
+    $('#result').text(Symbols.hourglass);
 }
 
 // -----------------------------------------------------------------------------

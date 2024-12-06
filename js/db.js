@@ -772,7 +772,7 @@ function initializeDbVar() {
                     return asString ? val.toLocaleString() : val;
 
                 case 'boolean':
-                    return asString ? (val ? '🗹' : '☐') : val;
+                    return asString ? (val ? Symbols['box-checked'] : Symbols['box-unchecked']) : val;
 
                 case 'string-sc':
                     return this.tryResolveThesaurus(val);

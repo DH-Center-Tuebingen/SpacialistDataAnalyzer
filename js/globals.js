@@ -46,6 +46,10 @@ const ResultTableIcons = {
     colvis: '▥'
 };
 const Symbols = {
+    'box-checked': '☑',
+    'box-unchecked': '☐',
+    filter: 'Ұ',
+    hourglass: '⏳',
     clear: '✕',
     upload: '⇪',
     download: '⇩',
