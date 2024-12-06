@@ -641,7 +641,7 @@ function initializeDbVar() {
                     let values = this.getAttributeValue(context, attribute, true);
                     if(typeof values === 'undefined')
                         return;
-                    if(!$.isArray(values))
+                    if(!Array.isArray(values))
                         values = [ values ];
                     values.forEach((val, index) => {
                         if(attribute.parentAttribute && !this.isRelevantTableRow(context, attribute.parentAttribute, index))
@@ -710,7 +710,7 @@ function initializeDbVar() {
                         cnt++;
                         return;
                     }
-                    if(!$.isArray(values))
+                    if(!Array.isArray(values))
                         values = [ values ];
                     values.forEach((val, index) => {
                         if(attribute.parentAttribute && !this.isRelevantTableRow(context, attribute.parentAttribute, index))
@@ -788,7 +788,7 @@ function initializeDbVar() {
                     return asString ? mc.join(Settings.mcSeparator) : mc;
 
                 case 'list':
-                    if(!$.isArray(val))
+                    if(!Array.isArray(val))
                         return val;
                     let list = [];
                     val.forEach(s => list.push(s));
@@ -1072,7 +1072,7 @@ function initializeDbVar() {
                     return aggregateInfo.count;
 
                 case 'list-links': {
-                    if(!$.isArray(currentValue))
+                    if(!Array.isArray(currentValue))
                         currentValue = [];
                     let label = context.attributes[attribute.id];
                     currentValue.push({ label, html: db.getSpacialistLink(context, label, 'mr-2') });
@@ -1080,7 +1080,7 @@ function initializeDbVar() {
                 }
 
                 case 'list-entities': {
-                    if(!$.isArray(currentValue))
+                    if(!Array.isArray(currentValue))
                         currentValue = [];
                     let label = context.attributes[attribute.id];
                     currentValue.push({ label, html: db.getEntityDetailsLink(context, label, undefined, 'mr-2') });
@@ -1109,7 +1109,7 @@ function initializeDbVar() {
                 case 'count-rows-total': // table
                     if(currentValue === undefined)
                         currentValue = 0;
-                    return $.isArray(attrVal) ? currentValue + attrVal.length : currentValue;
+                    return Array.isArray(attrVal) ? currentValue + attrVal.length : currentValue;
 
                 case 'count-rows-avg': // table
                     return 1. * (aggregateInfo.sum += attrVal.length) / aggregateInfo.count;
@@ -1377,7 +1377,7 @@ function initializeDbVar() {
                 groupColumns.forEach(attr => {
                     if(attr.parentAttribute) { // table attribute
                         let table = context.attributes[attr.parentAttribute.id];
-                        if($.isArray(table) && table.length > 0) { // we now include all distinct values of the column represented by attr
+                        if(Array.isArray(table) && table.length > 0) { // we now include all distinct values of the column represented by attr
                             let seenValues = [];
                             table.forEach((tableRow, index) => {
                                 if(!this.isRelevantTableRow(context, attr.parentAttribute, index))
@@ -1396,12 +1396,12 @@ function initializeDbVar() {
                     else { // single attribute
                         if(attr.type === 'string-mc') {
                             let values = context.attributes[attr.id];
-                            if($.isArray(values))
+                            if(Array.isArray(values))
                                 groupColumnValues.push(values.map(val => db.getThesaurusLabel(val.concept_url)));
                         }
                         else if(attr.type === 'list') {
                             let values = context.attributes[attr.id];
-                            if($.isArray(values))
+                            if(Array.isArray(values))
                                 groupColumnValues.push(values);
                         }
                         else {
@@ -1513,7 +1513,7 @@ function initializeDbVar() {
                 }
                 linkListColumns.forEach(colIndex => {
                     let linkList = row[colIndex];
-                    if($.isArray(linkList)) {
+                    if(Array.isArray(linkList)) {
                         linkList.sort((a, b) => a.label > b.label ? 1 : (a.label < b.label ? -1 : 0));
                         row[colIndex] = { display: 'entityLinkList', value: linkList.map(x => x.html), order: linkList.length };
                     }
@@ -1630,7 +1630,7 @@ function initializeDbVar() {
                 case 'rows':
                 case 'count':
                     valueToCompare = 0;
-                    if($.isArray(value))
+                    if(Array.isArray(value))
                         valueToCompare = value.length;
                     break;
 
@@ -1779,7 +1779,7 @@ function initializeDbVar() {
                         return contain ? false : true;
                     if(filter.dbAttribute.type === 'string-mc') {
                         let found = false;
-                        if($.isArray(valueToCompare)) // [{id:24, concept_url:"blah"}, ...]
+                        if(Array.isArray(valueToCompare)) // [{id:24, concept_url:"blah"}, ...]
                             found = valueToCompare.some(v => this.tryResolveThesaurus(v).toString().toLowerCase().indexOf(filter.values[0].toLowerCase()) !== -1);
                         return contain ? found : !found;
                     }
@@ -1789,7 +1789,7 @@ function initializeDbVar() {
                         valueToCompare = this.getThesaurusLabel(valueToCompare, valueToCompare);
                     else if(filter.dbAttribute.type === 'list') {
                         let found = false;
-                        if($.isArray(valueToCompare))
+                        if(Array.isArray(valueToCompare))
                             found = valueToCompare.some(v => v.toUpperCase() === filter.values[0].toUpperCase());
                         return contain ? found : !found;
                     }
@@ -1805,7 +1805,7 @@ function initializeDbVar() {
                     let found = false;
                     if(['string', 'stringf', 'relation'].indexOf(filter.dbAttribute.type) !== -1)
                         found = this.containIgnoreCase(valueToCompare, this.getThesaurusLabel(filter.values[0], filter.values[0]));
-                    else if($.isArray(valueToCompare)) // string-mc : [{id:24, concept_url:"blah"}, ...]
+                    else if(Array.isArray(valueToCompare)) // string-mc : [{id:24, concept_url:"blah"}, ...]
                         found = valueToCompare.some(v => v.concept_url === filter.values[0]);
                     return contain ? found : !found;
                 }
@@ -1817,7 +1817,7 @@ function initializeDbVar() {
                     let descendant = ['descendant-thesaurus', 'contain-descendant-thesaurus'].includes(filter.operator);
                     if(valueToCompare === null || typeof valueToCompare === 'undefined')
                         return descendant ? false : true;
-                    if(!$.isArray(valueToCompare)) { // single choice -> fake multiple choice
+                    if(!Array.isArray(valueToCompare)) { // single choice -> fake multiple choice
                         valueToCompare = [{
                             concept_url: valueToCompare.concept_url || valueToCompare
                         }];
@@ -1954,7 +1954,7 @@ function initializeDbVar() {
                 let attrValue = this.getAttributeValue(context, filter.dbAttribute, false);
                 if(filter.dbAttribute.parentAttribute) {
                     // table attribute
-                    if(!$.isArray(attrValue) || attrValue.length === 0)
+                    if(!Array.isArray(attrValue) || attrValue.length === 0)
                         return filter.operator === 'not-exists';
 
                     if(isOutputObject && this.query.discardTableRows && this.query.tableFilters.includes(filter.dbAttribute.parentAttribute.id)) {

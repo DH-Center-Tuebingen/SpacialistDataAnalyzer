@@ -90,7 +90,7 @@ function setLocalStorageItem(name, data) {
 function get_checkbox(attr, data, checked, label, change_handler) {
 // ------------------------------------------------------------------------------------
     let allAttr = $.extend({}, attr, { type: 'checkbox' });
-    let box = $('<input/>').addClass('form-check-input').attr(allAttr).prop('checked', checked).change(change_handler);
+    let box = $('<input/>').addClass('form-check-input').attr(allAttr).prop('checked', checked).on('change', change_handler);
     return $('<label/>').append(box).append($('<span/>').text(' ' + label)).addClass('form-check-label');
 }
 
@@ -110,7 +110,7 @@ function get_select(attr, data, options, change_handler) {
         s.append(o);
     });
     if(change_handler)
-        s.change(change_handler);
+        s.on('change', change_handler);
     return s;
 }
 

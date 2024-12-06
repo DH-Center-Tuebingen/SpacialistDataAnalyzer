@@ -352,7 +352,7 @@ function getFilterAndOrDropdown(row, initialVal) {
     if(row)
         row.data('conjunctionDropdown', s);
     if(options.some(o => o.value === initialVal))
-        s.val(initialVal).change();
+        s.val(initialVal).trigger('change');
     return s;
 }
 
@@ -519,7 +519,7 @@ function setThesaurusHierarchDropdownSelection(
         .append($('<option/>').attr({ value: '' }).text(''))
         .append($('<option/>').attr({ value }).text(label))
         .val(value)
-        .change();
+        .trigger('change');
 }
 
 // ------------------------------------------------------------------------------------
@@ -734,7 +734,7 @@ function getFilterOperatorDropdown(row, type) {
         let curControls = row.data('valueControls');
         let newControls = getFilterValueControls(row);
         // if cur and new controls are same type, we leave the value controls as is
-        if(!$.isArray(curControls)
+        if(!Array.isArray(curControls)
             || curControls.length !== newControls.length
             || newControls.some((ctrl, i) => {
                 return !curControls[i].is(ctrl.prop('tagName'))
@@ -1238,7 +1238,7 @@ function renderAttributeValue(
                     };
                 }
             case 'entityLinkList':
-                if($.isArray(val.value)) {
+                if(Array.isArray(val.value)) {
                     let maxShow = val.overrideMaxShow || Settings.resultTable.entityLinkListMaxItems;
                     let cut = {
                         show: val.value.slice(0, maxShow).join(''),
@@ -1909,7 +1909,7 @@ function addAttributeToGroupingTable(tbody, attr) {
         dropdownAutoWidth: true,
         placeholder: l10n.groupDropdownPlaceholder
     });
-    if(attr.type === 'table' && $.isArray(attr.children)) {
+    if(attr.type === 'table' && Array.isArray(attr.children)) {
         attr.children.forEach(a => addAttributeToGroupingTable(tbody, a));
     }
     return box;
@@ -2014,7 +2014,7 @@ function makeSelect2(box, options) {
     box.select2(opt);
     let initialValue = box.data('initialValue');
     if(typeof initialValue !== 'undefined')
-        box.val(initialValue).change();
+        box.val(initialValue).trigger('change');
 }
 
 // ------------------------------------------------------------------------------------
@@ -2119,7 +2119,7 @@ function parseAnalysis(jsonString, complete) {
         if(filter.operator) // pick operator
             filterRow.find('td.col-flt-op select').val(filter.operator).trigger('change');
         let valueControls = filterRow.data('valueControls');
-        !$.isArray(filter.values) || filter.values.forEach((value, index) => {
+        !Array.isArray(filter.values) || filter.values.forEach((value, index) => {
             if(json.version >= 3 && filter.thesaurusHierarchyData) {
                 // need to restore dropdown fake setup
                 setThesaurusHierarchDropdownSelection(
