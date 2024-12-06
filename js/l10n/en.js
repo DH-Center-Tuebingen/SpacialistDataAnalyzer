@@ -239,10 +239,10 @@ const l10n_en = {
     labelClickToSelect: 'Click to select',
 
     loginHint: 'Sign in with your Spacialist user account',
-    loginEmail: 'Email Address',
+    loginEmail: 'Email Address or Nickname',
     loginPassword: 'Password',
     loginButton: 'Sign In',
-    loginInvalid: 'Invalid email address or password!',
+    loginInvalid: 'Invalid email address, nickname or password!',
     loginLangTooltip: 'Select a language for this login page',
 
     entityDetailsChildEntities: 'Children: %s',

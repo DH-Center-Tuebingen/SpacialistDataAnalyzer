@@ -58,8 +58,8 @@ function try_login(&$error_msg) {
     $error_msg = '';
     if(!isset($_POST['email']) || !isset($_POST['password']))
         return false;
-    $sql = sprintf('select * from users where email = ?');
-    if(!db_single_row($sql, array($_POST['email']), $user) || $user === false) {
+    $sql = sprintf('select * from users where email = :user or nickname = :user');
+    if(!db_single_row($sql, ['user' => $_POST['email']], $user) || $user === false) {
         $error_msg = 'loginInvalid';
         return false;
     }

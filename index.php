@@ -61,8 +61,8 @@
 	<div id="container" class="container-fluid row">
 		<div id="tree-container" class="h-100 p-2">
 			<div id="status">
-				<div id="user-info"><?php echo get_username() ?> | <a data-l10n="labelLogout" href="logout.php"></a></div>
-				<div id="reload-area"><button id="reload-db" class="btn btn-sm ml-2 pt-0 pb-1 pr-1 pl-1 btn-outline-secondary" data-tooltip="dbReloadTooltip" disabled="disabled">↻</button></div>
+				<div id="user-info"><?php echo get_username() ?> <a class="btn btn-sm ml-2 pb-0 pt-0 pr-2 pl-2 btn-outline-secondary" data-l10n="labelLogout" href="logout.php"></a></div>
+				<div id="reload-area"><button id="reload-db" class="btn btn-sm ml-2 pt-0 pb-0 bt-0 pr-1 pl-1 btn-outline-secondary" data-tooltip="dbReloadTooltip" disabled="disabled">↻</button></div>
 				<div id="status-text"></div>
 				<div style="clear:both"></div>
 			</div>

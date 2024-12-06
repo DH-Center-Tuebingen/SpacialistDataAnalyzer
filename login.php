@@ -169,7 +169,7 @@
                     ?>
                     <form class="form-signin" method="post">
                       <div class="form-label-group">
-                        <input type="email" id="inputEmail" name="email" class="form-control" placeholder="Email Address" required autofocus>
+                        <input type="text" id="inputEmail" name="email" class="form-control" placeholder="Email Address or Nickname" required autofocus>
                         <label for="inputEmail" data-l10n="loginEmail"></label>
                       </div>
                       <div class="form-label-group">
