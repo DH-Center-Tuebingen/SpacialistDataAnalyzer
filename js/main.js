@@ -1591,7 +1591,7 @@ function makeDataTable(table, customOptions, domColumns, isResultTable) {
         data: table.data('tableBody'),
         columns: table.data('tableHead').map((title, colIndex) => {
             return {
-                title,
+                title: title ?? "???",
                 data: {
                     _: '%s.v'.with(colIndex),
                     sort: '%s.s'.with(colIndex)
