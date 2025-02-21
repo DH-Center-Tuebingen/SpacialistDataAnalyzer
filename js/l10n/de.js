@@ -6,6 +6,7 @@ const l10n_de = {
         boolean: 'Ja/Nein',
         string: 'Text',
         stringf: 'Text',
+        richtext: 'Rich-Text',
         relation: 'Relation',
         date: 'Datum',
         'string-sc': 'Auswahl',

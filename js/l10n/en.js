@@ -6,6 +6,7 @@ const l10n_en = {
         boolean: 'Boolean',
         string: 'Text',
         stringf: 'Text',
+        richtext: 'Rich Text',
         relation: 'Relation',
         date: 'Date',
         'string-sc': 'Single Choice',

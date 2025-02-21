@@ -165,6 +165,7 @@ const AttributeTypeSymbols = {
     'boolean': '⍰',
     'string': '¶',
     'stringf': '¶',
+    'richtext': '¶',
     'relation': '⎌',
     'date': '▣',
     'string-sc': '·',
@@ -175,7 +176,7 @@ const AttributeTypeSymbols = {
     'timeperiod': '↦',
     'dimension': '⛶',
     'list': '☰',
-    'entity': '⍟'
+    'entity': '⍟'    
 }
 const AttributeDisplayTypeMapping = {
     'integer': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
@@ -184,6 +185,7 @@ const AttributeDisplayTypeMapping = {
     'boolean': [ 'count', 'distribution' ],
     'string': [ 'count', 'distribution' ],
     'stringf': [ 'count', 'distribution' ],
+    'richtext': [ 'count', 'distribution' ],
     'relation': [ 'count', 'distribution' ],
     'date': [ 'count', 'distribution', 'min', 'max' ],
     'string-sc': [ 'count', 'distribution' ],
@@ -203,6 +205,7 @@ const AttributeGroupMapping = {
     'boolean': [ 'group', 'count', 'count-true', 'count-false' ],
     'string': [ 'group', 'count' ],
     'stringf': [ 'group', 'count' ],
+    'richtext': [ 'group', 'count' ],
     'string-sc': [ 'group', 'count' ],
     'relation': [ 'group', 'count' ],
     'date': [ 'group', 'count', 'min', 'max' ],
@@ -226,6 +229,9 @@ const ObjectFilterTransformations = {
             length: 'integer'
         },
         'stringf': {
+            length: 'integer'
+        },
+        'richtext': {
             length: 'integer'
         },
         'table': {
@@ -274,6 +280,7 @@ const ObjectFilterOperatorMapping = {
     'relation':     [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'string':       [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'stringf':      [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
+    'richtext':     [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'date':         [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
     'string-mc':    [ 'contain-thesaurus', 'not-contain-thesaurus', 'contain-descendant-thesaurus', 'not-contain-descendant-thesaurus', 'contain', 'not-contain', 'exist', 'not-exist' ],
     'string-sc':    [ 'equal-thesaurus', 'not-equal-thesaurus', 'descendant-thesaurus', 'not-descendant-thesaurus', 'contain', 'not-contain', 'equal', 'not-equal', 'exist', 'not-exist' ],
