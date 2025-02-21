@@ -166,7 +166,7 @@ const AttributeTypeSymbols = {
     'string': '¶',
     'stringf': '¶',
     'richtext': '¶',
-    'url': '►',
+    'url': '⟴',
     'relation': '⎌',
     'date': '▣',
     'string-sc': '·',
