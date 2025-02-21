@@ -7,6 +7,7 @@ const l10n_en = {
         string: 'Text',
         stringf: 'Text',
         richtext: 'Rich Text',
+        url: 'URL',
         relation: 'Relation',
         date: 'Date',
         'string-sc': 'Single Choice',
