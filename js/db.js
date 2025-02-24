@@ -651,8 +651,11 @@ function initializeDbVar() {
                     let values = this.getAttributeValue(context, attribute, true);
                     if(typeof values === 'undefined')
                         return;
-                    if(!Array.isArray(values))
+                    if(!Array.isArray(values)
+                        || ['daterange'].indexOf(attribute.type) >= 0 // has array binding in database json_val and should be conisdered as a single date range value, not as separate start/end values
+                    ) {
                         values = [ values ];
+                    }
                     values.forEach((val, index) => {
                         if(attribute.parentAttribute && !this.isRelevantTableRow(context, attribute.parentAttribute, index))
                             return;
@@ -831,6 +834,13 @@ function initializeDbVar() {
                         val = disp.trim();
                     }
                     return val;
+
+                case 'daterange':
+                    if(val && !asString)
+                        return val;
+                    if(!Array.isArray(val))
+                        return val;
+                    return val.join(' ‒ ');
 
                 case 'dimension':
                     if(val && !asString) {
@@ -1137,6 +1147,47 @@ function initializeDbVar() {
 
                 case 'max-area': // geometry
                     return currentValue === undefined || attrVal.area > currentValue ? attrVal.area : currentValue;
+
+                case 'min-startdate': { // daterange
+                    let date = Array.isArray(attrVal) ? attrVal[0] : undefined;
+                    if(date === undefined) return currentValue;
+                    return currentValue === undefined || date < currentValue ? date : currentValue;
+                }
+                case 'max-startdate': { // daterange
+                    let date = Array.isArray(attrVal) ? attrVal[0] : undefined;
+                    if(date === undefined) return currentValue;
+                    return currentValue === undefined || date > currentValue ? date : currentValue;
+                }
+                case 'min-enddate': { // daterange
+                    let date = Array.isArray(attrVal) ? attrVal[1] : undefined;
+                    if(date === undefined) return currentValue;
+                    return currentValue === undefined || date < currentValue ? date : currentValue;
+                }
+                case 'max-enddate': { // daterange
+                    let date = Array.isArray(attrVal) ? attrVal[1] : undefined;
+                    if(date === undefined) return currentValue;
+                    return currentValue === undefined || date > currentValue ? date : currentValue;
+                }
+                case 'min-datespan': { // daterange
+                    if (!Array.isArray(attrVal))
+                        return currentValue;
+                    let days = (new Date(attrVal[1]) - new Date(attrVal[0])) / (1000 * 60 * 60 * 24);
+                    return currentValue === undefined || days < currentValue ? days : currentValue;
+                }
+                case 'max-datespan': { // daterange
+                    if (!Array.isArray(attrVal))
+                        return currentValue;
+                    let days = (new Date(attrVal[1]) - new Date(attrVal[0])) / (1000 * 60 * 60 * 24);
+                    return currentValue === undefined || days > currentValue ? days : currentValue;
+                }
+                case 'avg-datespan': { // daterange
+                    if (!Array.isArray(attrVal)) {
+                        aggregateInfo.count--;
+                        return currentValue;
+                    }
+                    let days = (new Date(attrVal[1]) - new Date(attrVal[0])) / (1000 * 60 * 60 * 24);
+                    return 1. * (aggregateInfo.sum += days) / aggregateInfo.count;
+                }                
 
                 case 'min-start': { // epoch
                     let start = this.getEpochStart(attrVal);
@@ -1682,6 +1733,26 @@ function initializeDbVar() {
                     break;
                 case 'dimension-unit':
                     valueToCompare = valueToCompare !== null && typeof valueToCompare === 'object' ? valueToCompare.unit : undefined;
+                    break;
+
+                case 'date-start':
+                    if(Array.isArray(value) && value.length == 2) // daterange must always have [start, end]
+                        valueToCompare = value[0];
+                    else
+                        valueToCompare = undefined;
+                    break;
+                case 'date-end':
+                    if(Array.isArray(value) && value.length == 2) // daterange must always have [start, end]
+                        valueToCompare = value[1];
+                    else
+                        valueToCompare = undefined;
+                    break;
+                case 'date-span':
+                    if(Array.isArray(value) && value.length == 2) // daterange must always have [start, end]
+                        // calculate date difference in days
+                        valueToCompare = (new Date(value[1]) - new Date(value[0])) / (1000 * 60 * 60 * 24);
+                    else
+                        valueToCompare = undefined;
                     break;
 
                 case 'epoch-start':

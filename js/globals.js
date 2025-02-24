@@ -115,6 +115,9 @@ const Symbols = {
     'epoch-end': '◄',
     'epoch-concept': '⥈',
     'epoch-timespan': '⇎',
+    'date-start': '►',
+    'date-end': '◄',    
+    'date-span': '⇎',
     'geometry-type': '⏢',
     'geometry-area': '⛶',
     'geometry-wkt': '¶',
@@ -136,6 +139,13 @@ const Symbols = {
     'min-span': '⫫',
     'max-span': '⫪',
     'avg-span': '⌀',
+    'min-startdate': '⫫',
+    'max-startdate': '⫪',
+    'min-enddate': '⫫',
+    'max-enddate': '⫪',
+    'min-datespan': '⫫',
+    'max-datespan': '⫪',
+    'avg-datespan': '⌀',
     'avg-b': '⌀',
     'min-b': '⫫',
     'max-b': '⫪',
@@ -176,6 +186,7 @@ const AttributeTypeSymbols = {
     'geometry': '⏢',
     'epoch': '⥈',
     'timeperiod': '↦',
+    'daterange': '⇿',
     'dimension': '⛶',
     'list': '☰',
     'entity': '⍟'    
@@ -198,6 +209,7 @@ const AttributeDisplayTypeMapping = {
     'geometry': [ 'count' ], // TODO : sum-area, etc. (in db.getDescriptiveStatsForAttribute)
     'epoch': [ 'count', 'distribution' ],
     'timeperiod': [ 'count', 'distribution' ],
+    'daterange': [ 'count', 'distribution' ],
     'dimension': [ 'count', 'distribution' ],
     'list': [ 'count', 'distribution' ],
     'entity': [ 'count', 'distribution' ]
@@ -220,6 +232,7 @@ const AttributeGroupMapping = {
     'geometry': [ 'group', 'count', 'sum-area', 'avg-area', 'min-area', 'max-area' ],
     'epoch': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end', 'min-span', 'max-span', 'avg-span' ],
     'timeperiod': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end', 'min-span', 'max-span', 'avg-span' ],
+    'daterange': [ 'group', 'count', 'min-startdate', 'max-startdate', 'min-enddate', 'max-enddate', 'min-datespan', 'max-datespan', 'avg-datespan' ],
     'dimension': [ 'count', 'avg-b', 'avg-h', 'avg-t', 'max-b', 'max-h', 'max-t', 'min-b', 'min-h', 'min-t',
         'min-bh', 'max-bh', 'avg-bh',
         'min-bt', 'max-bt', 'avg-bt',
@@ -272,6 +285,11 @@ const ObjectFilterTransformations = {
             'epoch-start': 'integer',
             'epoch-end': 'integer',
             'epoch-timespan': 'integer'
+        },
+        'daterange': {
+            'date-start': 'date',
+            'date-end': 'date',
+            'date-span': 'double'
         },
         'geometry': {
             'geometry-type': 'string',
