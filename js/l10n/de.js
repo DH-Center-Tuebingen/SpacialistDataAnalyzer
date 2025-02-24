@@ -3,6 +3,7 @@ const l10n_de = {
         integer: 'Ganzzahl',
         percentage: 'Prozentsatz',
         double: 'Zahl',
+        'si-unit': 'SI-Einheit',
         boolean: 'Ja/Nein',
         string: 'Text',
         stringf: 'Text',

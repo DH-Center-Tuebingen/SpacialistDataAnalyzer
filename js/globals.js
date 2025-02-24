@@ -161,6 +161,7 @@ const Symbols = {
 const AttributeTypeSymbols = {
     'integer': 'ℤ',
     'double': 'ℝ',
+    'si-unit': 'Ω',
     'percentage': '%',
     'boolean': '◧',
     'string': '¶',
@@ -182,6 +183,7 @@ const AttributeTypeSymbols = {
 const AttributeDisplayTypeMapping = {
     'integer': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
     'double': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
+    'si-unit': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
     'percentage': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
     'boolean': [ 'count', 'distribution' ],
     'string': [ 'count', 'distribution' ],
@@ -203,6 +205,7 @@ const AttributeDisplayTypeMapping = {
 const AttributeGroupMapping = {
     'integer': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
     'double': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
+    'si-unit': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
     'percentage': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
     'boolean': [ 'group', 'count', 'count-true', 'count-false' ],
     'string': [ 'group', 'count' ],
@@ -282,6 +285,7 @@ const ObjectFilterOperatorMapping = {
     'integer':      [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
     'percentage':   [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
     'double':       [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
+    'si-unit':       [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
     'boolean':      [ 'equal', 'not-equal', 'exist', 'not-exist' ],
     'relation':     [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'string':       [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],

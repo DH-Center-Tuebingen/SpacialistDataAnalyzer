@@ -311,7 +311,7 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
         isNumericSpacialistType: function(spacialistType) {
         // --------------------------------------------------------------------------------------------
-            const numericTypes = ['double', 'integer', 'percentage'];
+            const numericTypes = ['double', 'integer', 'percentage', 'si-unit'];
             return numericTypes.includes(spacialistType);
         },
 
@@ -475,9 +475,19 @@ function initializeDbVar() {
             this.attributeValues.forEach(av => {
                 let attr = db.attributes[av.attribute];
                 let value = JSON.parse(av.value);
-                if(attr.type === 'string-sc' && typeof value === 'string') // make object
+                if(attr.type === 'string-sc' && typeof value === 'string') { // make object
                     value = { concept_url: value };
-                if(attr.type === 'table') {
+                }
+                else if(attr.type === 'si-unit') {
+                    if(typeof value === 'object') {
+                        // si-unit for weight, which normalizes to grams, might look like:
+                        //   { unit: 'kilogram', value: -2.4, normalized: -2400 }
+                        // for si-unit data type, we take the normalized (SI unit) value from the json value,
+                        // regardless of what unit is selected in the dropdown
+                        value = value ? value.normalized : value;
+                    }
+                }
+                else if(attr.type === 'table') {
                     // to allow displaying DataTables correctly, each column needs to have a value. In Spacialist
                     // empty values are missing the attribute altogether, so we fix this by setting these values to null
                     attr.children.forEach(columnAttr => {  // for each column
@@ -766,6 +776,7 @@ function initializeDbVar() {
                 case 'double':
                 case 'integer':
                 case 'percentage':
+                case 'si-unit':
                     return rawNumbers ? val : val.toLocaleString();
 
                 case 'date':
@@ -962,6 +973,7 @@ function initializeDbVar() {
                 case 'integer':
                 case 'percentage':
                 case 'date':
+                case 'si-unit':
                     return 'num';
 
                 default:

@@ -3,6 +3,7 @@ const l10n_en = {
         integer: 'Integer',
         percentage: 'Percentage',
         double: 'Number',
+        'si-unit': 'SI Unit',
         boolean: 'Boolean',
         string: 'Text',
         stringf: 'Text',
