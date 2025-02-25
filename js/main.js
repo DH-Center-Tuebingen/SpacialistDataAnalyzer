@@ -1016,7 +1016,8 @@ function tryCutCellText(
             };
 
         case 'string-mc':
-        case 'list': {
+        case 'list': 
+        case 'userlist': {
             let chars = 0;
             let res = { show: [], hide: [] };
             val.split(Settings.mcSeparator).forEach(item => {
