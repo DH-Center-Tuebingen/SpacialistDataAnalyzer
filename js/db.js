@@ -672,8 +672,8 @@ function initializeDbVar() {
                                     val = thVal.label;
                             }
                             else if('userlist' === attribute.type) {
-                                val = val.name
-                            }
+                                val = val.name;
+                            }                            
                             else
                                 val = db.getDisplayValue(val, attribute, false);
                         }
@@ -696,7 +696,7 @@ function initializeDbVar() {
                     result.body.push([v === null || v === undefined || isNaN(num) ? null : num, c]);
                 });
             // NEWDATATYPE: if objects as values that need special representation - do here
-            else if(attribute.type === 'entity')
+            else if(['entity', 'entity-mc'].includes(attribute.type))
                 distr.forEachValue((v, c) => {
                     if(!v)
                         result.body.push([v, c]);
@@ -826,7 +826,15 @@ function initializeDbVar() {
                     val.forEach(s => userlist.push(s.name));
                     return asString ? userlist.join(Settings.mcSeparator) : userlist;
 
-                case 'entity':
+                case 'entity-mc':
+                    // TODO: check if this works in all cases (parameter asString!)
+                    if(!Array.isArray(val))
+                        return val;
+                    entity_ids = val;
+                    html_list = entity_ids.map(entity_id => this.getEntityDetailsLink(this.contexts[entity_id], this.contexts[entity_id].name, undefined, 'mr-2'));                    
+                    return { display: 'html', value: html_list.join(''), order: entity_ids.length };
+
+                case 'entity':                                       
                     return val;
 
                 case 'epoch':
@@ -1032,11 +1040,15 @@ function initializeDbVar() {
             db.traverseContextsOfType(ct, contextType.typePathToRoot, true, context => {
                 if(++count <= Settings.resultTable.maxRows) {
                     let row = [];
-                    r.attrs.forEach(attr => row.push(
-                        attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                        ? { display: 'html', value: this.getEntityDetailsLink(context), order: context.id }
-                        : this.getDisplayValue(context.attributes[attr.id], attr)
-                    ));
+                    // NEWDATATYPE: if entity list, need to display as links
+                    r.attrs.forEach(attr => {
+                        if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
+                            row.push({ display: 'html', value: this.getEntityDetailsLink(context), order: context.id });
+                        }                        
+                        else {
+                            row.push(this.getDisplayValue(context.attributes[attr.id], attr));
+                        }
+                    });                        
                     r.body.push(row);
                     r.contexts.push(context);
                 }
@@ -1501,6 +1513,11 @@ function initializeDbVar() {
                             if(Array.isArray(values))
                                 groupColumnValues.push(values.map(val => val.name));
                         }
+                        else if(attr.type === 'entity-mc') {
+                            let values = context.attributes[attr.id];
+                            if(Array.isArray(values))
+                                groupColumnValues.push(values.map(val => this.getEntityDisplayObject(val)));
+                        }
                         else {
                             groupColumnValues.push([ this.getDisplayValue(context.attributes[attr.id], attr) ]);
                         }
@@ -1602,12 +1619,13 @@ function initializeDbVar() {
                 });
             });
 
+            // NEWDATATYPE: might need some way to display the values of special data types
             // special attribute displays
             r.body.forEach(row => {
                 for(let i = 0; i < groupColumns.length; i++) {
                     if(colAttrs[i].type === 'entity') {
                         row[i] = db.getEntityDisplayObject(row[i]);
-                    }
+                    }                    
                 }
                 linkListColumns.forEach(colIndex => {
                     let linkList = row[colIndex];
@@ -1841,19 +1859,19 @@ function initializeDbVar() {
                     break;
 
                 // user object for datatype 'userlist'
-                case 'id':
+                case 'user-id':
                     if(value !== null && Array.isArray(value))
                         valueToCompare = value.map(u => u.id);
                     break;
-                case 'name':
+                case 'user-name':
                     if(value !== null && Array.isArray(value))
                         valueToCompare = value.map(u => u.name);
                     break;                    
-                case 'email':
+                case 'user-email':
                     if(value !== null && Array.isArray(value))
                         valueToCompare = value.map(u => u.email);
                     break;
-                case 'nickname':
+                case 'user-nickname':
                     if(value !== null && Array.isArray(value))
                         valueToCompare = value.map(u => u.nickname);
                     break;
@@ -1974,24 +1992,34 @@ function initializeDbVar() {
                 }
 
                 case 'entity-equal':
-                    return Number(valueToCompare) === Number(filter.values[0]);
-
                 case 'entity-not-equal':
-                    return Number(valueToCompare) !== Number(filter.values[0]);
+                    if(filter.values[0] == '')
+                        return false;
+                    if(!Array.isArray(valueToCompare))
+                        valueToCompare = [ valueToCompare ];
+                    let not = filter.operator.includes('-not-');
+                    let equals = valueToCompare.some(entity_id => {
+                        return Number(entity_id) === Number(filter.values[0]);
+                    });
+                    return not ? !equals : equals;
 
                 case 'entity-name-equal':
                 case 'entity-name-not-equal':
                 case 'entity-name-contain':
                 case 'entity-name-not-contain': {
-                    let entity = db.contexts[valueToCompare];
-                    if(!entity)
-                        return false;
+                    if(!Array.isArray(valueToCompare))
+                        valueToCompare = [ valueToCompare ];
                     let not = filter.operator.includes('-not-');
-                    if(filter.operator.endsWith('-contain')) {
-                        let contains = this.containIgnoreCase(entity.name, filter.values[0]);
-                        return not ? !contains : contains;
-                    }
-                    let equals = this.isEqualIgnoreCase(entity.name, filter.values[0]);
+                    let equals = valueToCompare.some(entity_id => {
+                        let entity = db.contexts[entity_id];
+                        if(!entity)
+                            return false;                    
+                        if(filter.operator.endsWith('-contain')) {
+                            let contains = this.containIgnoreCase(entity.name, filter.values[0]);
+                            return not ? !contains : contains;
+                        }
+                        return this.isEqualIgnoreCase(entity.name, filter.values[0]); 
+                    });                    
                     return not? !equals : equals;
                 }
 
@@ -1999,11 +2027,15 @@ function initializeDbVar() {
                 case 'entity-type-not-equal': {
                     if(filter.values[0] == '')
                         return false;
-                    let entity = db.contexts[valueToCompare];
-                    if(!entity)
-                        return false;
-                    let not = filter.operator.includes('-not-');
-                    let equals = entity.contextType.id === Number(filter.values[0]);
+                    if(!Array.isArray(valueToCompare))
+                        valueToCompare = [ valueToCompare ];
+                    let not = filter.operator.includes('-not-');                    
+                    let equals = valueToCompare.some(entity_id => {
+                        let entity = db.contexts[entity_id];
+                        if(!entity)
+                            return false;                    
+                        return entity.contextType.id === Number(filter.values[0]);
+                    });
                     return not ? !equals : equals;
                 }
 

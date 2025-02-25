@@ -46,6 +46,184 @@ const ResultTableIcons = {
     colvis: '▥'
 };
 
+// NEWDATATYPE: add symbols for new data type
+const AttributeTypeSymbols = {
+    'integer': 'ℤ',
+    'double': 'ℝ',
+    'si-unit': 'Ω',
+    'percentage': '%',
+    'boolean': '◧',
+    'string': '¶',
+    'stringf': '¶',    
+    'richtext': '¶',
+    'serial': '⚿',
+    'url': '⟴',
+    'relation': '⎌',
+    'date': '▣',
+    'string-sc': '·',
+    'string-mc': '⋮',
+    'table': '⊞',
+    'geometry': '⏢',
+    'epoch': '⥈',
+    'timeperiod': '↦',
+    'daterange': '⇿',
+    'dimension': '⛶',
+    'list': '☰',
+    'entity': '⍟',
+    'userlist': '☰',
+    'entity-mc': '☰'
+}
+
+// NEWDATATYPE: add ways to display value if attribute is selected in the Output tab
+const AttributeDisplayTypeMapping = {
+    'integer': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
+    'double': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
+    'si-unit': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
+    'percentage': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
+    'boolean': [ 'count', 'distribution' ],
+    'string': [ 'count', 'distribution' ],
+    'stringf': [ 'count', 'distribution' ],
+    'serial': [ 'count' ],
+    'richtext': [ 'count', 'distribution' ],
+    'url': [ 'count', 'distribution' ],
+    'relation': [ 'count', 'distribution' ],
+    'date': [ 'count', 'distribution', 'min', 'max' ],
+    'string-sc': [ 'count', 'distribution' ],
+    'string-mc': [ 'count', 'distribution' ],
+    'table': [ 'count' ],
+    'geometry': [ 'count' ], // TODO : sum-area, etc. (in db.getDescriptiveStatsForAttribute)
+    'epoch': [ 'count', 'distribution' ],
+    'timeperiod': [ 'count', 'distribution' ],
+    'daterange': [ 'count', 'distribution' ],
+    'dimension': [ 'count', 'distribution' ],
+    'list': [ 'count', 'distribution' ],
+    'entity': [ 'count', 'distribution' ],
+    'userlist': [ 'count', 'distribution' ],
+    'entity-mc': [ 'count', 'distribution' ]
+};
+
+// NEWDATATYPE: add dropdown options for value Transformation column in Filter tab
+const ObjectFilterTransformations = {
+    Attribute: {
+        'userlist': {
+            'user-id': 'integer',
+            'user-name': 'string',
+            'user-email': 'string',
+            'user-nickname': 'string',
+            count: 'integer'
+        },
+        'string': {
+            length: 'integer'
+        },
+        'stringf': {
+            length: 'integer'
+        },
+        'serial': {
+            length: 'integer'
+        },
+        'richtext': {
+            length: 'integer'
+        },
+        'url': {
+            length: 'integer'
+        },
+        'table': {
+            rows: 'integer'
+        },
+        'string-mc': {
+            count: 'integer'
+        },
+        'list': {
+            count: 'integer'
+        },
+        'dimension': {
+            'dimension-b': 'double',
+            'dimension-h': 'double',
+            'dimension-t': 'double',
+            'dimension-bh': 'double',
+            'dimension-bt': 'double',
+            'dimension-ht': 'double',
+            'dimension-bht': 'double',
+            'dimension-unit': 'string'
+        },
+        'epoch': {
+            'epoch-start': 'integer',
+            'epoch-end': 'integer',
+            'epoch-concept': 'string',
+            'epoch-timespan': 'integer'
+        },
+        'timeperiod': {
+            'epoch-start': 'integer',
+            'epoch-end': 'integer',
+            'epoch-timespan': 'integer'
+        },
+        'daterange': {
+            'date-start': 'date',
+            'date-end': 'date',
+            'date-span': 'double'
+        },
+        'geometry': {
+            'geometry-type': 'string',
+            'geometry-area': 'double',
+            'geometry-wkt': 'string'
+        }        
+    }
+};
+
+// NEWDATATYPE: add dropdown options for Filteroperator column in Filter tab
+const ObjectFilterOperatorMapping = {
+    'integer':      [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
+    'percentage':   [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
+    'double':       [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
+    'si-unit':       [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
+    'boolean':      [ 'equal', 'not-equal', 'exist', 'not-exist' ],
+    'relation':     [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
+    'string':       [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
+    'stringf':      [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
+    'serial':      [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
+    'richtext':     [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
+    'url':          [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
+    'date':         [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
+    'string-mc':    [ 'contain-thesaurus', 'not-contain-thesaurus', 'contain-descendant-thesaurus', 'not-contain-descendant-thesaurus', 'contain', 'not-contain', 'exist', 'not-exist' ],
+    'string-sc':    [ 'equal-thesaurus', 'not-equal-thesaurus', 'descendant-thesaurus', 'not-descendant-thesaurus', 'contain', 'not-contain', 'equal', 'not-equal', 'exist', 'not-exist' ],
+    'table':        [ 'exist', 'not-exist' ],
+    'list':         [ 'contain', 'not-contain', 'exist', 'not-exist' ],
+    'entity':       [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ],    
+    'entity-mc':    [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ],    
+};
+
+// NEWDATATYPE: add dropdown options for Aggregate tab
+const AttributeGroupMapping = {
+    'integer': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
+    'double': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
+    'si-unit': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
+    'percentage': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
+    'boolean': [ 'group', 'count', 'count-true', 'count-false' ],
+    'string': [ 'group', 'count' ],
+    'stringf': [ 'group', 'count' ],
+    'serial': [ 'count' ], // makes no sense to group because unique
+    'richtext': [ 'group', 'count' ],
+    'url': [ 'group', 'count' ],
+    'string-sc': [ 'group', 'count' ],
+    'relation': [ 'group', 'count' ],
+    'date': [ 'group', 'count', 'min', 'max' ],
+    'string-mc': [ 'group', 'count', 'count-list'],
+    'table': [ 'count', 'count-rows-total', 'count-rows-avg' ],
+    'geometry': [ 'group', 'count', 'sum-area', 'avg-area', 'min-area', 'max-area' ],
+    'epoch': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end', 'min-span', 'max-span', 'avg-span' ],
+    'timeperiod': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end', 'min-span', 'max-span', 'avg-span' ],
+    'daterange': [ 'group', 'count', 'min-startdate', 'max-startdate', 'min-enddate', 'max-enddate', 'min-datespan', 'max-datespan', 'avg-datespan' ],
+    'dimension': [ 'count', 'avg-b', 'avg-h', 'avg-t', 'max-b', 'max-h', 'max-t', 'min-b', 'min-h', 'min-t',
+        'min-bh', 'max-bh', 'avg-bh',
+        'min-bt', 'max-bt', 'avg-bt',
+        'min-ht', 'max-ht', 'avg-ht',
+        'min-3d', 'max-3d', 'avg-3d' ],
+    'list': ['group', 'count', 'count-list'],
+    'entity': [ 'group', 'count' ],
+    'userlist': [ 'group', 'count', 'count-list'],
+    'entity-mc': [ 'group', 'count', 'count-list'],
+};
+
 // NEWDATATYPE: if Transformation option(s) in dropdown, add symbols here
 const Symbols = {
     'box-checked': '☑',
@@ -170,181 +348,8 @@ const Symbols = {
     'avg-ht': '⌀',
     'min-ht': '⫫',
     'max-ht': '⫪',
-    'id': '⚿',
-    'name': '¶',
-    'email': '✉',
-    'nickname': '☺'
-};
-
-// NEWDATATYPE: add symbols for new data type
-const AttributeTypeSymbols = {
-    'integer': 'ℤ',
-    'double': 'ℝ',
-    'si-unit': 'Ω',
-    'percentage': '%',
-    'boolean': '◧',
-    'string': '¶',
-    'stringf': '¶',    
-    'richtext': '¶',
-    'serial': '⚿',
-    'url': '⟴',
-    'relation': '⎌',
-    'date': '▣',
-    'string-sc': '·',
-    'string-mc': '⋮',
-    'table': '⊞',
-    'geometry': '⏢',
-    'epoch': '⥈',
-    'timeperiod': '↦',
-    'daterange': '⇿',
-    'dimension': '⛶',
-    'list': '☰',
-    'entity': '⍟' ,
-    'userlist': '☰'
-}
-
-// NEWDATATYPE: add ways to display value if attribute is selected in the Output tab
-const AttributeDisplayTypeMapping = {
-    'integer': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
-    'double': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
-    'si-unit': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
-    'percentage': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
-    'boolean': [ 'count', 'distribution' ],
-    'string': [ 'count', 'distribution' ],
-    'stringf': [ 'count', 'distribution' ],
-    'serial': [ 'count' ],
-    'richtext': [ 'count', 'distribution' ],
-    'url': [ 'count', 'distribution' ],
-    'relation': [ 'count', 'distribution' ],
-    'date': [ 'count', 'distribution', 'min', 'max' ],
-    'string-sc': [ 'count', 'distribution' ],
-    'string-mc': [ 'count', 'distribution' ],
-    'table': [ 'count' ],
-    'geometry': [ 'count' ], // TODO : sum-area, etc. (in db.getDescriptiveStatsForAttribute)
-    'epoch': [ 'count', 'distribution' ],
-    'timeperiod': [ 'count', 'distribution' ],
-    'daterange': [ 'count', 'distribution' ],
-    'dimension': [ 'count', 'distribution' ],
-    'list': [ 'count', 'distribution' ],
-    'entity': [ 'count', 'distribution' ],
-    'userlist': [ 'count', 'distribution' ]
-};
-// NEWDATATYPE: add dropdown options for Aggregate tab
-const AttributeGroupMapping = {
-    'integer': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
-    'double': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
-    'si-unit': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
-    'percentage': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
-    'boolean': [ 'group', 'count', 'count-true', 'count-false' ],
-    'string': [ 'group', 'count' ],
-    'stringf': [ 'group', 'count' ],
-    'serial': [ 'count' ], // makes no sense to group because unique
-    'richtext': [ 'group', 'count' ],
-    'url': [ 'group', 'count' ],
-    'string-sc': [ 'group', 'count' ],
-    'relation': [ 'group', 'count' ],
-    'date': [ 'group', 'count', 'min', 'max' ],
-    'string-mc': [ 'group', 'count', 'count-list'],
-    'table': [ 'count', 'count-rows-total', 'count-rows-avg' ],
-    'geometry': [ 'group', 'count', 'sum-area', 'avg-area', 'min-area', 'max-area' ],
-    'epoch': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end', 'min-span', 'max-span', 'avg-span' ],
-    'timeperiod': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end', 'min-span', 'max-span', 'avg-span' ],
-    'daterange': [ 'group', 'count', 'min-startdate', 'max-startdate', 'min-enddate', 'max-enddate', 'min-datespan', 'max-datespan', 'avg-datespan' ],
-    'dimension': [ 'count', 'avg-b', 'avg-h', 'avg-t', 'max-b', 'max-h', 'max-t', 'min-b', 'min-h', 'min-t',
-        'min-bh', 'max-bh', 'avg-bh',
-        'min-bt', 'max-bt', 'avg-bt',
-        'min-ht', 'max-ht', 'avg-ht',
-        'min-3d', 'max-3d', 'avg-3d' ],
-    'list': ['group', 'count', 'count-list'],
-    'entity': [ 'group', 'count' ],
-    'userlist': [ 'group', 'count', 'count-list']
-};
-
-// NEWDATATYPE: add dropdown options for value Transformation column in Filter tab
-const ObjectFilterTransformations = {
-    Attribute: {
-        'userlist': {
-            id: 'integer',
-            name: 'string',
-            email: 'string',
-            nickname: 'string',
-            count: 'integer'
-        },
-        'string': {
-            length: 'integer'
-        },
-        'stringf': {
-            length: 'integer'
-        },
-        'serial': {
-            length: 'integer'
-        },
-        'richtext': {
-            length: 'integer'
-        },
-        'url': {
-            length: 'integer'
-        },
-        'table': {
-            rows: 'integer'
-        },
-        'string-mc': {
-            count: 'integer'
-        },
-        'list': {
-            count: 'integer'
-        },
-        'dimension': {
-            'dimension-b': 'double',
-            'dimension-h': 'double',
-            'dimension-t': 'double',
-            'dimension-bh': 'double',
-            'dimension-bt': 'double',
-            'dimension-ht': 'double',
-            'dimension-bht': 'double',
-            'dimension-unit': 'string'
-        },
-        'epoch': {
-            'epoch-start': 'integer',
-            'epoch-end': 'integer',
-            'epoch-concept': 'string',
-            'epoch-timespan': 'integer'
-        },
-        'timeperiod': {
-            'epoch-start': 'integer',
-            'epoch-end': 'integer',
-            'epoch-timespan': 'integer'
-        },
-        'daterange': {
-            'date-start': 'date',
-            'date-end': 'date',
-            'date-span': 'double'
-        },
-        'geometry': {
-            'geometry-type': 'string',
-            'geometry-area': 'double',
-            'geometry-wkt': 'string'
-        }
-    }
-};
-
-// NEWDATATYPE: add dropdown options for Filteroperator column in Filter tab
-const ObjectFilterOperatorMapping = {
-    'integer':      [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
-    'percentage':   [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
-    'double':       [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
-    'si-unit':       [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
-    'boolean':      [ 'equal', 'not-equal', 'exist', 'not-exist' ],
-    'relation':     [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
-    'string':       [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
-    'stringf':      [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
-    'serial':      [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
-    'richtext':     [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
-    'url':          [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
-    'date':         [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
-    'string-mc':    [ 'contain-thesaurus', 'not-contain-thesaurus', 'contain-descendant-thesaurus', 'not-contain-descendant-thesaurus', 'contain', 'not-contain', 'exist', 'not-exist' ],
-    'string-sc':    [ 'equal-thesaurus', 'not-equal-thesaurus', 'descendant-thesaurus', 'not-descendant-thesaurus', 'contain', 'not-contain', 'equal', 'not-equal', 'exist', 'not-exist' ],
-    'table':        [ 'exist', 'not-exist' ],
-    'list':         [ 'contain', 'not-contain', 'exist', 'not-exist' ],
-    'entity':       [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ]
+    'user-id': '⚿',
+    'user-name': '¶',
+    'user-email': '✉',
+    'user-nickname': '☺'
 };

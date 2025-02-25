@@ -23,7 +23,8 @@ const l10n_de = {
         'list': 'Liste',
         'entity': 'Entität',
         'serial': 'Laufende ID',
-        'userlist': 'Benutzerliste'
+        'userlist': 'Benutzerliste',
+        'entity-mc': 'Entitätsliste'
     },
     contextTypeDisplayLabels: {
         table: 'Tabelle',
@@ -140,10 +141,10 @@ const l10n_de = {
         'entity-name-not-contain': 'Name der Entität enthält nicht',
         'entity-type-equal': 'Hat Entitätstyp',
         'entity-type-not-equal': 'Hat nicht Entitätstyp',
-        'id': 'ID',
-        'name': 'Name',
-        'email': 'E-Mail-Adresse',
-        'nickname': 'Spitzname'
+        'user-id': 'ID',
+        'user-name': 'Name',
+        'user-email': 'E-Mail-Adresse',
+        'user-nickname': 'Spitzname'        
     },
     dbAttributeGeometry: 'Geometrie',
     dbAttributeName: 'Name',

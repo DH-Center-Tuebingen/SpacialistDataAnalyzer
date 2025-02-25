@@ -1017,7 +1017,9 @@ function tryCutCellText(
 
         case 'string-mc':
         case 'list': 
-        case 'userlist': {
+        case 'userlist': 
+        // 'entity-mc' is handled by table cell renderer
+        {
             let chars = 0;
             let res = { show: [], hide: [] };
             val.split(Settings.mcSeparator).forEach(item => {
@@ -1138,9 +1140,14 @@ function renderEntityDetails(
             return;
         if(EntityDetailsHiddenAttributes.includes(attr.id))
             return;
-        let value = attr.pseudoAttributeKey === PseudoAttributes.ID
-            ? context.attributes[attr.id]
-            : db.getDisplayValue(context.attributes[attr.id], attr, false);
+        // NEWDATATYPE: display of special values in entity details popup viewer
+        let value = undefined;
+        if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
+            value = context.attributes[attr.id];
+        }        
+        else {
+            value = db.getDisplayValue(context.attributes[attr.id], attr, false);
+        }        
         if(value === undefined || value === null || value === '')
             return;
         let row = $('<tr/>').appendTo(tbody);
