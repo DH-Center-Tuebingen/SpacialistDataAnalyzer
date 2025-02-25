@@ -771,6 +771,9 @@ function initializeDbVar() {
             rawValue, attribute, rawNumbers = true, asString = true
         ) {
         // --------------------------------------------------------------------------------------------
+            // NEWDATATYPE: this controls display of attribute value in result table and entity viewer -
+            // if not simple string or any other transformation required, can be omitted; otherwise
+            // display value must be computed here
             let val = rawValue;
             if(typeof val === 'undefined' || val === null)
                 return null;
@@ -807,6 +810,13 @@ function initializeDbVar() {
                     let list = [];
                     val.forEach(s => list.push(s));
                     return asString ? list.join(Settings.mcSeparator) : list;
+
+                case 'userlist':
+                    if(!Array.isArray(val))
+                        return val;
+                    let userlist = [];
+                    val.forEach(s => userlist.push(s.name));
+                    return asString ? userlist.join(Settings.mcSeparator) : userlist;
 
                 case 'entity':
                     return val;
@@ -1067,8 +1077,13 @@ function initializeDbVar() {
             aggregateInfo
         ) {
         // --------------------------------------------------------------------------------------------
-            if(attrVal === null || attrVal === undefined)
-                return aggregateType === 'count' ? aggregateInfo.count : currentValue;
+            if(attrVal === null || attrVal === undefined) {
+                if (aggregateType === 'count')
+                    return aggregateInfo.count;
+                if (aggregateType === 'count-list')
+                    return aggregateInfo.count_list;
+                return currentValue;
+            }
 
             if(attribute.type === 'table' && this.query.discardTableRows) {
                 let isRelevantTable = attrVal.some((row, index) => {
@@ -1092,6 +1107,11 @@ function initializeDbVar() {
 
                 case 'count': // all types
                     return aggregateInfo.count;
+
+                case 'count-list':
+                    if(Array.isArray(attrVal))
+                        aggregateInfo.count_list += attrVal.length;
+                    return aggregateInfo.count_list;
 
                 case 'list-links': {
                     if(!Array.isArray(currentValue))
@@ -1457,6 +1477,7 @@ function initializeDbVar() {
                         }
                     }
                     else { // single attribute
+                        // NEWDATATYPE: if list-based datatype (array value), then push all list values here
                         if(attr.type === 'string-mc') {
                             let values = context.attributes[attr.id];
                             if(Array.isArray(values))
@@ -1466,6 +1487,11 @@ function initializeDbVar() {
                             let values = context.attributes[attr.id];
                             if(Array.isArray(values))
                                 groupColumnValues.push(values);
+                        }
+                        else if(attr.type === 'userlist') {
+                            let values = context.attributes[attr.id];
+                            if(Array.isArray(values))
+                                groupColumnValues.push(values.map(val => val.name));
                         }
                         else {
                             groupColumnValues.push([ this.getDisplayValue(context.attributes[attr.id], attr) ]);
@@ -1557,6 +1583,7 @@ function initializeDbVar() {
                         if(rowInfos[rowIndex][i] === undefined) {
                             rowInfos[rowIndex][i] = {
                                 count: 0,
+                                count_list: 0,
                                 sum: undefined,
                                 max: undefined,
                                 min: undefined
@@ -1688,6 +1715,7 @@ function initializeDbVar() {
             filter
         ) {
         // --------------------------------------------------------------------------------------------
+            // NEWDATATYPE: if new Transformation in Filter tab, extract value to compare from object value here
             let valueToCompare = value;
             switch(filter.transformation) {
                 case 'rows':
@@ -1804,6 +1832,24 @@ function initializeDbVar() {
                         valueToCompare = value.type;
                     break;
 
+                // user object for datatype 'userlist'
+                case 'id':
+                    if(value !== null && Array.isArray(value))
+                        valueToCompare = value.map(u => u.id);
+                    break;
+                case 'name':
+                    if(value !== null && Array.isArray(value))
+                        valueToCompare = value.map(u => u.name);
+                    break;                    
+                case 'email':
+                    if(value !== null && Array.isArray(value))
+                        valueToCompare = value.map(u => u.email);
+                    break;
+                case 'nickname':
+                    if(value !== null && Array.isArray(value))
+                        valueToCompare = value.map(u => u.nickname);
+                    break;
+
                 default:
                     throw l10n.get('errorUnknownFilterTransformation', filter.transformation);
             }
@@ -1812,11 +1858,17 @@ function initializeDbVar() {
                 case 'equal':
                 case 'not-equal': {
                     let checkEqual = (filter.operator === 'equal');
-                    if(filter.dbAttribute.type === 'string-sc')
-                        valueToCompare = this.tryResolveThesaurus(valueToCompare);
-                    else if(filter.dbAttribute.isComputed)
-                        valueToCompare = this.getThesaurusLabel(valueToCompare, valueToCompare);
-                    let isEqual = this.isEqualIgnoreCase(valueToCompare, filter.values[0]);
+                    let isEqual = undefined;
+                    if(Array.isArray(valueToCompare)) {
+                        isEqual = valueToCompare.some(v => this.isEqualIgnoreCase(v, filter.values[0]));
+                    }
+                    else {
+                        if(filter.dbAttribute.type === 'string-sc')
+                            valueToCompare = this.tryResolveThesaurus(valueToCompare);
+                        else if(filter.dbAttribute.isComputed)
+                            valueToCompare = this.getThesaurusLabel(valueToCompare, valueToCompare);                    
+                        isEqual = this.isEqualIgnoreCase(valueToCompare, filter.values[0]);
+                    }
                     return checkEqual ? isEqual : !isEqual;
                 }
 

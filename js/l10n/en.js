@@ -22,7 +22,8 @@ const l10n_en = {
         'dimension': 'Dimension',
         'list': 'List',
         'entity': 'Entity',
-        'serial': 'Serial ID'
+        'serial': 'Serial ID',
+        'userlist': 'User List',
     },
     contextTypeDisplayLabels: {
         table: 'Table',
@@ -32,6 +33,7 @@ const l10n_en = {
     attributeDisplayTypeLabels: {
         table: 'Table',
         count: 'Count',
+        'count-list': 'Count of list entries',
         share: 'Share of occurrences',
         distribution: 'Distribution of values',
         sum: 'Sum of values',
@@ -87,6 +89,7 @@ const l10n_en = {
         'min-ht': 'Smallest height × depth area',
         'max-ht': 'Largest height × depth area'
     },
+    // NEWDATATYPE: if Transformation option in Filter tab available, add human readable English transformation label
     objectFilterLabels: {
         length: 'Number of characters',
         count: 'Count',
@@ -136,7 +139,11 @@ const l10n_en = {
         'entity-name-contain': 'Entity name contains',
         'entity-name-not-contain': 'Entity name not contains',
         'entity-type-equal': 'Has entity type',
-        'entity-type-not-equal': 'Not has entity type'
+        'entity-type-not-equal': 'Not has entity type',
+        id: 'ID',
+        name: 'Name',
+        email: 'Email Address',
+        nickname: 'Nickname'
     },
     dbAttributeGeometry: 'Geometry',
     dbAttributeName: 'Name',

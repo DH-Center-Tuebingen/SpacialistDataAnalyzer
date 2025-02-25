@@ -133,24 +133,42 @@ try {
     $stmt = db_exec(        
         'select 
             entity_id context, 
-            attribute_id "attribute", 
+            attribute_id "attribute",
             coalesce(
-                json_val::json, 
-                to_json(str_val), 
-                to_json(int_val), 
-                to_json(dbl_val), 
-                to_json(entity_val), 
-                to_json(thesaurus_val), 
-                to_json(dt_val), 
+                -- since userlist is stored in json_val, we need to do this before using the json_val value in coalesce
+                case when a.datatype = \'userlist\' and json_val is not null
+                    then (
+                        select jsonb_agg(
+                            jsonb_build_object(
+                                \'id\', u.id, 
+                                \'name\', u.name, 
+                                \'email\', u.email, 
+                                \'nickname\', u.nickname
+                            )
+                        ) AS user_info
+                        from (select jsonb_array_elements(av.json_val) user_id) ids
+                        join users u on u.id = (ids.user_id)::int
+                    ) 
+                    else null::jsonb
+                end,
+                json_val, 
+                to_jsonb(str_val), 
+                to_jsonb(int_val), 
+                to_jsonb(dbl_val), 
+                to_jsonb(entity_val), 
+                to_jsonb(thesaurus_val), 
+                to_jsonb(dt_val), 
                 case when geography_val is null 
-                    then null::json 
-                    else json_build_object(
+                    then null::jsonb
+                    else jsonb_build_object(
                         \'wkt\', st_astext(geography_val), 
                         \'area\', st_area(geography_val), 
                         \'type\', geometrytype(geography_val::geometry)
                     ) 
-                end) "value" 
-        from attribute_values',
+                end)
+                "value" 
+        from attribute_values av 
+        join attributes a on av.attribute_id = a.id',
         array(), $error, $db
     );
     if($stmt === false)

@@ -45,6 +45,8 @@ const ResultTableIcons = {
     print: '⎙',
     colvis: '▥'
 };
+
+// NEWDATATYPE: if Transformation option(s) in dropdown, add symbols here
 const Symbols = {
     'box-checked': '☑',
     'box-unchecked': '☐',
@@ -63,6 +65,7 @@ const Symbols = {
     table: '⊞',
     map: '⚐',
     count: '#',
+    'count-list': '☰',
     share: '%',
     distribution: 'ƒ',
     sum: '∑',
@@ -166,7 +169,11 @@ const Symbols = {
     'max-bt': '⫪',
     'avg-ht': '⌀',
     'min-ht': '⫫',
-    'max-ht': '⫪'
+    'max-ht': '⫪',
+    'id': '⚿',
+    'name': '¶',
+    'email': '✉',
+    'nickname': '☺'
 };
 
 // NEWDATATYPE: add symbols for new data type
@@ -192,7 +199,8 @@ const AttributeTypeSymbols = {
     'daterange': '⇿',
     'dimension': '⛶',
     'list': '☰',
-    'entity': '⍟'    
+    'entity': '⍟' ,
+    'userlist': '☰'
 }
 
 // NEWDATATYPE: add ways to display value if attribute is selected in the Output tab
@@ -235,7 +243,7 @@ const AttributeGroupMapping = {
     'string-sc': [ 'group', 'count' ],
     'relation': [ 'group', 'count' ],
     'date': [ 'group', 'count', 'min', 'max' ],
-    'string-mc': [ 'group', 'count' ],
+    'string-mc': [ 'group', 'count', 'count-list'],
     'table': [ 'count', 'count-rows-total', 'count-rows-avg' ],
     'geometry': [ 'group', 'count', 'sum-area', 'avg-area', 'min-area', 'max-area' ],
     'epoch': [ 'group', 'count', 'min-start', 'max-start', 'avg-start', 'min-end', 'max-end', 'avg-end', 'min-span', 'max-span', 'avg-span' ],
@@ -246,13 +254,21 @@ const AttributeGroupMapping = {
         'min-bt', 'max-bt', 'avg-bt',
         'min-ht', 'max-ht', 'avg-ht',
         'min-3d', 'max-3d', 'avg-3d' ],
-    'list': ['group', 'count'],
-    'entity': [ 'group', 'count' ]
+    'list': ['group', 'count', 'count-list'],
+    'entity': [ 'group', 'count' ],
+    'userlist': [ 'group', 'count', 'count-list']
 };
 
 // NEWDATATYPE: add dropdown options for value Transformation column in Filter tab
 const ObjectFilterTransformations = {
     Attribute: {
+        'userlist': {
+            id: 'integer',
+            name: 'string',
+            email: 'string',
+            nickname: 'string',
+            count: 'integer'
+        },
         'string': {
             length: 'integer'
         },
