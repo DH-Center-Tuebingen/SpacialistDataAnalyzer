@@ -58,8 +58,18 @@ try {
     while($row = $stmt->fetch(PDO::FETCH_NUM))
         $migrations[] = $row[0];
 
-    $stmt = db_exec(
-        sprintf('select id, (%s) "name", coalesce((select json_agg(attribute_id order by "position") from entity_attributes where entity_type_id = ct.id), to_json(array[]::integer[])) "attributes" from entity_types ct', $labelQuery('thesaurus_url')),
+    $stmt = db_exec(sprintf(
+        'select 
+            id, 
+            (%s) "name", 
+            coalesce((select json_agg(attribute_id order by "position") 
+                        from entity_attributes 
+                        where entity_type_id = ct.id
+                    ), 
+                    to_json(array[]::integer[])
+            ) "attributes" 
+            from entity_types ct', 
+        $labelQuery('thesaurus_url')),
         array(':lang' => $lang), $error, $db
     );
     if($stmt === false)
@@ -69,7 +79,16 @@ try {
 
     $stmt = db_exec(
         sprintf(
-            'select id, (%s) "name", datatype "type", thesaurus_root_url "thesaurusRoot", parent_id "parentAttribute", text info, %s "isRecursive", %s "controllingAttributeId" from attributes', 
+            'select 
+                id, 
+                (%s) "name", 
+                datatype "type", 
+                thesaurus_root_url "thesaurusRoot", 
+                parent_id "parentAttribute", 
+                text info, 
+                %s "isRecursive", 
+                %s "controllingAttributeId" 
+            from attributes', 
             $labelQuery('thesaurus_url'),
             in_array('2018_11_16_103656_restrict_attribute_concepts', $migrations) ? 'recursive' : 'true::boolean',
             in_array('2019_02_14_102442_add_thesaurus_root_id', $migrations) ? 'root_attribute_id' : 'null::integer'
@@ -78,11 +97,32 @@ try {
     );
     if($stmt === false)
         throw new Exception('Failed retrieving entity properties');
-    while($row = $stmt->fetch(PDO::FETCH_ASSOC))
+    while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        // if type is geography, behaves the same as geometry
+        if($row['type'] === 'geography') {
+            $row['type'] = 'geometry';
+        }
         $attributes[$row['id']] = $row;
+    }
 
     $stmt = db_exec(
-        'select id, name, entity_type_id "contextType", root_entity_id "parentContext", (select json_build_object(\'wkt\', st_astext(g.geom), \'geojson4326\', st_asgeojson(st_transform(g.geom::geometry,4326)), \'geojsonOrig\', st_asgeojson(g.geom::geometry), \'area\', st_area(g.geom), \'type\', geometrytype(g.geom::geometry)) from geodata g where g.id = geodata_id) "geoData", rank from entities',
+        'select 
+            id, 
+            name, 
+            entity_type_id "contextType", 
+            root_entity_id "parentContext", 
+            (select json_build_object(
+                    \'wkt\', st_astext(g.geom), 
+                    \'geojson4326\', st_asgeojson(st_transform(g.geom::geometry,4326)), 
+                    \'geojsonOrig\', st_asgeojson(g.geom::geometry), 
+                    \'area\', st_area(g.geom), 
+                    \'type\', geometrytype(g.geom::geometry)
+                ) 
+                from geodata g 
+                where g.id = geodata_id
+            ) "geoData", 
+            rank 
+        from entities',
         array(), $error, $db
     );
     if($stmt === false)
@@ -90,9 +130,27 @@ try {
     while($row = $stmt->fetch(PDO::FETCH_ASSOC))
         $contexts[$row['id']] = $row;
 
-    $stmt = db_exec(
-        /*'select entity_id context, attribute_id "attribute", json_agg(coalesce(json_val::json, to_json(str_val), to_json(int_val), to_json(dbl_val), to_json(entity_val), to_json(thesaurus_val), to_json(st_astext(geography_val)), to_json(dt_val))) "value" from attribute_values group by 1,2',*/
-        'select entity_id context, attribute_id "attribute", coalesce(json_val::json, to_json(str_val), to_json(int_val), to_json(dbl_val), to_json(entity_val), to_json(thesaurus_val), to_json(st_astext(geography_val)), to_json(dt_val)) "value" from attribute_values',
+    $stmt = db_exec(        
+        'select 
+            entity_id context, 
+            attribute_id "attribute", 
+            coalesce(
+                json_val::json, 
+                to_json(str_val), 
+                to_json(int_val), 
+                to_json(dbl_val), 
+                to_json(entity_val), 
+                to_json(thesaurus_val), 
+                to_json(dt_val), 
+                case when geography_val is null 
+                    then null::json 
+                    else json_build_object(
+                        \'wkt\', st_astext(geography_val), 
+                        \'area\', st_area(geography_val), 
+                        \'type\', geometrytype(geography_val::geometry)
+                    ) 
+                end) "value" 
+        from attribute_values',
         array(), $error, $db
     );
     if($stmt === false)
@@ -100,8 +158,16 @@ try {
     while($row = $stmt->fetch(PDO::FETCH_ASSOC))
         $attributeValues[] = $row;
 
-    $stmt = db_exec(
-        sprintf('select id, concept_url url, (%s) "label", is_top_concept "isTopConcept", (select json_agg(c.concept_url) from th_concept c, th_broaders b where c.id = b.broader_id and b.narrower_id = t.id) "parentUrls", (select json_agg(c.concept_url) from th_concept c, th_broaders b where c.id = b.narrower_id and b.broader_id = t.id) "childUrls" from th_concept t', $labelQuery('t.concept_url')),
+    $stmt = db_exec(sprintf(
+        'select 
+            id, 
+            concept_url url, 
+            (%s) "label", 
+            is_top_concept "isTopConcept", 
+            (select json_agg(c.concept_url) from th_concept c, th_broaders b where c.id = b.broader_id and b.narrower_id = t.id) "parentUrls", 
+            (select json_agg(c.concept_url) from th_concept c, th_broaders b where c.id = b.narrower_id and b.broader_id = t.id) "childUrls" 
+        from th_concept t', 
+        $labelQuery('t.concept_url')),
         array(':lang' => $lang), $error, $db
     );
     if($stmt === false)
