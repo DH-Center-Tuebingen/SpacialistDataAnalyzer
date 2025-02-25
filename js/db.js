@@ -651,11 +651,15 @@ function initializeDbVar() {
                     let values = this.getAttributeValue(context, attribute, true);
                     if(typeof values === 'undefined')
                         return;
+                    
+                    // NEWDATATYPE: if attribute type has array binding in database although it is not a list of values, include here
                     if(!Array.isArray(values)
                         || ['daterange'].indexOf(attribute.type) >= 0 // has array binding in database json_val and should be conisdered as a single date range value, not as separate start/end values
                     ) {
                         values = [ values ];
                     }
+                    
+                    // NEWDATATYPE: if values are objects, need to extract string value here
                     values.forEach((val, index) => {
                         if(attribute.parentAttribute && !this.isRelevantTableRow(context, attribute.parentAttribute, index))
                             return;
@@ -666,6 +670,9 @@ function initializeDbVar() {
                                 let thVal = db.thesaurus[val];
                                 if(thVal)
                                     val = thVal.label;
+                            }
+                            else if('userlist' === attribute.type) {
+                                val = val.name
                             }
                             else
                                 val = db.getDisplayValue(val, attribute, false);
@@ -688,6 +695,7 @@ function initializeDbVar() {
                     let num = Number(v);
                     result.body.push([v === null || v === undefined || isNaN(num) ? null : num, c]);
                 });
+            // NEWDATATYPE: if objects as values that need special representation - do here
             else if(attribute.type === 'entity')
                 distr.forEachValue((v, c) => {
                     if(!v)
@@ -697,7 +705,7 @@ function initializeDbVar() {
                         if(displayObj)
                             result.body.push([ displayObj, c ]);
                     }
-                });
+                });            
             else
                 distr.forEachValue((v, c) => result.body.push([v, c]));
             return result;

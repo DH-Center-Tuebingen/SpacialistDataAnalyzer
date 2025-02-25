@@ -226,7 +226,8 @@ const AttributeDisplayTypeMapping = {
     'daterange': [ 'count', 'distribution' ],
     'dimension': [ 'count', 'distribution' ],
     'list': [ 'count', 'distribution' ],
-    'entity': [ 'count', 'distribution' ]
+    'entity': [ 'count', 'distribution' ],
+    'userlist': [ 'count', 'distribution' ]
 };
 // NEWDATATYPE: add dropdown options for Aggregate tab
 const AttributeGroupMapping = {
