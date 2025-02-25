@@ -168,6 +168,8 @@ const Symbols = {
     'min-ht': '⫫',
     'max-ht': '⫪'
 };
+
+// NEWDATATYPE: add symbols for new data type
 const AttributeTypeSymbols = {
     'integer': 'ℤ',
     'double': 'ℝ',
@@ -175,8 +177,9 @@ const AttributeTypeSymbols = {
     'percentage': '%',
     'boolean': '◧',
     'string': '¶',
-    'stringf': '¶',
+    'stringf': '¶',    
     'richtext': '¶',
+    'serial': '⚿',
     'url': '⟴',
     'relation': '⎌',
     'date': '▣',
@@ -191,6 +194,8 @@ const AttributeTypeSymbols = {
     'list': '☰',
     'entity': '⍟'    
 }
+
+// NEWDATATYPE: add ways to display value if attribute is selected in the Output tab
 const AttributeDisplayTypeMapping = {
     'integer': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
     'double': [ 'count', 'distribution', 'min', 'max', 'sum', 'avg' ],
@@ -199,6 +204,7 @@ const AttributeDisplayTypeMapping = {
     'boolean': [ 'count', 'distribution' ],
     'string': [ 'count', 'distribution' ],
     'stringf': [ 'count', 'distribution' ],
+    'serial': [ 'count' ],
     'richtext': [ 'count', 'distribution' ],
     'url': [ 'count', 'distribution' ],
     'relation': [ 'count', 'distribution' ],
@@ -214,6 +220,7 @@ const AttributeDisplayTypeMapping = {
     'list': [ 'count', 'distribution' ],
     'entity': [ 'count', 'distribution' ]
 };
+// NEWDATATYPE: add dropdown options for Aggregate tab
 const AttributeGroupMapping = {
     'integer': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
     'double': [ 'group', 'count', 'min', 'max', 'sum', 'avg' ],
@@ -222,6 +229,7 @@ const AttributeGroupMapping = {
     'boolean': [ 'group', 'count', 'count-true', 'count-false' ],
     'string': [ 'group', 'count' ],
     'stringf': [ 'group', 'count' ],
+    'serial': [ 'count' ], // makes no sense to group because unique
     'richtext': [ 'group', 'count' ],
     'url': [ 'group', 'count' ],
     'string-sc': [ 'group', 'count' ],
@@ -241,13 +249,17 @@ const AttributeGroupMapping = {
     'list': ['group', 'count'],
     'entity': [ 'group', 'count' ]
 };
-// map an aggregator to a type that can be used with ObjectFilterOperatorMapping
+
+// NEWDATATYPE: add dropdown options for value Transformation column in Filter tab
 const ObjectFilterTransformations = {
     Attribute: {
         'string': {
             length: 'integer'
         },
         'stringf': {
+            length: 'integer'
+        },
+        'serial': {
             length: 'integer'
         },
         'richtext': {
@@ -298,7 +310,8 @@ const ObjectFilterTransformations = {
         }
     }
 };
-// filter types for the different attribute types and context types
+
+// NEWDATATYPE: add dropdown options for Filteroperator column in Filter tab
 const ObjectFilterOperatorMapping = {
     'integer':      [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
     'percentage':   [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],
@@ -308,6 +321,7 @@ const ObjectFilterOperatorMapping = {
     'relation':     [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'string':       [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'stringf':      [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
+    'serial':      [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'richtext':     [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'url':          [ 'contain', 'not-contain', 'equal', 'not-equal', 'equal-thesaurus', 'not-equal-thesaurus', 'contain-thesaurus', 'not-contain-thesaurus', 'exist', 'not-exist', 'not-empty' ],
     'date':         [ 'equal', 'not-equal', 'exist', 'not-exist', 'lower', 'lower-equal', 'greater', 'greater-equal' ],

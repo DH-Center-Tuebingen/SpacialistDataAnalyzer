@@ -1886,7 +1886,8 @@ function initializeDbVar() {
                     if(valueToCompare === null || typeof valueToCompare === 'undefined')
                         return contain ? false : true;
                     let found = false;
-                    if(['string', 'stringf', 'relation', 'richtext', 'url'].indexOf(filter.dbAttribute.type) !== -1)
+                    // NEWDATATYPE: if string-based (str_val in attribute_values), add here
+                    if(['string', 'stringf', 'relation', 'richtext', 'url', 'serial'].indexOf(filter.dbAttribute.type) !== -1)
                         found = this.containIgnoreCase(valueToCompare, this.getThesaurusLabel(filter.values[0], filter.values[0]));
                     else if(Array.isArray(valueToCompare)) // string-mc : [{id:24, concept_url:"blah"}, ...]
                         found = valueToCompare.some(v => v.concept_url === filter.values[0]);

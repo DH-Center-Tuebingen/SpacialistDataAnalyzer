@@ -647,7 +647,6 @@ function getFilterValueControls(row) {
         case 'greater-equal':
         case 'equal':
         case 'not-equal':
-            // here we're certainly numeric
             ctrls.unshift(get_textbox());
             break;
 
@@ -1004,11 +1003,13 @@ function tryCutCellText(
     attr = undefined
 ) {
 // ------------------------------------------------------------------------------------
+    // NEWDATATYPE: for result table, add code for text cutting if value too long
     switch(attr && attr.type) {
         case 'string':
         case 'stringf':
         case 'richtext':
         case 'url':
+        case 'serial':
             return {
                 show: val.substring(0, Settings.resultTable.textMaxChars),
                 hide: val.substring(Settings.resultTable.textMaxChars)
