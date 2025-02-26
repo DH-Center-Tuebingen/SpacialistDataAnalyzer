@@ -1003,9 +1003,9 @@ function tryCutCellText(
     attr = undefined
 ) {
 // ------------------------------------------------------------------------------------
-    // NEWDATATYPE: for result table, add code for text cutting if value too long
+    // NEWDATATYPE: for result table, add code for text cutting if value too long (if needed)
     switch(attr && attr.type) {
-        case 'string':
+        case 'string':        
         case 'stringf':
         case 'richtext':
         case 'url':

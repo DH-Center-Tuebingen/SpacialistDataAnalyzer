@@ -71,7 +71,8 @@ const AttributeTypeSymbols = {
     'list': '☰',
     'entity': '⍟',
     'userlist': '☰',
-    'entity-mc': '☰'
+    'entity-mc': '☰',
+    'rism': '🗄'
 }
 
 // NEWDATATYPE: add ways to display value if attribute is selected in the Output tab
@@ -99,7 +100,8 @@ const AttributeDisplayTypeMapping = {
     'list': [ 'count', 'distribution' ],
     'entity': [ 'count', 'distribution' ],
     'userlist': [ 'count', 'distribution' ],
-    'entity-mc': [ 'count', 'distribution' ]
+    'entity-mc': [ 'count', 'distribution' ],
+    'rism': [ 'count', 'distribution' ],
 };
 
 // NEWDATATYPE: add dropdown options for value Transformation column in Filter tab
@@ -166,7 +168,10 @@ const ObjectFilterTransformations = {
             'geometry-type': 'string',
             'geometry-area': 'double',
             'geometry-wkt': 'string'
-        }        
+        },
+        'rism': {
+            length: 'integer'
+        },   
     }
 };
 
@@ -189,7 +194,8 @@ const ObjectFilterOperatorMapping = {
     'table':        [ 'exist', 'not-exist' ],
     'list':         [ 'contain', 'not-contain', 'exist', 'not-exist' ],
     'entity':       [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ],    
-    'entity-mc':    [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ],    
+    'entity-mc':    [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ],
+    'rism':       [ 'contain', 'not-contain', 'equal', 'not-equal', 'exist', 'not-exist', 'not-empty' ], 
 };
 
 // NEWDATATYPE: add dropdown options for Aggregate tab
@@ -222,6 +228,7 @@ const AttributeGroupMapping = {
     'entity': [ 'group', 'count' ],
     'userlist': [ 'group', 'count', 'count-list'],
     'entity-mc': [ 'group', 'count', 'count-list'],
+    'rism': [ 'group', 'count' ]
 };
 
 // NEWDATATYPE: if Transformation option(s) in dropdown, add symbols here
