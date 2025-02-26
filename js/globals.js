@@ -72,7 +72,8 @@ const AttributeTypeSymbols = {
     'entity': '⍟',
     'userlist': '☰',
     'entity-mc': '☰',
-    'rism': '🗄'
+    'rism': '🗄',
+    'iconclass': '🖺'
 }
 
 // NEWDATATYPE: add ways to display value if attribute is selected in the Output tab
@@ -102,6 +103,7 @@ const AttributeDisplayTypeMapping = {
     'userlist': [ 'count', 'distribution' ],
     'entity-mc': [ 'count', 'distribution' ],
     'rism': [ 'count', 'distribution' ],
+    'iconclass': [ 'count', 'distribution' ],
 };
 
 // NEWDATATYPE: add dropdown options for value Transformation column in Filter tab
@@ -171,6 +173,9 @@ const ObjectFilterTransformations = {
         },
         'rism': {
             length: 'integer'
+        },  
+        'iconclass': {
+            length: 'integer'
         },   
     }
 };
@@ -195,7 +200,8 @@ const ObjectFilterOperatorMapping = {
     'list':         [ 'contain', 'not-contain', 'exist', 'not-exist' ],
     'entity':       [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ],    
     'entity-mc':    [ 'exist', 'not-exist', 'entity-equal', 'entity-not-equal', 'entity-name-equal', 'entity-name-not-equal', 'entity-name-contain', 'entity-name-not-contain', 'entity-type-equal', 'entity-type-not-equal' ],
-    'rism':       [ 'contain', 'not-contain', 'equal', 'not-equal', 'exist', 'not-exist', 'not-empty' ], 
+    'rism':         [ 'contain', 'not-contain', 'equal', 'not-equal', 'exist', 'not-exist', 'not-empty' ], 
+    'iconclass':    [ 'contain', 'not-contain', 'equal', 'not-equal', 'exist', 'not-exist', 'not-empty' ], 
 };
 
 // NEWDATATYPE: add dropdown options for Aggregate tab
@@ -228,7 +234,8 @@ const AttributeGroupMapping = {
     'entity': [ 'group', 'count' ],
     'userlist': [ 'group', 'count', 'count-list'],
     'entity-mc': [ 'group', 'count', 'count-list'],
-    'rism': [ 'group', 'count' ]
+    'rism': [ 'group', 'count' ],
+    'iconclass': [ 'group', 'count' ]
 };
 
 // NEWDATATYPE: if Transformation option(s) in dropdown, add symbols here

@@ -25,7 +25,8 @@ const l10n_de = {
         'serial': 'Laufende ID',
         'userlist': 'Benutzerliste',
         'entity-mc': 'Entitätsliste',
-        'rism': 'RISM-Eintrag'
+        'rism': 'RISM-Eintrag',
+        'iconclass': 'Iconclass',
     },
     contextTypeDisplayLabels: {
         table: 'Tabelle',
