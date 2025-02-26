@@ -48,32 +48,32 @@ const ResultTableIcons = {
 
 // NEWDATATYPE: add symbols for new data type
 const AttributeTypeSymbols = {
-    'integer': 'ℤ',
-    'double': 'ℝ',
-    'si-unit': 'Ω',
-    'percentage': '%',
-    'boolean': '◧',
-    'string': '¶',
-    'stringf': '¶',    
-    'richtext': '¶',
-    'serial': '⚿',
-    'url': '⟴',
-    'relation': '⎌',
-    'date': '▣',
-    'string-sc': '·',
-    'string-mc': '⋮',
-    'table': '⊞',
-    'geometry': '⏢',
-    'epoch': '⥈',
-    'timeperiod': '↦',
-    'daterange': '⇿',
-    'dimension': '⛶',
-    'list': '☰',
-    'entity': '⍟',
-    'userlist': '☰',
-    'entity-mc': '☰',
-    'rism': '🗄',
-    'iconclass': '🖺'
+    'integer': 'ℤ', // int_val, table
+    'double': 'ℝ', // dbl_val, table
+    'si-unit': 'Ω', // json_val, table, object {unit: string, value: double, normalized: double}
+    'percentage': '%', // int_val
+    'boolean': '◧', // int_val, table
+    'string': '¶', // str_val, table
+    'stringf': '¶', // str_val
+    'richtext': '¶', // str_val
+    'serial': '⚿', // str_val
+    'url': '⟴', // str_val, table
+    'relation': '⎌', // ??? legacy
+    'date': '▣', // dt_val, table, 'YYYY-MM-DD'
+    'string-sc': '·', // thesaurus_val, table
+    'string-mc': '⋮', // json_val, table, array of objects [{id: int, concept_url: string}, ...]
+    'table': '⊞', // json_val, array of ordered row objects [{'attr1_id': value}, {'attr2_id': value}, ...]
+    'geometry': '⏢', // geography is also interpreted as geometry; geography_val, table 
+    'epoch': '⥈', // json_val, objekt wie timeperiod, zusätzlich mit epoch: {concept_url: string} als key
+    'timeperiod': '↦', // json_val, table, object {end: int, start: int, endLabel: 'AD|BC', startLabel: 'AD|BC'}
+    'daterange': '⇿', // json_val, table, array ['YYYY-MM-DD', 'YYYY-MM-DD'], both required
+    'dimension': '⛶', // json_val, table, object {B: double, H: double, T: double}, all required
+    'list': '☰', // json_val, array ['value1', 'value2', ...   ]
+    'entity': '⍟', // entity_val, table, integer with entity id
+    'userlist': '☰', // json_val, table, array [user1_id, user2_id, ...]
+    'entity-mc': '☰', // json_val, table, array [entity1_id, entity2_id, ...]
+    'rism': '🗄', // str_val, table
+    'iconclass': '🖺', // str_val, table
 }
 
 // NEWDATATYPE: add ways to display value if attribute is selected in the Output tab
