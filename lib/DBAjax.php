@@ -176,8 +176,9 @@ try {
     while($row = $stmt->fetch(PDO::FETCH_ASSOC))
         $attributeValues[] = $row;
 
-    $stmt = db_exec(sprintf(
-        'select 
+    $stmt = db_exec(
+        // slow query for large cardinality of th_concept (~30s for 10k rows)
+        /*sprintf('select 
             id, 
             concept_url url, 
             (%s) "label", 
@@ -185,7 +186,24 @@ try {
             (select json_agg(c.concept_url) from th_concept c, th_broaders b where c.id = b.broader_id and b.narrower_id = t.id) "parentUrls", 
             (select json_agg(c.concept_url) from th_concept c, th_broaders b where c.id = b.narrower_id and b.broader_id = t.id) "childUrls" 
         from th_concept t', 
-        $labelQuery('t.concept_url')),
+        $labelQuery('t.concept_url')),*/
+        'select 
+            con.id, 
+            con.concept_url url, 
+            (array_agg(lbl.label order by lng.short_name <> :lang, lbl.concept_label_type))[1] "label",
+            con.is_top_concept "isTopConcept",
+            (select json_agg(c.concept_url)
+                from th_concept c, th_broaders b
+                where c.id = b.broader_id
+                and b.narrower_id = con.id) "parentUrls",
+            (select json_agg(c.concept_url)
+                from th_concept c, th_broaders b
+                where c.id = b.narrower_id
+                and b.broader_id = con.id) "childUrls"
+        from th_concept con
+        left join th_concept_label lbl on lbl.concept_id = con.id
+        left join th_language lng on lng.id = lbl.language_id
+        group by 1',
         array(':lang' => $lang), $error, $db
     );
     if($stmt === false)
