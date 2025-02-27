@@ -165,6 +165,7 @@ function initializeDbVar() {
                     if(!computedAttrTypes[attrId] && val !== null && val !== undefined) {
                         let typeInfo;
                         switch(typeof val) {
+                            // TODO: timestamp (e.g. date)
                             case 'boolean':
                                 typeInfo = { type: 'boolean' };
                                 break;
@@ -181,7 +182,7 @@ function initializeDbVar() {
                                 typeInfo = { type: 'string' };
                                 break;
 
-                            case 'object':
+                            case 'object':                                
                                 typeInfo = { type: 'table', columns: {}, columnTypes: {} };
                                 // now we need to find out the table columns, add new attributes for those
                                 val[0].forEachValue((columnName, value) => {
@@ -236,6 +237,7 @@ function initializeDbVar() {
                                     tableRow[colAttrId] = value; 
 
                                 if(!typeInfo.columnTypes[columnName] && value !== null) {
+                                    // TODO: how to handle json, array?
                                     switch(typeof value) {
                                         case 'boolean':
                                             db.attributes[colAttrId].type = typeInfo.columnTypes[columnName] = 'boolean';
@@ -919,6 +921,7 @@ function initializeDbVar() {
                             }
                             else
                                 attr = colAttrs[c];
+                            // TODO: check display value for table cells
                             tblRow.push(this.getDisplayValue(v, attr, true, asString));
                         });
                         table.body.push(tblRow);
