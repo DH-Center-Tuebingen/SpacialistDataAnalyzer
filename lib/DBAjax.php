@@ -176,33 +176,20 @@ try {
     while($row = $stmt->fetch(PDO::FETCH_ASSOC))
         $attributeValues[] = $row;
 
+    // fetch thesaurus with parent and childs urls for each concept
     $stmt = db_exec(
-        // slow query for large cardinality of th_concept (~30s for 10k rows)
-        /*sprintf('select 
-            id, 
-            concept_url url, 
-            (%s) "label", 
-            is_top_concept "isTopConcept", 
-            (select json_agg(c.concept_url) from th_concept c, th_broaders b where c.id = b.broader_id and b.narrower_id = t.id) "parentUrls", 
-            (select json_agg(c.concept_url) from th_concept c, th_broaders b where c.id = b.narrower_id and b.broader_id = t.id) "childUrls" 
-        from th_concept t', 
-        $labelQuery('t.concept_url')),*/
-        'select 
-            con.id, 
-            con.concept_url url, 
+        'select
+            con.id,
+            con.concept_url url,
             (array_agg(lbl.label order by lng.short_name <> :lang, lbl.concept_label_type))[1] "label",
             con.is_top_concept "isTopConcept",
-            (select json_agg(c.concept_url)
-                from th_concept c, th_broaders b
-                where c.id = b.broader_id
-                and b.narrower_id = con.id) "parentUrls",
-            (select json_agg(c.concept_url)
-                from th_concept c, th_broaders b
-                where c.id = b.narrower_id
-                and b.broader_id = con.id) "childUrls"
+            jsonb_agg(distinct parents.concept_url) "parentUrls",
+            jsonb_agg(distinct childs.concept_url) "childUrls"
         from th_concept con
         left join th_concept_label lbl on lbl.concept_id = con.id
         left join th_language lng on lng.id = lbl.language_id
+        left join (select c.concept_url, b.narrower_id from th_concept c, th_broaders b where c.id = b.broader_id) parents on parents.narrower_id = con.id
+        left join (select c.concept_url, b.broader_id from th_concept c, th_broaders b where c.id = b.narrower_id) childs on childs.broader_id = con.id
         group by 1',
         array(':lang' => $lang), $error, $db
     );
