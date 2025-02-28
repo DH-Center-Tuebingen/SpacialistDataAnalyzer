@@ -113,6 +113,20 @@ function treeMouseEvent(eventInfo) {
 }
 
 // ------------------------------------------------------------------------------------
+function contextTypeBreadcrumbs(contextType) {
+// ------------------------------------------------------------------------------------
+    let breadcrumbs = [];
+    let cur = contextType;
+    while(true) {                
+        cur = cur.parentContextType;
+        if(!cur)
+            break;
+        breadcrumbs.unshift(cur.name);
+    }
+    return breadcrumbs.join(' → ');
+}
+
+// ------------------------------------------------------------------------------------
 function updateGui(update) {
 // ------------------------------------------------------------------------------------
 
@@ -125,7 +139,12 @@ function updateGui(update) {
         $('#outputStart').hide();
         let div_info = $('#outputObject').empty();
         if(update.outputObject.what == 'ContextType') {
-            div_info.append($('<p/>').html(l10n.get('outputSelectedEntityType', update.outputObject.name)));
+            breadcrumbs = contextTypeBreadcrumbs(update.outputObject);
+            path_info = 
+                breadcrumbs.length > 0 
+                ? l10n.get('outputSelectedEntityTypePath', breadcrumbs)
+                : l10n.get('outputSelectedEntityTypeRoot');              
+            div_info.append($('<p/>').html(l10n.get('outputSelectedEntityType', update.outputObject.name, path_info)));
             $('.outputObjectName').text(update.outputObject.name);
             let expandBtn = update.outputObject.treeRow.find('button');
             if(expandBtn.data('collapsed') === true)
