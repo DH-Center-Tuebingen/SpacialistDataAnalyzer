@@ -48,6 +48,7 @@ SQL;
 try {
     $db = get_db();
 
+    // db migrations are needed, since column names have changed a couple of times
     $migrations = [];
     $stmt = db_exec(
         'select migration from migrations',
@@ -58,18 +59,24 @@ try {
     while($row = $stmt->fetch(PDO::FETCH_NUM))
         $migrations[] = $row[0];
 
+    // attribute types to ignore, later used in NOT IN (...)
+    $ignore_attributes = "'system-separator'";
+
+    // fetch entity types
     $stmt = db_exec(sprintf(
         'select 
             id, 
             (%s) "name", 
-            coalesce((select json_agg(attribute_id order by "position") 
-                        from entity_attributes 
+            coalesce((select json_agg(a.id order by "position") 
+                        from entity_attributes ea
+                        join attributes a on a.id = ea.attribute_id 
                         where entity_type_id = ct.id
+                        and a.datatype not in (%s)
                     ), 
                     to_json(array[]::integer[])
             ) "attributes" 
             from entity_types ct', 
-        $labelQuery('thesaurus_url')),
+        $labelQuery('thesaurus_url'), $ignore_attributes),
         array(':lang' => $lang), $error, $db
     );
     if($stmt === false)
@@ -77,21 +84,28 @@ try {
     while($row = $stmt->fetch(PDO::FETCH_ASSOC))
         $contextTypes[$row['id']] = $row;
 
+    // fetch all attributes with required infos
     $stmt = db_exec(
         sprintf(
             'select 
-                id, 
-                (%s) "name", 
-                datatype "type", 
-                thesaurus_root_url "thesaurusRoot", 
-                parent_id "parentAttribute", 
-                text info, 
-                %s "isRecursive", 
-                %s "controllingAttributeId" 
-            from attributes', 
-            $labelQuery('thesaurus_url'),
+                a.id,
+                (array_agg(lbl.label order by lng.short_name <> :lang, lbl.concept_label_type))[1] "name",
+                a.datatype "type", 
+                a.thesaurus_root_url "thesaurusRoot", 
+                a.parent_id "parentAttribute", 
+                a.text info, 
+                a.%s "isRecursive", 
+                a.%s "controllingAttributeId" 
+            from attributes a
+            join th_concept con on con.concept_url = a.thesaurus_url
+            left join th_concept_label lbl on lbl.concept_id = con.id
+            left join th_language lng on lng.id = lbl.language_id
+            where a.datatype not in (%s)
+            group by a.id
+            order by a.id',
             in_array('2018_11_16_103656_restrict_attribute_concepts', $migrations) ? 'recursive' : 'true::boolean',
-            in_array('2019_02_14_102442_add_thesaurus_root_id', $migrations) ? 'root_attribute_id' : 'null::integer'
+            in_array('2019_02_14_102442_add_thesaurus_root_id', $migrations) ? 'root_attribute_id' : 'null::integer',
+            $ignore_attributes
         ),
         array(':lang' => $lang), $error, $db
     );
@@ -105,6 +119,7 @@ try {
         $attributes[$row['id']] = $row;
     }
 
+    // fetch entities
     $stmt = db_exec(
         'select 
             id, 
@@ -130,46 +145,52 @@ try {
     while($row = $stmt->fetch(PDO::FETCH_ASSOC))
         $contexts[$row['id']] = $row;
 
+    // fetch attribute values, coalescing value columns into a single "value" column
+    // order of coalescing matters! 
     $stmt = db_exec(        
-        'select 
-            entity_id context, 
-            attribute_id "attribute",
-            coalesce(
-                -- since userlist is stored in json_val, we need to do this before using the json_val value in coalesce
-                case when a.datatype = \'userlist\' and json_val is not null
-                    then (
-                        select jsonb_agg(
-                            jsonb_build_object(
-                                \'id\', u.id, 
-                                \'name\', u.name, 
-                                \'email\', u.email, 
-                                \'nickname\', u.nickname
-                            )
-                        ) AS user_info
-                        from (select jsonb_array_elements(av.json_val) user_id) ids
-                        join users u on u.id = (ids.user_id)::int
-                    ) 
-                    else null::jsonb
-                end,
-                json_val, 
-                to_jsonb(str_val), 
-                to_jsonb(int_val), 
-                to_jsonb(dbl_val), 
-                to_jsonb(entity_val), 
-                to_jsonb(thesaurus_val), 
-                to_jsonb(dt_val), 
-                case when geography_val is null 
-                    then null::jsonb
-                    else jsonb_build_object(
-                        \'wkt\', st_astext(geography_val), 
-                        \'area\', st_area(geography_val), 
-                        \'type\', geometrytype(geography_val::geometry)
-                    ) 
-                end)
-                "value" 
-        from attribute_values av 
-        join attributes a on av.attribute_id = a.id',
-        array(), $error, $db
+        sprintf(
+            'select 
+                entity_id context, 
+                attribute_id "attribute",
+                coalesce(
+                    -- since userlist is stored in json_val, we need to do this before using the json_val value in coalesce
+                    case when a.datatype = \'userlist\' and json_val is not null
+                        then (
+                            select jsonb_agg(
+                                jsonb_build_object(
+                                    \'id\', u.id, 
+                                    \'name\', u.name, 
+                                    \'email\', u.email, 
+                                    \'nickname\', u.nickname
+                                )
+                            ) AS user_info
+                            from (select jsonb_array_elements(av.json_val) user_id) ids
+                            join users u on u.id = (ids.user_id)::int
+                        ) 
+                        else null::jsonb
+                    end,
+                    json_val, 
+                    to_jsonb(str_val), 
+                    to_jsonb(int_val), 
+                    to_jsonb(dbl_val), 
+                    to_jsonb(entity_val), 
+                    to_jsonb(thesaurus_val), 
+                    to_jsonb(dt_val), 
+                    case when geography_val is null 
+                        then null::jsonb
+                        else jsonb_build_object(
+                            \'wkt\', st_astext(geography_val), 
+                            \'area\', st_area(geography_val), 
+                            \'type\', geometrytype(geography_val::geometry)
+                        ) 
+                    end)
+                    "value" 
+            from attribute_values av 
+            join attributes a on av.attribute_id = a.id
+            where a.datatype not in (%s)',
+            $ignore_attributes
+        ), 
+        [], $error, $db
     );
     if($stmt === false)
         throw new Exception('Failed retrieving entity property values');
@@ -198,6 +219,7 @@ try {
     while($row = $stmt->fetch(PDO::FETCH_ASSOC))
         $thesaurus[$row['url']] = $row;
 
+    // build entity type hierarchy
     $stmt = db_exec(
         "select parent_type_id \"parentTypeId\",
             	child_type_id \"childTypeId\",
