@@ -1506,7 +1506,8 @@ function initializeDbVar() {
                         }
                     }
                     else { // single attribute
-                        // NEWDATATYPE: if list-based datatype (array value), then push all list values here
+                        // NEWDATATYPE: if list-based datatype (array value), then push all list values here;
+                        // might reuqire special handling of array binding in json_val (see comment below)
                         if(attr.type === 'string-mc') {
                             let values = context.attributes[attr.id];
                             if(Array.isArray(values))
@@ -1525,10 +1526,13 @@ function initializeDbVar() {
                         else if(attr.type === 'entity-mc') {
                             let values = context.attributes[attr.id];
                             if(Array.isArray(values))
-                                groupColumnValues.push(values.map(val => this.getEntityDisplayObject(val)));
+                                groupColumnValues.push(values);
                         }
+                        // by default we add the value as an array with one element, since there are attribute types
+                        // that have an array binding in json_val (e.g. daterange). The outer array will be exploded
+                        // later when computing the distinct values for each group column
                         else {
-                            groupColumnValues.push([ this.getDisplayValue(context.attributes[attr.id], attr) ]);
+                            groupColumnValues.push([this.getDisplayValue(context.attributes[attr.id], attr)]);
                         }
                     }
                 });
@@ -1632,7 +1636,7 @@ function initializeDbVar() {
             // special attribute displays
             r.body.forEach(row => {
                 for(let i = 0; i < groupColumns.length; i++) {
-                    if(colAttrs[i].type === 'entity') {
+                    if(colAttrs[i].type === 'entity' || colAttrs[i].type === 'entity-mc') {
                         row[i] = db.getEntityDisplayObject(row[i]);
                     }                    
                 }
