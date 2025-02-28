@@ -704,6 +704,7 @@ function initializeDbVar() {
                     result.body.push([v === null || v === undefined || isNaN(num) ? null : num, c]);
                 });
             // NEWDATATYPE: if objects as values that need special representation - do here
+            // for example: convert raw url to clickable url
             else if(['entity', 'entity-mc'].includes(attribute.type))
                 distr.forEachValue((v, c) => {
                     if(!v)
@@ -713,7 +714,15 @@ function initializeDbVar() {
                         if(displayObj)
                             result.body.push([ displayObj, c ]);
                     }
-                });            
+                });
+            else if('url' == attribute.type) {
+                distr.forEachValue((v, c) => {
+                    if(v)
+                        result.body.push([{display: 'html', value: '<a href="%s" target="_blank">%s</a>'.with(v, v), order: v}, c ]);
+                    else
+                        result.body.push([ v, c ]);
+                }); 
+            }          
             else
                 distr.forEachValue((v, c) => result.body.push([v, c]));
             return result;
@@ -783,10 +792,20 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
+        // TODO: rewrite for current call arguments
+        // then try to differentiate whether the display val is for:
+        // - reuslt table
+        // - entity viewer
+        // - groupe column
+        // - geomap popup
         getDisplayValue: function(
             rawValue, attribute, rawNumbers = true, asString = true
         ) {
         // --------------------------------------------------------------------------------------------
+            // IMPORTANT
+            // The value returned here must be safe for grouping! No objects returned here!
+
+
             // NEWDATATYPE: this controls display of attribute value in result table and entity viewer -
             // if not simple string or any other transformation required, can be omitted; otherwise
             // display value must be computed here
@@ -1053,7 +1072,14 @@ function initializeDbVar() {
                     r.attrs.forEach(attr => {
                         if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
                             row.push({ display: 'html', value: this.getEntityDetailsLink(context), order: context.id });
-                        }                        
+                        }
+                        else if(attr.type === 'url' && context.attributes[attr.id]) {
+                            row.push({ 
+                                display: 'html', 
+                                value: '<a href="%s" target="_blank">%s</a>'.with(context.attributes[attr.id], context.attributes[attr.id]), order: context.attributes[attr.id],
+                                order: context.attributes[attr.id] 
+                            }); 
+                        }                    
                         else {
                             row.push(this.getDisplayValue(context.attributes[attr.id], attr));
                         }
@@ -1633,12 +1659,15 @@ function initializeDbVar() {
             });
 
             // NEWDATATYPE: might need some way to display the values of special data types
-            // special attribute displays
+            // from the raw value
             r.body.forEach(row => {
                 for(let i = 0; i < groupColumns.length; i++) {
                     if(colAttrs[i].type === 'entity' || colAttrs[i].type === 'entity-mc') {
                         row[i] = db.getEntityDisplayObject(row[i]);
-                    }                    
+                    }
+                    if(colAttrs[i].type === 'url' && row[i]) {
+                        row[i] = { display: 'html', value: '<a href="%s" target="_blank">%s</a>'.with(row[i], row[i]), order: row[i] };
+                    }        
                 }
                 linkListColumns.forEach(colIndex => {
                     let linkList = row[colIndex];

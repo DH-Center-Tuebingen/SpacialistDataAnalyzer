@@ -1027,7 +1027,6 @@ function tryCutCellText(
         case 'string':        
         case 'stringf':
         case 'richtext':
-        case 'url':
         case 'serial':
             return {
                 show: val.substring(0, Settings.resultTable.textMaxChars),
@@ -1163,7 +1162,13 @@ function renderEntityDetails(
         let value = undefined;
         if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
             value = context.attributes[attr.id];
-        }        
+        }     
+        else if('url' === attr.type) {
+            value = {
+                display: 'html', 
+                value: '<a href="%s" target="_blank">%s</a>'.with(context.attributes[attr.id], context.attributes[attr.id])
+            };
+        }  
         else {
             value = db.getDisplayValue(context.attributes[attr.id], attr, false);
         }        
