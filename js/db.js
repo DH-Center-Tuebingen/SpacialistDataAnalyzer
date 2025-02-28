@@ -409,6 +409,11 @@ function initializeDbVar() {
                 return;
             }
             result.forEach(key => this[key] = result[key]);
+            db_stats = '\t%s thesaurus concepts\n\t%s entities of %s types\n\t%s entities with %s attribute values'.with(
+                this.thesaurus.countProperties(), 
+                this.contexts.countProperties(), this.contextTypes.countProperties(), 
+                this.attributes.countProperties(), this.attributeValues.length
+            );
             this.hierarchy.forEach(h => h.typePathToRoot = JSON.parse(h.typePathToRoot));
             this.contextTypes.forEachValue((id, ct) => {
                 ct.contexts = {};
@@ -543,6 +548,7 @@ function initializeDbVar() {
                 a.controllingAttributeId = null;
             });
             console.log('DB loaded in', debugGetElapsedSeconds(startTime), 's');
+            console.log(db_stats);
             this._initMemberFunctions();
             if(typeof callback === 'function')
                 callback();
