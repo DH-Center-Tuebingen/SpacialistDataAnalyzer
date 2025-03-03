@@ -33,58 +33,75 @@ $attributeValues = array();
 
 try {
     $db = get_db();
-
-    $stmt = db_exec('select id, text info from attributes where datatype = :type', array(':type' => 'sql'), $error, $db);
-    if($stmt === false)
+    $stmt = db_exec(
+        'select 
+            id, 
+            text info            
+        from attributes 
+        where datatype = :type', 
+        array(':type' => 'sql'), $error, $db
+    );
+    if($stmt === false) {
         throw new Exception('Failed retrieving property queries');
-    while($row = $stmt->fetch(PDO::FETCH_ASSOC))
+    }
+    while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $attributes[$row['id']] = $row['info'];
+    }
 
     if(count(array_keys($attributes)) > 0) {
-        foreach($attributes as $id => $sql) {
-            $attr_sql[] = sprintf(
-                '((select json_agg(sq0) from (%s) sq0)) "attr_%s"', // we aggregate all values to arrays of objects then analyze the array content to infer the result type
+        foreach($attributes as $attr_id => $sql) {
+            $query = sprintf(
+                'select __c__.id, 
+                        ((select json_agg(sq0) from (%s) sq0)) values 
+                from entities __c__
+                where __c__.entity_type_id = any((
+                    select array_agg(ea.entity_type_id)
+                    from entity_attributes ea
+                    where ea.attribute_id = %s
+                )::int[])',
                 str_replace(':entity_id', '__c__.id', $sql),
-                $id
+                $attr_id
             );
-        }
-
-        $query = sprintf('select __c__.id, %s from entities __c__', join(', ', $attr_sql));
-        if($debug) {
-            echo $query, PHP_EOL, PHP_EOL;
-            if($sqlOnly)
-                exit;
-        }
-
-        $attr_single_val = array();
-        $stmt = db_exec($query, array(), $error, $db);
-        if($stmt === false)
-            throw new Exception('Failed analyzing computed values'/* . db_error($error)*/);
-        while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $values = array();
-            foreach($attributes as $attr_id => $sql) {
-                $val = $row['attr_' . $attr_id];
-                if($val === null)
+            if($debug) {
+                echo "=== ATTRIBUTE $attr_id ===", PHP_EOL, $query, PHP_EOL, PHP_EOL;
+                if($sqlOnly)
                     continue;
+            }
+
+            $attr_single_val = array();
+            $stmt = db_exec($query, array(), $error, $db);
+            if($stmt === false) {
+                throw new Exception("Failed analyzing computed values for attribute $attr_id");
+            }
+            while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $values = array();                
+                $val = $row['values'];
+                if($val === null) {                    
+                    continue;
+                }
                 $val = json_decode($val, true);
 
                 // now we have an array of objects. if it is only one element in the array and only one object property, we assume it is an atomic value, otherwise a table attribute
                 $is_single_val = false;
-                if(isset($attr_single_val[$attr_id]))
+                if(isset($attr_single_val[$attr_id])) {
                     $is_single_val = $attr_single_val[$attr_id];
-                else
-                    $is_single_val = $attr_single_val[$attr_id] = (count($val) === 1 && count(array_keys($val[0])) === 1);
+                }
+                else {
+                    $is_single_val = $attr_single_val[$attr_id] = 
+                        (count($val) === 1 && count(array_keys($val[0])) === 1);
+                }
 
-                if($is_single_val)
+                if($is_single_val) {
                     $val = $val[0][array_keys($val[0])[0]];
-                $values[$attr_id] = $val;
+                }
+                $values[$attr_id] = $val;                
+                if(count($values) > 0) {                    
+                    $attributeValues[] = array(
+                        'contextId' => $row['id'],
+                        'values' => $values
+                    );
+                }
             }
-            if(count($values) === 0)
-                continue;
-            $attributeValues[] = array(
-                'contextId' => $row['id'],
-                'values' => $values
-            );
         }
     }
 
