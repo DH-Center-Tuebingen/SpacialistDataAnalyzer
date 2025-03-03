@@ -409,7 +409,7 @@ function initializeDbVar() {
                 return;
             }
             result.forEach(key => this[key] = result[key]);
-            db_stats = '\t%s thesaurus concepts\n\t%s entities of %s types\n\t%s entities with %s attribute values'.with(
+            db_stats = '\t%s thesaurus concepts\n\t%s entities of %s types\n\t%s attributes with %s attribute values'.with(
                 this.thesaurus.countProperties(), 
                 this.contexts.countProperties(), this.contextTypes.countProperties(), 
                 this.attributes.countProperties(), this.attributeValues.length
