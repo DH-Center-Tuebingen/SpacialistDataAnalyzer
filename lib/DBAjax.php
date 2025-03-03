@@ -204,8 +204,8 @@ try {
             con.concept_url url,
             (array_agg(lbl.label order by lng.short_name <> :lang, lbl.concept_label_type))[1] "label",
             con.is_top_concept "isTopConcept",
-            jsonb_agg(distinct parents.concept_url) "parentUrls",
-            jsonb_agg(distinct childs.concept_url) "childUrls"
+            case when count (parents.concept_url) > 0 then jsonb_agg(distinct parents.concept_url) else \'[]\'::jsonb end "parentUrls",
+            case when count (childs.concept_url) > 0 then jsonb_agg(distinct childs.concept_url) else \'[]\'::jsonb end "childUrls"
         from th_concept con
         left join th_concept_label lbl on lbl.concept_id = con.id
         left join th_language lng on lng.id = lbl.language_id
