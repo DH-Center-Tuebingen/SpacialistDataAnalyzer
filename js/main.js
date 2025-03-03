@@ -2605,6 +2605,8 @@ $(function() {
     $.getJSON('settings/%s.json'.with(spacialistInstance.db), data => {
         if(data.settings)
             $.extend(true, Settings, data.settings);
+        else if(data.Settings)
+            $.extend(true, Settings, data.Settings);
         db.setForceThesaurusPicker(data.forceThesaurusPicker); 
         if(data.attributeOverrides)
             db.setAttributeOverrides(data.attributeOverrides);
