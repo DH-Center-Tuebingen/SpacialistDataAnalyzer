@@ -29,6 +29,7 @@ $contexts = array();
 $attributeValues = array();
 $thesaurus = array();
 $hierarchy = array();
+$users = array();
 
 $labelQuery = function($url_attr_name) {
     // the order by clause orders by boolean whether short_name is the desired language, and then by concept_label_type (1=preferred, 2=alternative) 
@@ -61,6 +62,13 @@ try {
 
     // attribute types to ignore, later used in NOT IN (...)
     $ignore_attributes = "'system-separator'";
+
+    // fetch users
+    $stmt = db_exec('select id, name from users', array(), $error, $db);
+    if($stmt === false)
+        throw new Exception('Failed retrieving users');
+    while($row = $stmt->fetch(PDO::FETCH_ASSOC))
+        $users[$row['id']] = $row;
 
     // fetch entity types
     $stmt = db_exec(sprintf(
@@ -257,7 +265,8 @@ try {
         'contexts' => $contexts,
         'attributeValues' => $attributeValues,
         'thesaurus' => $thesaurus,
-        'hierarchy' => $hierarchy
+        'hierarchy' => $hierarchy,
+        'users' => $users
     ), JSON_NUMERIC_CHECK);
 
     // never cache an empty DB

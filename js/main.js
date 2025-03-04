@@ -1163,7 +1163,7 @@ function renderEntityDetails(
         if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
             value = context.attributes[attr.id];
         }     
-        else if('url' === attr.type) {
+        else if('url' === attr.type && context.attributes[attr.id]) {                        
             value = {
                 display: 'html', 
                 value: '<a href="%s" target="_blank">%s</a>'.with(context.attributes[attr.id], context.attributes[attr.id])

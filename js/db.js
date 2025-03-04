@@ -15,6 +15,7 @@ function initializeDbVar() {
         pseudoAttributes: {},
         filteredContexts: {},
         attributeOverrides: [],
+        users: {},
         that: this,
         cache: {},
 
@@ -490,8 +491,12 @@ function initializeDbVar() {
                         // si-unit for weight, which normalizes to grams, might look like:
                         //   { unit: 'kilogram', value: -2.4, normalized: -2400 }
                         // for si-unit data type, we take the normalized (SI unit) value from the json value,
-                        // regardless of what unit is selected in the dropdown
-                        value = value ? value.normalized : value;
+                        // regardless of what unit is selected in the dropdown                        
+                        if(value.normalized !== undefined) {
+                            value = value.normalized;
+                        } else if(value.value !== undefined) {
+                            value = value.value;
+                        }
                     }
                 }
                 else if(attr.type === 'table') {
@@ -817,11 +822,22 @@ function initializeDbVar() {
                 case 'double':
                 case 'integer':
                 case 'percentage':
+                    return rawNumbers ? val : val.toLocaleString();
+
                 case 'si-unit':
+                    // exception: if attribute is in a table, the normalized value is not available (TODO:BUG?)
+                    if(typeof val === 'object') {
+                        // apparently attribute in a table, comes without normalized value, only {unit:..., value:...}
+                        // but be prepared for normalized key to exist
+                        if(val.normalized !== undefined)
+                            val = val.normalized;
+                        else if(val.value !== undefined)
+                            val = val.value;
+                    }
                     return rawNumbers ? val : val.toLocaleString();
 
                 case 'date':
-                    return asString ? val.toLocaleString() : val;
+                    return asString ? (new Date(val)).toLocaleDateString() : val;
 
                 case 'boolean':
                     return asString ? (val ? Symbols['box-checked'] : Symbols['box-unchecked']) : val;
@@ -847,16 +863,38 @@ function initializeDbVar() {
                     return asString ? list.join(Settings.mcSeparator) : list;
 
                 case 'userlist':
-                    if(!Array.isArray(val))
+                    if(!Array.isArray(val) || val.length === 0)
                         return val;
-                    let userlist = [];
-                    val.forEach(s => userlist.push(s.name));
+                    // build list of user names
+                    let userlist = []; 
+                    if(typeof val[0] === 'number') {
+                        // if part of a table, this comes as array of user ids:
+                        userlist = val.map(user_id => db.users[user_id].name);
+                    }
+                    else { 
+                        // otherwise this comes as an object with user attributes
+                        val.forEach(s => userlist.push(s.name));
+                    }
                     return asString ? userlist.join(Settings.mcSeparator) : userlist;
 
                 case 'entity-mc':
                     // TODO: check if this works in all cases (parameter asString!)
-                    if(!Array.isArray(val))
-                        return val;
+                    if(!Array.isArray(val)) {                        
+                        // if attribute part of table, this comes as string, e.g. "[123,345]"
+                        if(typeof val === 'string') {
+                            try {
+                                val = JSON.parse(val);
+                            }
+                            catch(e) {
+                                // should not happen actually...
+                                return val;
+                            }
+                        }
+                        else {
+                            // here probably null                        
+                            return val;
+                        }
+                    }
                     entity_ids = val;
                     html_list = entity_ids.map(entity_id => this.getEntityDetailsLink(this.contexts[entity_id], this.contexts[entity_id].name, undefined, 'mr-2'));                    
                     return { display: 'html', value: html_list.join(''), order: entity_ids.length };
@@ -893,7 +931,7 @@ function initializeDbVar() {
                         return val;
                     if(!Array.isArray(val))
                         return val;
-                    return val.join(' ‒ ');
+                    return val.map(d => (new Date(d)).toLocaleDateString()).join(' ‒ ');
 
                 case 'dimension':
                     if(val && !asString) {
@@ -961,6 +999,12 @@ function initializeDbVar() {
                         };
                     }
                     break;
+                case 'url':
+                    // TODO asString??
+                    if(typeof val === 'string') {
+                        return { display: 'html', value: '<a href="%s" target="_blank">%s</a>'.with(val, val), order: val };
+                    }
+                    return val;
             }
             return val;
         },
