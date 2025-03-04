@@ -797,6 +797,120 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
+        getValueToDisplay: function(
+            origValue, // value as it comes from db and is transformed after _handleSqlResult function
+            attribute, // attribute object
+            inTable, // boolean whether attribute child of table (true) or entity (false)
+            isSortable, // boolean whether value is in data table column that allows sorting
+            isComputed, // boolean whether value was computed via sql attribute
+            displayContext // { resultTable, groupColumn, aggregateColumn, entityPopup, geomapPopup, tablePopup }
+        ) {
+        // --------------------------------------------------------------------------------------------        
+            let displayValue = origValue;
+            if(typeof displayValue === 'undefined' || displayValue === null)
+                return null;
+
+            // modify or return display value corresponding to db value
+            switch(attribute.type) {
+                case 'boolean': 
+                    // entity: int_val -> int {1, 0}
+                    // table: boolean {true, false}
+                    return (origValue ? Symbols['box-checked'] : Symbols['box-unchecked']);
+
+                case 'date': 
+                    // entity: dt_val -> string "YYYY-MM-DD"
+                    // table: string "YYYY-MM-DDT00:00:00.000Z"
+                    // always comes as string, never as a JS date
+                    let dt = new Date(origValue);
+                    return isSortable
+                        ? { v: dt.toLocaleDateString(), s: dt.getTime() }                        
+                        : dt.toLocaleDateString();
+
+                case 'daterange':
+                    // entity: json_val -> array ["YYYY-MM-DD", "YYYY-MM-DD"]
+                    // table: array ["YYYY-MM-DDT00:00:00.000Z", "YYYY-MM-DDT00:00:00.000Z"]
+                    // always both start and end available
+                    let range = origValue.map(dt => new Date(dt));
+                    let disp = range[0].toLocaleDateString() + ' ‒ ' + range[1].toLocaleDateString();
+                    return isSortable
+                        // sort by start and end date strings concatenated
+                        ? { v: disp, s: origValue.map(s => s.substring(0,10).join("")) }
+                        : disp;
+
+                case 'dimension': 
+                    return displayValue;
+
+                case 'double': 
+                    return displayValue;
+
+                case 'entity': 
+                    return displayValue;
+
+                case 'entity-mc': 
+                    return displayValue;
+
+                case 'epoch': 
+                    return displayValue;
+
+                case 'geometry': 
+                    return displayValue;
+
+                case 'iconclass': 
+                    return displayValue;
+
+                case 'integer': 
+                    return displayValue;
+
+                case 'list': 
+                    return displayValue;
+
+                case 'percentage': 
+                    return displayValue;
+
+                case 'relation': 
+                    return displayValue;
+
+                case 'richtext': 
+                    return displayValue;
+
+                case 'rism': 
+                    return displayValue;
+
+                case 'serial': 
+                    return displayValue;
+
+                case 'si-unit': 
+                    return displayValue;
+
+                case 'string': 
+                    return displayValue;
+
+                case 'string-mc': 
+                    return displayValue;
+
+                case 'string-sc': 
+                    return displayValue;
+
+                case 'stringf': 
+                    return displayValue;
+
+                case 'table': 
+                    return displayValue;
+
+                case 'timeperiod': 
+                    return displayValue;
+
+                case 'url': 
+                    return displayValue;
+
+                case 'userlist': 
+                    return displayValue;            
+            }
+
+            return displayValue;
+        },
+
+        // --------------------------------------------------------------------------------------------
         // TODO: rewrite for current call arguments
         // then try to differentiate whether the display val is for:
         // - reuslt table
