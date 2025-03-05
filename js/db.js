@@ -834,13 +834,34 @@ function initializeDbVar() {
                     let disp = range[0].toLocaleDateString() + ' ‒ ' + range[1].toLocaleDateString();
                     return isSortable
                         // sort by start and end date strings concatenated
-                        ? { v: disp, s: origValue.map(s => s.substring(0,10).join("")) }
+                        ? { v: disp, s: origValue.map(s => s.substring(0,10)).join("") }
                         : disp;
 
-                case 'dimension': 
+                case 'dimension':
+                    // entity: json_val -> object {B: double, H: double, T: double, unit?: string}, all except unit required
+                    // table: not allowed
+                    if(origValue && typeof origValue === 'object') {
+                        displayValue = [];
+                        ['B', 'H', 'T'].forEach(dim => {
+                            if(typeof origValue[dim] !== 'undefined')
+                                displayValue.push(origValue[dim].toLocaleString());                                
+                        });
+                        displayValue = displayValue.join(Settings.dimensionSeparator) + (origValue.unit ? ' ' + origValue.unit : '');
+                        if(isSortable) {
+                            displayValue = { 
+                                v: displayValue, 
+                                s: origValue.B ?? origValue.H ?? origValue.T
+                            };
+                        }
+                    }                 
                     return displayValue;
-
-                case 'double': 
+                
+                case 'double':
+                    // entity: dbl_val -> double
+                    // table: double
+                    displayValue = isSortable 
+                        ? { v: origValue.toLocaleString(), s: origValue }
+                        : origValue.toLocaleString();
                     return displayValue;
 
                 case 'entity': 
@@ -858,16 +879,28 @@ function initializeDbVar() {
                 case 'iconclass': 
                     return displayValue;
 
-                case 'integer': 
+                case 'integer':
+                    // entity: int_val -> int
+                    // table: int
+                    displayValue = isSortable 
+                        ? { v: origValue.toLocaleString(), s: origValue }
+                        : origValue.toLocaleString();
                     return displayValue;
 
                 case 'list': 
                     return displayValue;
 
-                case 'percentage': 
+                case 'percentage':
+                    // entity: int_val -> int
+                    // table: int
+                    displayValue = isSortable 
+                        ? { v: origValue + ' %', s: origValue }
+                        : origValue + ' %';
                     return displayValue;
 
                 case 'relation': 
+                    console.log('Deprecated attribute type "relation" detected - ignoring');                    
+                    displayValue = null;
                     return displayValue;
 
                 case 'richtext': 
@@ -921,6 +954,9 @@ function initializeDbVar() {
             rawValue, attribute, rawNumbers = true, asString = true
         ) {
         // --------------------------------------------------------------------------------------------
+            if(['boolean', 'date', 'daterange', 'dimension', 'integer', 'double', 'percentage'].includes(attribute.type)) {
+                return this.getValueToDisplay(rawValue, attribute, false, true);
+            }
             // IMPORTANT
             // The value returned here must be safe for grouping! No objects returned here!
 
