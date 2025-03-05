@@ -1256,6 +1256,20 @@ function renderAttributeValue(
     attr = undefined // may be undefined for computed attributes
 ) {
 // ------------------------------------------------------------------------------------
+    // workaround for new getValueToDisplay function, which returns dataTable object 
+    // as cell value like {v: value, s: sortValue}
+    if(val && typeof val === 'object' && val.v !== undefined) {
+        if(type === 'html') {
+            let td = $('<td/>').html(val.v);
+            if(val.s !== undefined)
+                td.attr('data-order', val.s);
+            tr.append(td);
+        }
+        else {
+            return val;
+        }
+    }
+
     if(val !== null && typeof val === 'object') {
         switch(val.display) {
             case 'html':

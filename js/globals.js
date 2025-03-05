@@ -51,7 +51,7 @@ const AttributeTypeSymbols = {
     'boolean': '◧', // int_val, table
     'date': '▣', // dt_val, table, 'YYYY-MM-DD'
     'daterange': '⇿', // json_val, table, array ['YYYY-MM-DD', 'YYYY-MM-DD'], both required
-    'dimension': '⛶', // json_val, table, object {B: double, H: double, T: double}, all required
+    'dimension': '⛶', // json_val, table, object {B: double, H: double, T: double, unit?: "..."}, all except unit required
     'double': 'ℝ', // dbl_val, table
     'entity': '⍟', // entity_val, table, integer with entity id
     'entity-mc': '☰', // json_val, table, array [entity1_id, entity2_id, ...]
