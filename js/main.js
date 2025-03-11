@@ -1264,6 +1264,7 @@ function renderAttributeValue(
             if(val.s !== undefined)
                 td.attr('data-order', val.s);
             tr.append(td);
+            return;
         }
         else {
             return val;

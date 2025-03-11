@@ -525,6 +525,20 @@ function initializeDbVar() {
                                     else
                                         row[columnAttr.id] = n;
                                 }
+                                else if(columnAttr.type === 'entity-mc') {
+                                    // might come as a string like "['12934', '12935']", convert to array
+                                    if(typeof cellValue === 'string') {
+                                        try {
+                                            cellValue = JSON.parse(cellValue);
+                                            if(Array.isArray(cellValue))
+                                                value = cellValue;
+                                        }
+                                        catch(e) {
+                                            // should not get here
+                                            console.log('Error parsing entity-mc value in table; string-based but no array', e);
+                                        }
+                                    }
+                                }
                             }
                         });
                     });
@@ -801,11 +815,14 @@ function initializeDbVar() {
             origValue, // value as it comes from db and is transformed after _handleSqlResult function
             attribute, // attribute object
             inTable, // boolean whether attribute child of table (true) or entity (false)
-            isSortable, // boolean whether value is in data table column that allows sorting
             isComputed, // boolean whether value was computed via sql attribute
+            forGrouping, // boolean whether value is used for grouping - needs to return something that can be compared with ==
             displayContext // { resultTable, groupColumn, aggregateColumn, entityPopup, geomapPopup, tablePopup }
         ) {
         // --------------------------------------------------------------------------------------------        
+            // CHECK:
+            // The value returned here must be safe for grouping! No objects returned here!
+
             let displayValue = origValue;
             if(typeof displayValue === 'undefined' || displayValue === null)
                 return null;
@@ -822,9 +839,7 @@ function initializeDbVar() {
                     // table: string "YYYY-MM-DDT00:00:00.000Z"
                     // always comes as string, never as a JS date
                     let dt = new Date(origValue);
-                    return isSortable
-                        ? { v: dt.toLocaleDateString(), s: dt.getTime() }                        
-                        : dt.toLocaleDateString();
+                    return { v: dt.toLocaleDateString(), s: dt.getTime() };
 
                 case 'daterange':
                     // entity: json_val -> array ["YYYY-MM-DD", "YYYY-MM-DD"]
@@ -832,10 +847,8 @@ function initializeDbVar() {
                     // always both start and end available
                     let range = origValue.map(dt => new Date(dt));
                     let disp = range[0].toLocaleDateString() + ' ‒ ' + range[1].toLocaleDateString();
-                    return isSortable
-                        // sort by start and end date strings concatenated
-                        ? { v: disp, s: origValue.map(s => s.substring(0,10)).join("") }
-                        : disp;
+                    // sort by start and end date strings concatenated
+                    return { v: disp, s: origValue.map(s => s.substring(0,10)).join("") };
 
                 case 'dimension':
                     // entity: json_val -> object {B: double, H: double, T: double, unit?: string}, all except unit required
@@ -847,56 +860,67 @@ function initializeDbVar() {
                                 displayValue.push(origValue[dim].toLocaleString());                                
                         });
                         displayValue = displayValue.join(Settings.dimensionSeparator) + (origValue.unit ? ' ' + origValue.unit : '');
-                        if(isSortable) {
-                            displayValue = { 
-                                v: displayValue, 
-                                s: origValue.B ?? origValue.H ?? origValue.T
-                            };
-                        }
+                        displayValue = { 
+                            v: displayValue, 
+                            s: origValue.B ?? origValue.H ?? origValue.T
+                        };
                     }                 
                     return displayValue;
                 
                 case 'double':
                     // entity: dbl_val -> double
                     // table: double
-                    displayValue = isSortable 
-                        ? { v: origValue.toLocaleString(), s: origValue }
-                        : origValue.toLocaleString();
-                    return displayValue;
+                    return { v: origValue.toLocaleString(), s: origValue };
 
                 case 'entity': 
-                    return displayValue;
+                    // entity: entity_val, integer with entity id -> clickable entity
+                    // table: -"-
+                    return {
+                        v: this.getEntityDetailsLink(this.contexts[origValue], this.contexts[origValue].name),
+                        s: this.contexts[origValue].name
+                    };
 
-                case 'entity-mc': 
-                    return displayValue;
-
-                case 'epoch': 
+                case 'entity-mc':
+                    // entity: json_val, array [entity1_id, entity2_id, ...]
+                    // table: array [entity1_id, entity2_id, ...] (actually might come as string, but is preprocessed before)
+                    if(Array.isArray(origValue)) {                        
+                        html_list = origValue.map(
+                            entity_id => this.getEntityDetailsLink(
+                                this.contexts[entity_id], 
+                                this.contexts[entity_id].name, 
+                                undefined, 
+                                'mr-2'
+                            )
+                        );                    
+                        displayValue = { 
+                            v: html_list.join(''), 
+                            s: html_list.length 
+                        };
+                    }
+                    else {
+                        console.log("Unknown value format for entity-mc attribute:", origValue, typeof origValue);
+                        displayValue = null;
+                    }
                     return displayValue;
 
                 case 'geometry': 
-                    return displayValue;
+                    return undefined;
 
                 case 'iconclass': 
-                    return displayValue;
+                    return undefined;
 
                 case 'integer':
                     // entity: int_val -> int
                     // table: int
-                    displayValue = isSortable 
-                        ? { v: origValue.toLocaleString(), s: origValue }
-                        : origValue.toLocaleString();
-                    return displayValue;
+                    return { v: origValue.toLocaleString(), s: origValue };
 
                 case 'list': 
-                    return displayValue;
+                    return undefined;
 
                 case 'percentage':
                     // entity: int_val -> int
                     // table: int
-                    displayValue = isSortable 
-                        ? { v: origValue + ' %', s: origValue }
-                        : origValue + ' %';
-                    return displayValue;
+                    return { v: origValue + ' %', s: origValue };
 
                 case 'relation': 
                     console.log('Deprecated attribute type "relation" detected - ignoring');                    
@@ -904,40 +928,57 @@ function initializeDbVar() {
                     return displayValue;
 
                 case 'richtext': 
-                    return displayValue;
+                    return undefined;
 
                 case 'rism': 
-                    return displayValue;
+                    return undefined;
 
                 case 'serial': 
-                    return displayValue;
+                    return undefined;
 
                 case 'si-unit': 
-                    return displayValue;
+                    return undefined;
 
                 case 'string': 
-                    return displayValue;
+                    return undefined;
 
                 case 'string-mc': 
-                    return displayValue;
+                    return undefined;
 
                 case 'string-sc': 
-                    return displayValue;
+                    return undefined;
 
                 case 'stringf': 
-                    return displayValue;
+                    return undefined;
 
                 case 'table': 
-                    return displayValue;
+                    return undefined;
 
                 case 'timeperiod': 
+                case 'epoch':
+                    // entity: json_val, object {start: int, end: int, endLabel: 'AD|BC', startLabel: 'AD|BC'}
+                    //          if epoch, comes with 
+                    // table: not allowed
+                    if(typeof origValue === 'object') {
+                        let disp = '';
+                        if(origValue.start !== undefined && origValue.start !== null)
+                            disp = '%s %s'.with(origValue.start, origValue.startLabel ? origValue.startLabel.toUpperCase() : '');
+                        if(origValue.end !== undefined && origValue.end !== null)
+                            disp += ' ‒ %s %s'.with(origValue.end, origValue.endLabel ? origValue.endLabel.toUpperCase() : '');
+                        if(origValue.epoch && typeof origValue.epoch === 'object' && origValue.epoch.concept_url) {
+                            if(disp.length > 0)
+                                disp += Settings.epochSeparator;
+                            disp += db.getThesaurusLabel(origValue.epoch.concept_url, origValue.epoch.concept_url);
+                        }
+                        displayValue = disp.trim();
+                    }
                     return displayValue;
 
                 case 'url': 
-                    return displayValue;
+                    return undefined;
 
                 case 'userlist': 
-                    return displayValue;            
+                    return undefined;            
             }
 
             return displayValue;
@@ -954,12 +995,13 @@ function initializeDbVar() {
             rawValue, attribute, rawNumbers = true, asString = true
         ) {
         // --------------------------------------------------------------------------------------------
-            if(['boolean', 'date', 'daterange', 'dimension', 'integer', 'double', 'percentage'].includes(attribute.type)) {
-                return this.getValueToDisplay(rawValue, attribute, false, true);
-            }
+            
+            let test = this.getValueToDisplay(rawValue, attribute);
+            if(test !== undefined)
+                return test;
+            
             // IMPORTANT
             // The value returned here must be safe for grouping! No objects returned here!
-
 
             // NEWDATATYPE: this controls display of attribute value in result table and entity viewer -
             // if not simple string or any other transformation required, can be omitted; otherwise
@@ -1030,20 +1072,7 @@ function initializeDbVar() {
                 case 'entity-mc':
                     // TODO: check if this works in all cases (parameter asString!)
                     if(!Array.isArray(val)) {                        
-                        // if attribute part of table, this comes as string, e.g. "[123,345]"
-                        if(typeof val === 'string') {
-                            try {
-                                val = JSON.parse(val);
-                            }
-                            catch(e) {
-                                // should not happen actually...
-                                return val;
-                            }
-                        }
-                        else {
-                            // here probably null                        
-                            return val;
-                        }
+                        return val;                        
                     }
                     entity_ids = val;
                     html_list = entity_ids.map(entity_id => this.getEntityDetailsLink(this.contexts[entity_id], this.contexts[entity_id].name, undefined, 'mr-2'));                    
