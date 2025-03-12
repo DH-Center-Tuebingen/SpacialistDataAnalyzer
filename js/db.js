@@ -483,10 +483,14 @@ function initializeDbVar() {
             this.attributeValues.forEach(av => {
                 let attr = db.attributes[av.attribute];
                 let value = JSON.parse(av.value);
-                if(attr.type === 'string-sc' && typeof value === 'string') { // make object
+                if(false) {
+                    // this is just for commenting-out convenience
+                }
+                else if(attr.type === 'string-sc' && typeof value === 'string') { 
+                    // make object for consistency with string-sc in tables
                     value = { concept_url: value };
                 }
-                else if(attr.type === 'si-unit') {
+                /*else if(attr.type === 'si-unit') {
                     if(typeof value === 'object') {
                         // si-unit for weight, which normalizes to grams, might look like:
                         //   { unit: 'kilogram', value: -2.4, normalized: -2400 }
@@ -498,7 +502,7 @@ function initializeDbVar() {
                             value = value.value;
                         }
                     }
-                }
+                }*/
                 else if(attr.type === 'table') {
                     // to allow displaying DataTables correctly, each column needs to have a value. In Spacialist
                     // empty values are missing the attribute altogether, so we fix this by setting these values to null
@@ -530,12 +534,18 @@ function initializeDbVar() {
                                     if(typeof cellValue === 'string') {
                                         try {
                                             cellValue = JSON.parse(cellValue);
-                                            if(Array.isArray(cellValue))
-                                                value = cellValue;
+                                            if(Array.isArray(cellValue)) {
+                                                row[columnAttr.id] = cellValue;
+                                            }
+                                            else {
+                                                console.log('Unexpected value representation for entity-mc in table', cellValue);
+                                                row[columnAttr.id] = null;
+                                            }
                                         }
                                         catch(e) {
                                             // should not get here
                                             console.log('Error parsing entity-mc value in table; string-based but no array', e);
+                                            row[columnAttr.id] = null;
                                         }
                                     }
                                 }
@@ -884,18 +894,16 @@ function initializeDbVar() {
                     // entity: json_val, array [entity1_id, entity2_id, ...]
                     // table: array [entity1_id, entity2_id, ...] (actually might come as string, but is preprocessed before)
                     if(Array.isArray(origValue)) {                        
-                        html_list = origValue.map(
-                            entity_id => this.getEntityDetailsLink(
-                                this.contexts[entity_id], 
-                                this.contexts[entity_id].name, 
-                                undefined, 
-                                'mr-2'
-                            )
-                        );                    
+                        html_list = origValue.map(entity_id => this.getEntityDetailsLink(
+                            this.contexts[entity_id], 
+                            this.contexts[entity_id].name, 
+                            undefined, 
+                            'mr-2'
+                        ));                    
                         displayValue = { 
                             v: html_list.join(''), 
                             s: html_list.length 
-                        };
+                        };                        
                     }
                     else {
                         console.log("Unknown value format for entity-mc attribute:", origValue, typeof origValue);
@@ -904,10 +912,37 @@ function initializeDbVar() {
                     return displayValue;
 
                 case 'geometry': 
-                    return undefined;
-
-                case 'iconclass': 
-                    return undefined;
+                    // note: geography is also interpreted as geometry
+                    // entity: geography_val
+                    // table: string?
+                    if(typeof origValue === 'object' && origValue.wkt) {
+                        if(origValue.wkt.length > 40) {
+                            displayValue = origValue.wkt.trim().replace(/^([a-zA-Z]+)\(.+\)$/, '$1 (⋯)');
+                        }
+                        else {
+                            displayValue = origValue.wkt.trim().replace(/^([a-zA-Z]+)\((.+)\)$/, '$1 ($2)');
+                        }                        
+                        displayValue = displayValue.charAt(0).toUpperCase() + displayValue.substr(1).toLowerCase();
+                    }
+                    else if(typeof origValue === 'string') {
+                        console.log('geometry value is of type string instead of geo object:', origValue);
+                        displayValue = origValue;
+                    }
+                    else {
+                        console.log('Unexpected geometry/geography value:', origValue);
+                        displayValue = null;
+                    }
+                    return {v: displayValue, s: displayValue};
+                
+                case 'iconclass':
+                case 'richtext':        // not allowed in table 
+                case 'rism':            // not allowed in table
+                case 'serial':          // not allowed in table
+                case 'string':
+                case 'stringf':         // not allowed in table
+                    // entity: str_val -> string
+                    // table: string
+                    return { v: displayValue, s: displayValue };
 
                 case 'integer':
                     // entity: int_val -> int
@@ -915,7 +950,14 @@ function initializeDbVar() {
                     return { v: origValue.toLocaleString(), s: origValue };
 
                 case 'list': 
-                    return undefined;
+                    // entity: json_val, array [string1, string2, ...]
+                    // table: not allowed
+                    if(Array.isArray(origValue)) {
+                        displayValue = origValue.join(Settings.mcSeparator);
+                        return { v: displayValue, s: displayValue };
+                    }
+                    console.log('Unexpected list format:', typeof origValue, origValue);
+                    return null;
 
                 case 'percentage':
                     // entity: int_val -> int
@@ -927,29 +969,42 @@ function initializeDbVar() {
                     displayValue = null;
                     return displayValue;
 
-                case 'richtext': 
-                    return undefined;
-
-                case 'rism': 
-                    return undefined;
-
-                case 'serial': 
-                    return undefined;
-
                 case 'si-unit': 
-                    return undefined;
-
-                case 'string': 
-                    return undefined;
+                    // exception: if attribute is in a table, the normalized value is not available (TODO:BUG?)
+                    if(typeof origValue === 'object') {
+                        // apparently attribute in a table comes without normalized value, only {unit:..., value:...}                        
+                        if(origValue.normalized !== undefined) {
+                            displayValue = origValue.normalized;
+                        }
+                        else if(origValue.value !== undefined) {
+                            displayValue = origValue.value;
+                        }
+                        else {
+                            console.log('Unexpected si-unit value format:', origValue);
+                            displayValue = null;
+                        }
+                    }
+                    return { v: displayValue.toLocaleString(), s: displayValue };
 
                 case 'string-mc': 
-                    return undefined;
+                    // entity: json_val, array [{id: int, concept_url: string}, ...]
+                    // table: array [{id: int, concept_url: string}, ...]
+                    let mc = [];
+                    origValue.forEach(url => {
+                        if(url !== null && typeof url === 'object' && url.concept_url)
+                            url = url.concept_url;
+                        let th = db.thesaurus[url];
+                        mc.push(th ? th.label : url);
+                    });
+                    displayValue = mc.join(Settings.mcSeparator);
+                    return { v: displayValue, s: displayValue };
 
-                case 'string-sc': 
-                    return undefined;
-
-                case 'stringf': 
-                    return undefined;
+                case 'string-sc':
+                    console.log('string-sc:', origValue);
+                    // entity: thesaurus_val -> string -> object {concept_url: string} after loading db
+                    // table: object {id: int, concept_url: string}
+                    displayValue = this.tryResolveThesaurus(origValue);
+                    return { v: displayValue, s: displayValue };
 
                 case 'table': 
                     return undefined;
@@ -957,7 +1012,7 @@ function initializeDbVar() {
                 case 'timeperiod': 
                 case 'epoch':
                     // entity: json_val, object {start: int, end: int, endLabel: 'AD|BC', startLabel: 'AD|BC'}
-                    //          if epoch, comes with 
+                    //          if epoch, object includes epoch: {concept_url: string}
                     // table: not allowed
                     if(typeof origValue === 'object') {
                         let disp = '';
@@ -975,10 +1030,35 @@ function initializeDbVar() {
                     return displayValue;
 
                 case 'url': 
-                    return undefined;
+                    // entity: str_val
+                    // table: string
+                    // make clickable url
+                    if(typeof origValue === 'string') {
+                        return { 
+                            v: '<a href="%s" target="_blank">%s</a>'.with(origValue, origValue), 
+                            s: origValue 
+                        };
+                    }
+                    return origValue;
 
                 case 'userlist': 
-                    return undefined;            
+                    // entity: json_val -> array of user objects [{id: int, name: string}, ...]
+                    // table: array of user ids [user1_id, user2_id, ...]
+                    if(!Array.isArray(origValue) || origValue.length === 0) {
+                        return null;
+                    }
+                    // build list of user names
+                    let userlist = []; 
+                    if(typeof origValue[0] === 'number') {
+                        // if part of a table, this comes as array of user ids:
+                        userlist = origValue.map(user_id => db.users[user_id].name);
+                    }
+                    else { 
+                        // otherwise this comes as an object with user attributes
+                        origValue.forEach(s => userlist.push(s.name));
+                    }
+                    displayValue = userlist.join(Settings.mcSeparator);
+                    return { v: displayValue, s: displayValue };
             }
 
             return displayValue;
