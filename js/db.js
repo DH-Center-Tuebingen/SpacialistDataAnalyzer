@@ -483,6 +483,15 @@ function initializeDbVar() {
             this.attributeValues.forEach(av => {
                 let attr = db.attributes[av.attribute];
                 let value = JSON.parse(av.value);
+                // NEW >>> compute all required info here: original value, datatable display value, compare value
+                let attrVal = {
+                    original: value,
+                    datatable: this.getValueToDisplay(value, attr),                    
+                    compare: this.getValueToCompare(value, attr)
+                };
+                
+                // <<< NEW
+
                 if(false) {
                     // this is just for commenting-out convenience
                 }

@@ -1159,11 +1159,12 @@ function renderEntityDetails(
         if(EntityDetailsHiddenAttributes.includes(attr.id))
             return;
         // NEWDATATYPE: display of special values in entity details popup viewer
-        let value = undefined;
+        let value = db.getValueToDisplay(context.attributes[attr.id], attr);
+        /*let value = undefined;
         if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
             value = context.attributes[attr.id];
         }     
-        else if('url' === attr.type && context.attributes[attr.id]) {                        
+        else if('url' === attr.type && context.attributes[attr.id]) {
             value = {
                 display: 'html', 
                 value: '<a href="%s" target="_blank">%s</a>'.with(context.attributes[attr.id], context.attributes[attr.id])
@@ -1171,7 +1172,7 @@ function renderEntityDetails(
         }  
         else {
             value = db.getDisplayValue(context.attributes[attr.id], attr, false);
-        }        
+        }*/        
         if(value === undefined || value === null || value === '')
             return;
         let row = $('<tr/>').appendTo(tbody);
@@ -1195,7 +1196,8 @@ function renderEntityDetails(
             let tr = $('<tr/>').append(
                 $('<th/>').text(l10n.get('entityDetailsChildEntities', typeName))
             );
-            renderAttributeValue('html', { display: 'entityLinkList', value: items, overrideMaxShow: 10 }, tr);
+            //renderAttributeValue('html', { display: 'entityLinkList', value: items, overrideMaxShow: 10 }, tr);
+            renderAttributeValue('html', this.getValueToDisplay(items, attr), tr);
             tbody.append(tr);
         });
     }
@@ -1271,6 +1273,8 @@ function renderAttributeValue(
         }
     }
 
+    console.log('resort to old renderAttributeValue:', typeof val, val, attr);
+
     if(val !== null && typeof val === 'object') {
         switch(val.display) {
             case 'html':
@@ -1287,7 +1291,7 @@ function renderAttributeValue(
                         s: val.order !== undefined ? val.order : val.value
                     };
                 }
-            case 'entityLinkList':
+            /*case 'entityLinkList':
                 if(Array.isArray(val.value)) {
                     let maxShow = val.overrideMaxShow || Settings.resultTable.entityLinkListMaxItems;
                     let cut = {
@@ -1327,6 +1331,7 @@ function renderAttributeValue(
                         };
                     }
                 }
+                    */
             /*case 'table': {
                 let infoIndex = DataTableElementInfos.add({
                     table: val.value,
