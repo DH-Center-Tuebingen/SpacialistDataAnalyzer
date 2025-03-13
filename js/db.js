@@ -435,6 +435,7 @@ function initializeDbVar() {
                 if(c.geoData)
                     c.geoData = JSON.parse(c.geoData);
                 c.attributes = {};
+                c.datatable = {};
                 c.childContexts = [];
             });
             this.contexts.forEachValue((id, c) => {
@@ -483,15 +484,7 @@ function initializeDbVar() {
             this.attributeValues.forEach(av => {
                 let attr = db.attributes[av.attribute];
                 let value = JSON.parse(av.value);
-                // NEW >>> compute all required info here: original value, datatable display value, compare value
-                let attrVal = {
-                    original: value,
-                    datatable: this.getValueToDisplay(value, attr),                    
-                    compare: this.getValueToCompare(value, attr)
-                };
                 
-                // <<< NEW
-
                 if(false) {
                     // this is just for commenting-out convenience
                 }
@@ -499,65 +492,50 @@ function initializeDbVar() {
                     // make object for consistency with string-sc in tables
                     value = { concept_url: value };
                 }
-                /*else if(attr.type === 'si-unit') {
-                    if(typeof value === 'object') {
-                        // si-unit for weight, which normalizes to grams, might look like:
-                        //   { unit: 'kilogram', value: -2.4, normalized: -2400 }
-                        // for si-unit data type, we take the normalized (SI unit) value from the json value,
-                        // regardless of what unit is selected in the dropdown                        
-                        if(value.normalized !== undefined) {
-                            value = value.normalized;
-                        } else if(value.value !== undefined) {
-                            value = value.value;
-                        }
-                    }
-                }*/
                 else if(attr.type === 'table') {
-                    // to allow displaying DataTables correctly, each column needs to have a value. In Spacialist
-                    // empty values are missing the attribute altogether, so we fix this by setting these values to null
+                    // in the json that represents a table, some things need fixing to work later
                     attr.children.forEach(columnAttr => {  // for each column
                         value.forEach(row => { // for each row
                             let cellValue = row[columnAttr.id];
+                            // to allow displaying DataTables correctly, each column needs to have a value. In Spacialist
+                            // empty cell values are missing altogether, so we fix this by setting these values to null
                             if(cellValue === undefined) {
                                 row[columnAttr.id] = null;
                             }
-                            else {
-                                if(columnAttr.type === 'string-sc' && typeof cellValue === 'string') {
-                                    cellValue = row[columnAttr.id] = { concept_url: cellValue };
+                            // string-sc might be represented as a thesaurus_url, not an object (might be fixed already?)
+                            else if(columnAttr.type === 'string-sc' && typeof cellValue === 'string') {
+                                    row[columnAttr.id] = { concept_url: cellValue };
+                            }
+                            // it can happen that numeric attribute values are stored as strings in a table's json -> convert to number
+                            else if(typeof cellValue === 'string' && this.isNumericSpacialistType(columnAttr.type)) {
+                                let n = Number(cellValue);
+                                if(isNaN(n)) {
+                                    console.info('Unknown numeric attribute value "%s" in attribute %s of context %s; setting to undefined'.with(
+                                        cellValue, cellValue.name, av.context
+                                    ));
+                                    row[columnAttr.id] = null;
                                 }
-                                //>> TODO FIXME: es kann sein, dass numerische Tabellenattribute als string gespeichert werden => umwandeln!
-                                // sobald das gefixed ist, das hier entfernen
-                                else if(typeof cellValue === 'string' && this.isNumericSpacialistType(columnAttr.type)) {
-                                    let n = Number(cellValue);
-                                    if(isNaN(n)) {
-                                        console.info('Unknown numeric attribute value "%s" in attribute %s of context %s; setting to undefined'.with(
-                                            cellValue, cellValue.name, av.context
-                                        ));
+                                else
+                                    row[columnAttr.id] = n;
+                            }
+                            // in tables entity-mc might come as a string representation of an array, e.g. "['12934', '12935']" -> convert to array
+                            else if(columnAttr.type === 'entity-mc' && typeof cellValue === 'string') {
+                            
+                                try {
+                                    cellValue = JSON.parse(cellValue);
+                                    if(Array.isArray(cellValue)) {
+                                        row[columnAttr.id] = cellValue;
+                                    }
+                                    else {
+                                        console.log('Unexpected value representation for entity-mc in table', cellValue);
                                         row[columnAttr.id] = null;
                                     }
-                                    else
-                                        row[columnAttr.id] = n;
                                 }
-                                else if(columnAttr.type === 'entity-mc') {
-                                    // might come as a string like "['12934', '12935']", convert to array
-                                    if(typeof cellValue === 'string') {
-                                        try {
-                                            cellValue = JSON.parse(cellValue);
-                                            if(Array.isArray(cellValue)) {
-                                                row[columnAttr.id] = cellValue;
-                                            }
-                                            else {
-                                                console.log('Unexpected value representation for entity-mc in table', cellValue);
-                                                row[columnAttr.id] = null;
-                                            }
-                                        }
-                                        catch(e) {
-                                            // should not get here
-                                            console.log('Error parsing entity-mc value in table; string-based but no array', e);
-                                            row[columnAttr.id] = null;
-                                        }
-                                    }
-                                }
+                                catch(e) {
+                                    // should not get here
+                                    console.log('Error parsing entity-mc value in table; string-based but no array', e);
+                                    row[columnAttr.id] = null;
+                                }                                
                             }
                         });
                     });
@@ -721,7 +699,7 @@ function initializeDbVar() {
                                 val = val.name;
                             }                            
                             else
-                                val = db.getDisplayValue(val, attribute, false);
+                                val = db.getValueToDisplay(val, attribute, context, false);
                         }
                         if(typeof distr[val] === 'undefined')
                             distr[val] = 1;
@@ -833,32 +811,39 @@ function initializeDbVar() {
         getValueToDisplay: function(
             origValue, // value as it comes from db and is transformed after _handleSqlResult function
             attribute, // attribute object
+            context, // context object, might be undefined?
+            rawNumbers, // legacy from getDisplayValue 
+            asString, // legacy from getDisplayValue
             inTable, // boolean whether attribute child of table (true) or entity (false)
             isComputed, // boolean whether value was computed via sql attribute
             forGrouping, // boolean whether value is used for grouping - needs to return something that can be compared with ==
             displayContext // { resultTable, groupColumn, aggregateColumn, entityPopup, geomapPopup, tablePopup }
         ) {
         // --------------------------------------------------------------------------------------------        
-            // CHECK:
-            // The value returned here must be safe for grouping! No objects returned here!
+            // check if done before
+            if(context && context.datatable.hasOwnProperty(attribute.id)) {
+                return context.datatable[attribute.id];
+            }
 
             let displayValue = origValue;
-            if(typeof displayValue === 'undefined' || displayValue === null)
-                return null;
-
+            if(typeof displayValue === 'undefined' || displayValue === null) {
+                displayValue = null;
+            }
             // modify or return display value corresponding to db value
-            switch(attribute.type) {
+            else switch(attribute.type) {
                 case 'boolean': 
                     // entity: int_val -> int {1, 0}
                     // table: boolean {true, false}
-                    return (origValue ? Symbols['box-checked'] : Symbols['box-unchecked']);
+                    displayValue = (origValue ? Symbols['box-checked'] : Symbols['box-unchecked']);
+                    break;
 
                 case 'date': 
                     // entity: dt_val -> string "YYYY-MM-DD"
                     // table: string "YYYY-MM-DDT00:00:00.000Z"
                     // always comes as string, never as a JS date
                     let dt = new Date(origValue);
-                    return { v: dt.toLocaleDateString(), s: dt.getTime() };
+                    displayValue = { v: dt.toLocaleDateString(), s: dt.getTime() };
+                    break;
 
                 case 'daterange':
                     // entity: json_val -> array ["YYYY-MM-DD", "YYYY-MM-DD"]
@@ -867,37 +852,38 @@ function initializeDbVar() {
                     let range = origValue.map(dt => new Date(dt));
                     let disp = range[0].toLocaleDateString() + ' ‒ ' + range[1].toLocaleDateString();
                     // sort by start and end date strings concatenated
-                    return { v: disp, s: origValue.map(s => s.substring(0,10)).join("") };
+                    displayValue = { v: disp, s: origValue.map(s => s.substring(0,10)).join("") };
+                    break;
 
                 case 'dimension':
                     // entity: json_val -> object {B: double, H: double, T: double, unit?: string}, all except unit required
                     // table: not allowed
-                    if(origValue && typeof origValue === 'object') {
-                        displayValue = [];
-                        ['B', 'H', 'T'].forEach(dim => {
-                            if(typeof origValue[dim] !== 'undefined')
-                                displayValue.push(origValue[dim].toLocaleString());                                
-                        });
-                        displayValue = displayValue.join(Settings.dimensionSeparator) + (origValue.unit ? ' ' + origValue.unit : '');
-                        displayValue = { 
-                            v: displayValue, 
-                            s: origValue.B ?? origValue.H ?? origValue.T
-                        };
-                    }                 
-                    return displayValue;
+                    displayValue = [];
+                    ['B', 'H', 'T'].forEach(dim => {
+                        if(typeof origValue[dim] !== 'undefined')
+                            displayValue.push(origValue[dim].toLocaleString());                                
+                    });
+                    displayValue = displayValue.join(Settings.dimensionSeparator) + (origValue.unit ? ' ' + origValue.unit : '');
+                    displayValue = { 
+                        v: displayValue, 
+                        s: origValue.B ?? origValue.H ?? origValue.T
+                    };
+                    break;
                 
                 case 'double':
                     // entity: dbl_val -> double
                     // table: double
-                    return { v: origValue.toLocaleString(), s: origValue };
+                    displayValue = { v: origValue.toLocaleString(), s: origValue };
+                    break;
 
                 case 'entity': 
                     // entity: entity_val, integer with entity id -> clickable entity
                     // table: -"-
-                    return {
+                    displayValue = {
                         v: this.getEntityDetailsLink(this.contexts[origValue], this.contexts[origValue].name),
                         s: this.contexts[origValue].name
                     };
+                    break;
 
                 case 'entity-mc':
                     // entity: json_val, array [entity1_id, entity2_id, ...]
@@ -918,7 +904,7 @@ function initializeDbVar() {
                         console.log("Unknown value format for entity-mc attribute:", origValue, typeof origValue);
                         displayValue = null;
                     }
-                    return displayValue;
+                    break;
 
                 case 'geometry': 
                     // note: geography is also interpreted as geometry
@@ -941,7 +927,8 @@ function initializeDbVar() {
                         console.log('Unexpected geometry/geography value:', origValue);
                         displayValue = null;
                     }
-                    return {v: displayValue, s: displayValue};
+                    displayValue = {v: displayValue, s: displayValue};
+                    break;
                 
                 case 'iconclass':
                 case 'richtext':        // not allowed in table 
@@ -951,32 +938,38 @@ function initializeDbVar() {
                 case 'stringf':         // not allowed in table
                     // entity: str_val -> string
                     // table: string
-                    return { v: displayValue, s: displayValue };
+                    displayValue = { v: displayValue, s: displayValue };
+                    break;
 
                 case 'integer':
                     // entity: int_val -> int
                     // table: int
-                    return { v: origValue.toLocaleString(), s: origValue };
+                    displayValue = { v: origValue.toLocaleString(), s: origValue };
+                    break;
 
                 case 'list': 
                     // entity: json_val, array [string1, string2, ...]
                     // table: not allowed
                     if(Array.isArray(origValue)) {
                         displayValue = origValue.join(Settings.mcSeparator);
-                        return { v: displayValue, s: displayValue };
+                        displayValue = { v: displayValue, s: displayValue };
                     }
-                    console.log('Unexpected list format:', typeof origValue, origValue);
-                    return null;
+                    else {
+                        console.log('Unexpected list format:', typeof origValue, origValue);
+                        displayValue = null;
+                    }
+                    break;
 
                 case 'percentage':
                     // entity: int_val -> int
                     // table: int
-                    return { v: origValue + ' %', s: origValue };
+                    displayValue = { v: origValue + ' %', s: origValue };
+                    break;
 
                 case 'relation': 
                     console.log('Deprecated attribute type "relation" detected - ignoring');                    
                     displayValue = null;
-                    return displayValue;
+                    break;
 
                 case 'si-unit': 
                     // exception: if attribute is in a table, the normalized value is not available (TODO:BUG?)
@@ -993,7 +986,8 @@ function initializeDbVar() {
                             displayValue = null;
                         }
                     }
-                    return { v: displayValue.toLocaleString(), s: displayValue };
+                    displayValue = { v: displayValue.toLocaleString(), s: displayValue };
+                    break;
 
                 case 'string-mc': 
                     // entity: json_val, array [{id: int, concept_url: string}, ...]
@@ -1006,14 +1000,15 @@ function initializeDbVar() {
                         mc.push(th ? th.label : url);
                     });
                     displayValue = mc.join(Settings.mcSeparator);
-                    return { v: displayValue, s: displayValue };
+                    displayValue = { v: displayValue, s: displayValue };
+                    break;
 
                 case 'string-sc':
-                    console.log('string-sc:', origValue);
                     // entity: thesaurus_val -> string -> object {concept_url: string} after loading db
                     // table: object {id: int, concept_url: string}
                     displayValue = this.tryResolveThesaurus(origValue);
-                    return { v: displayValue, s: displayValue };
+                    displayValue = { v: displayValue, s: displayValue };
+                    break;
 
                 case 'table': 
                     // entity: json_val -> array of ordered row objects [{'attr1_id': value, 'attr2_id': value}, ...]
@@ -1038,85 +1033,67 @@ function initializeDbVar() {
                             else {
                                 attr = colAttrs[attr_id];
                             }
-                            // TODO: check display value for table cells
                             tblRow.push(this.getValueToDisplay(value, attr));
                         });
                         table.body.push(tblRow);
                         i++;
                     });
-                    /*if(!asString)
-                        return table.body;*/
                     if(i == 0) {
-                        return null;
+                        displayValue = null;
                     }
-
-                    let infoIndex = DataTableElementInfos.add({
-                        table: table,
-                        target: '#modalTableInCell'
-                    }, 'showTableModal');
-                    let btn = $('<button/>')
-                        .attr({
-                            type: 'button',
-                            title: l10n.resultShowTableModalTooltip,
-                            'data-xinfo': infoIndex
-                        })
-                        .addClass('xinfo btn btn-outline-dark btn-sm pb-0 pt-0')
-                        .text('%s %s'.with(Symbols.table, l10n.resultShowTableModal));
-                    /*if(type === 'html') {
-                        tr.append($('<td/>').append(btn));
-                        break;
+                    else {
+                        let infoIndex = DataTableElementInfos.add({
+                            table: table,
+                            target: '#modalTableInCell'
+                        }, 'showTableModal');
+                        let btn = $('<button/>')
+                            .attr({
+                                type: 'button',
+                                title: l10n.resultShowTableModalTooltip,
+                                'data-xinfo': infoIndex
+                            })
+                            .addClass('xinfo btn btn-outline-dark btn-sm pb-0 pt-0')
+                            .text('%s %s'.with(Symbols.table, l10n.resultShowTableModal));
+                        displayValue = {
+                            v: btn[0].outerHTML,
+                            s: table.body.length
+                        };
                     }
-                    else {*/
-                    return {
-                        v: btn[0].outerHTML,
-                        s: table.body.length
-                    };
-                    
-                    /*}
-
-                    displayValue = {                            
-                        v: table,
-                        s: undefined
-                    };                    
-                    return displayValue;*/
+                    break;
 
                 case 'timeperiod': 
                 case 'epoch':
                     // entity: json_val, object {start: int, end: int, endLabel: 'AD|BC', startLabel: 'AD|BC'}
                     //          if epoch, object includes epoch: {concept_url: string}
                     // table: not allowed
-                    if(typeof origValue === 'object') {
-                        let disp = '';
-                        if(origValue.start !== undefined && origValue.start !== null)
-                            disp = '%s %s'.with(origValue.start, origValue.startLabel ? origValue.startLabel.toUpperCase() : '');
-                        if(origValue.end !== undefined && origValue.end !== null)
-                            disp += ' ‒ %s %s'.with(origValue.end, origValue.endLabel ? origValue.endLabel.toUpperCase() : '');
-                        if(origValue.epoch && typeof origValue.epoch === 'object' && origValue.epoch.concept_url) {
-                            if(disp.length > 0)
-                                disp += Settings.epochSeparator;
-                            disp += db.getThesaurusLabel(origValue.epoch.concept_url, origValue.epoch.concept_url);
-                        }
-                        displayValue = disp.trim();
+                    displayValue = '';
+                    if(origValue.start !== undefined && origValue.start !== null)
+                        displayValue = '%s %s'.with(origValue.start, origValue.startLabel ? origValue.startLabel.toUpperCase() : '');
+                    if(origValue.end !== undefined && origValue.end !== null)
+                        displayValue += ' ‒ %s %s'.with(origValue.end, origValue.endLabel ? origValue.endLabel.toUpperCase() : '');
+                    if(origValue.epoch && typeof origValue.epoch === 'object' && origValue.epoch.concept_url) {
+                        if(displayValue.length > 0)
+                            displayValue += Settings.epochSeparator;
+                        displayValue += db.getThesaurusLabel(origValue.epoch.concept_url, origValue.epoch.concept_url);
                     }
-                    return displayValue;
+                    displayValue = displayValue.trim();
+                    break;
 
                 case 'url': 
                     // entity: str_val
                     // table: string
                     // make clickable url
-                    if(typeof origValue === 'string') {
-                        return { 
-                            v: '<a href="%s" target="_blank">%s</a>'.with(origValue, origValue), 
-                            s: origValue 
-                        };
-                    }
-                    return origValue;
+                    displayValue = { 
+                        v: '<a href="%s" target="_blank">%s</a>'.with(origValue, origValue), 
+                        s: origValue 
+                    };
+                    break;
 
                 case 'userlist': 
                     // entity: json_val -> array of user objects [{id: int, name: string}, ...]
                     // table: array of user ids [user1_id, user2_id, ...]
                     if(!Array.isArray(origValue) || origValue.length === 0) {
-                        return null;
+                        displayValue = null;
                     }
                     // build list of user names
                     let userlist = []; 
@@ -1129,218 +1106,16 @@ function initializeDbVar() {
                         origValue.forEach(s => userlist.push(s.name));
                     }
                     displayValue = userlist.join(Settings.mcSeparator);
-                    return { v: displayValue, s: displayValue };
-            }
-
-            return displayValue;
-        },
-
-        // --------------------------------------------------------------------------------------------
-        // TODO: rewrite for current call arguments
-        // then try to differentiate whether the display val is for:
-        // - reuslt table
-        // - entity viewer
-        // - groupe column
-        // - geomap popup
-        getDisplayValue: function(
-            rawValue, attribute, rawNumbers = true, asString = true
-        ) {
-        // --------------------------------------------------------------------------------------------
-            
-            let test = this.getValueToDisplay(rawValue, attribute);
-            if(test !== undefined)
-                return test;
-            
-            // IMPORTANT
-            // The value returned here must be safe for grouping! No objects returned here!
-
-            // NEWDATATYPE: this controls display of attribute value in result table and entity viewer -
-            // if not simple string or any other transformation required, can be omitted; otherwise
-            // display value must be computed here
-            let val = rawValue;
-            if(typeof val === 'undefined' || val === null)
-                return null;
-
-            switch(attribute.type) {
-                case 'double':
-                case 'integer':
-                case 'percentage':
-                    return rawNumbers ? val : val.toLocaleString();
-
-                case 'si-unit':
-                    // exception: if attribute is in a table, the normalized value is not available (TODO:BUG?)
-                    if(typeof val === 'object') {
-                        // apparently attribute in a table, comes without normalized value, only {unit:..., value:...}
-                        // but be prepared for normalized key to exist
-                        if(val.normalized !== undefined)
-                            val = val.normalized;
-                        else if(val.value !== undefined)
-                            val = val.value;
-                    }
-                    return rawNumbers ? val : val.toLocaleString();
-
-                case 'date':
-                    return asString ? (new Date(val)).toLocaleDateString() : val;
-
-                case 'boolean':
-                    return asString ? (val ? Symbols['box-checked'] : Symbols['box-unchecked']) : val;
-
-                case 'string-sc':
-                    return this.tryResolveThesaurus(val);
-
-                case 'string-mc':
-                    let mc = [];
-                    val.forEach(url => {
-                        if(url !== null && typeof url === 'object' && url.concept_url)
-                            url = url.concept_url;
-                        let th = db.thesaurus[url];
-                        mc.push(th ? th.label : url);
-                    });
-                    return asString ? mc.join(Settings.mcSeparator) : mc;
-
-                case 'list':
-                    if(!Array.isArray(val))
-                        return val;
-                    let list = [];
-                    val.forEach(s => list.push(s));
-                    return asString ? list.join(Settings.mcSeparator) : list;
-
-                case 'userlist':
-                    if(!Array.isArray(val) || val.length === 0)
-                        return val;
-                    // build list of user names
-                    let userlist = []; 
-                    if(typeof val[0] === 'number') {
-                        // if part of a table, this comes as array of user ids:
-                        userlist = val.map(user_id => db.users[user_id].name);
-                    }
-                    else { 
-                        // otherwise this comes as an object with user attributes
-                        val.forEach(s => userlist.push(s.name));
-                    }
-                    return asString ? userlist.join(Settings.mcSeparator) : userlist;
-
-                case 'entity-mc':
-                    // TODO: check if this works in all cases (parameter asString!)
-                    if(!Array.isArray(val)) {                        
-                        return val;                        
-                    }
-                    entity_ids = val;
-                    html_list = entity_ids.map(entity_id => this.getEntityDetailsLink(this.contexts[entity_id], this.contexts[entity_id].name, undefined, 'mr-2'));                    
-                    return { display: 'html', value: html_list.join(''), order: entity_ids.length };
-
-                case 'entity':                                       
-                    return val;
-
-                case 'epoch':
-                case 'timeperiod':
-                    if(val && !asString) {
-                        return {
-                            start: db.getEpochStart(val),
-                            end: db.getEpochEnd(val),
-                            epoch: val.epoch ? db.getThesaurusLabel(val.epoch.concept_url, val.epoch.concept_url) : undefined
-                        };
-                    }
-                    if(typeof val === 'object') {
-                        let disp = '';
-                        if(val.start !== undefined && val.start !== null)
-                            disp = '%s %s'.with(val.start, val.startLabel ? val.startLabel.toUpperCase() : '');
-                        if(val.end !== undefined && val.end !== null)
-                            disp += ' ‒ %s %s'.with(val.end, val.endLabel ? val.endLabel.toUpperCase() : '');
-                        if(val.epoch && typeof val.epoch === 'object' && val.epoch.concept_url) {
-                            if(disp.length > 0)
-                                disp += Settings.epochSeparator;
-                            disp += db.getThesaurusLabel(val.epoch.concept_url, val.epoch.concept_url);
-                        }
-                        val = disp.trim();
-                    }
-                    return val;
-
-                case 'daterange':
-                    if(val && !asString)
-                        return val;
-                    if(!Array.isArray(val))
-                        return val;
-                    return val.map(d => (new Date(d)).toLocaleDateString()).join(' ‒ ');
-
-                case 'dimension':
-                    if(val && !asString) {
-                        return {
-                            b: val.B,
-                            h: val.H,
-                            d: val.T,
-                            unit: val.unit
-                        };
-                    }
-                    if(typeof val === 'object') {
-                        let disp = [];
-                        ['B', 'H', 'T'].forEach(dim => {
-                            if(typeof val[dim] !== 'undefined')
-                                disp.push('%s: %s %s'.with(
-                                    dim, val[dim], val.unit ? val.unit : ''
-                                ).trim())
-                        });
-                        val = disp.join(Settings.dimensionSeparator);
-                    }
-                    return val;
-
-                case 'geometry':
-                    // entity: geography_val -> object {wkt: string}
-                    // table: wkt as string
-                    if(typeof val === 'string')
-                        val = { wkt: val };
-                    if(!asString)
-                        return val.wkt ? val.wkt : null;
-                    if(val.wkt.length > 40)
-                        val = val.wkt.trim().replace(/^([a-zA-Z]+)\(.+\)$/, '$1 (⋯)');
-                    else
-                        val = val.wkt.trim().replace(/^([a-zA-Z]+)\((.+)\)$/, '$1 ($2)');
-                    return val.charAt(0).toUpperCase() + val.substr(1).toLowerCase();
-
-                case 'table':
-                    let table = {
-                        head: [],
-                        body: [],
-                        attrs: [],
-                        sortTypes: []
-                    };
-                    let colAttrs = {}; // for quicker access than via db.attributes
-                    let i = 0;
-                    val.forEach(row => {
-                        let tblRow = [];
-                        row.forEachValue((c, v) => {
-                            let attr;
-                            if(i == 0) {
-                                attr = colAttrs[c] = db.attributes[c];
-                                table.head.push(attr ? attr.name : c);
-                                table.attrs.push(attr);
-                                table.sortTypes.push(attr ? db.getSortTypeFromAttr(attr) : undefined);
-                            }
-                            else
-                                attr = colAttrs[c];
-                            // TODO: check display value for table cells
-                            tblRow.push(this.getDisplayValue(v, attr, true, asString));
-                        });
-                        table.body.push(tblRow);
-                        i++;
-                    });
-                    if(!asString)
-                        return table.body;
-                    if(i > 0) {
-                        val = {
-                            display: 'table',
-                            value: table
-                        };
-                    }
+                    displayValue = { v: displayValue, s: displayValue };
                     break;
-                case 'url':
-                    // TODO asString??
-                    if(typeof val === 'string') {
-                        return { display: 'html', value: '<a href="%s" target="_blank">%s</a>'.with(val, val), order: val };
-                    }
-                    return val;
             }
-            return val;
+
+            // store value so that it doesn't need to be computed again
+            if(context) {
+                //console.log('cache datatable for attribute %s in context %s'.with(attribute.id, context.id));
+                context.datatable[attribute.id] = displayValue;
+            }
+            return displayValue;
         },
 
         // --------------------------------------------------------------------------------------------
@@ -1459,7 +1234,7 @@ function initializeDbVar() {
                             }); 
                         }                    
                         else {
-                            row.push(this.getDisplayValue(context.attributes[attr.id], attr));
+                            row.push(this.getValueToDisplay(context.attributes[attr.id], attr, context));
                         }
                     });                        
                     r.body.push(row);
@@ -1810,7 +1585,7 @@ function initializeDbVar() {
                         if(!attr.parentAttribute || attr.parentAttribute.id != attribute.parentAttribute.id)
                             return true;
                         // same table here
-                        return resultRow[index] === this.getDisplayValue(row[attr.id], attr);
+                        return resultRow[index] === this.getValueToDisplay(row[attr.id], attr, context);
                     });
                     if(doAggregate)
                         newValue = this.updateAggregateColumnValue(context, attribute, row[attribute.id], aggregateType, newValue, aggregateInfo);
@@ -1899,7 +1674,7 @@ function initializeDbVar() {
                                 if(!this.isRelevantTableRow(context, attr.parentAttribute, index))
                                     return;
                                 let attrVal = tableRow[attr.id];
-                                let displayVal = this.getDisplayValue(attrVal, attr);
+                                let displayVal = this.getValueToDisplay(attrVal, attr, context);
                                 if(!seenValues.includes(displayVal))
                                     seenValues.push(displayVal);
                             });
@@ -1936,7 +1711,7 @@ function initializeDbVar() {
                         // that have an array binding in json_val (e.g. daterange). The outer array will be exploded
                         // later when computing the distinct values for each group column
                         else {
-                            groupColumnValues.push([this.getDisplayValue(context.attributes[attr.id], attr)]);
+                            groupColumnValues.push([this.getValueToDisplay(context.attributes[attr.id], attr, context)]);
                         }
                     }
                 });

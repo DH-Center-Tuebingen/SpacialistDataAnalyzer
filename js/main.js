@@ -1159,20 +1159,7 @@ function renderEntityDetails(
         if(EntityDetailsHiddenAttributes.includes(attr.id))
             return;
         // NEWDATATYPE: display of special values in entity details popup viewer
-        let value = db.getValueToDisplay(context.attributes[attr.id], attr);
-        /*let value = undefined;
-        if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
-            value = context.attributes[attr.id];
-        }     
-        else if('url' === attr.type && context.attributes[attr.id]) {
-            value = {
-                display: 'html', 
-                value: '<a href="%s" target="_blank">%s</a>'.with(context.attributes[attr.id], context.attributes[attr.id])
-            };
-        }  
-        else {
-            value = db.getDisplayValue(context.attributes[attr.id], attr, false);
-        }*/        
+        let value = db.getValueToDisplay(context.attributes[attr.id], attr, context);
         if(value === undefined || value === null || value === '')
             return;
         let row = $('<tr/>').appendTo(tbody);
@@ -1196,8 +1183,8 @@ function renderEntityDetails(
             let tr = $('<tr/>').append(
                 $('<th/>').text(l10n.get('entityDetailsChildEntities', typeName))
             );
-            //renderAttributeValue('html', { display: 'entityLinkList', value: items, overrideMaxShow: 10 }, tr);
-            renderAttributeValue('html', this.getValueToDisplay(items, attr), tr);
+            renderAttributeValue('html', { display: 'entityLinkList', value: items, overrideMaxShow: 10 }, tr);
+            //renderAttributeValue('html', this.getValueToDisplay(items, attr, context), tr);
             tbody.append(tr);
         });
     }
@@ -1260,6 +1247,12 @@ function renderAttributeValue(
 // ------------------------------------------------------------------------------------
     // workaround for new getValueToDisplay function, which returns dataTable object 
     // as cell value like {v: value, s: sortValue}
+    if(val === null) {
+        val = {
+            s: null,
+            v: null
+        }
+    }
     if(val && typeof val === 'object' && val.v !== undefined) {
         if(type === 'html') {
             let td = $('<td/>').html(val.v);
@@ -1501,7 +1494,7 @@ function getContextMapMarkers(contexts, geoDataProperty, withPopupTooltip) {
                 let attr = db.attributes[attrId];
                 if(attr.pseudoAttributeKey || attr.isAncestryTable)
                     return;
-                properties[attr.name] = db.getDisplayValue(attrVal, attr, true, false);
+                properties[attr.name] = db.getValueToDisplay(attrVal, attr, context, true, false);
             });
             let marker = L.geoJson({
                 type: 'Feature',
@@ -1592,7 +1585,7 @@ function addResultMap(contexts, result_div) {
                 'html',
                 attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
                 ? { display: 'html', value: db.getEntityDetailsLink(context), order: context.id }
-                : db.getDisplayValue(value, attr),
+                : db.getValueToDisplay(value, attr, context),
                 tr, attr);
             table.append(tr);
         });
