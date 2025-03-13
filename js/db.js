@@ -1285,6 +1285,10 @@ function initializeDbVar() {
                     return val;
 
                 case 'geometry':
+                    // entity: geography_val -> object {wkt: string}
+                    // table: wkt as string
+                    if(typeof val === 'string')
+                        val = { wkt: val };
                     if(!asString)
                         return val.wkt ? val.wkt : null;
                     if(val.wkt.length > 40)
