@@ -1327,7 +1327,7 @@ function renderAttributeValue(
                         };
                     }
                 }
-            case 'table': {
+            /*case 'table': {
                 let infoIndex = DataTableElementInfos.add({
                     table: val.value,
                     target: '#modalTableInCell'
@@ -1347,7 +1347,7 @@ function renderAttributeValue(
                         s: val.value.body.length
                     };
                 }
-            }
+            }*/
             case 'plain':
                 if(type === 'html') {
                     let td = $('<td/>').text(val.value);

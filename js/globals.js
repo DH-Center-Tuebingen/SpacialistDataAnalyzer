@@ -70,7 +70,7 @@ const AttributeTypeSymbols = {
     'string-mc': '⋮', // json_val, table, array of objects [{id: int, concept_url: string}, ...]
     'string-sc': '·', // thesaurus_val, table
     'stringf': '¶', // str_val
-    'table': '⊞', // json_val, array of ordered row objects [{'attr1_id': value}, {'attr2_id': value}, ...]
+    'table': '⊞', // json_val, array of ordered row objects [{'attr1_id': value, 'attr2_id': value}, ...]
     'timeperiod': '↦', // json_val, table, object {end: int, start: int, endLabel: 'AD|BC', startLabel: 'AD|BC'}
     'url': '⟴', // str_val, table
     'userlist': '☰', // json_val, table, array [user1_id, user2_id, ...]

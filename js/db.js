@@ -1007,7 +1007,69 @@ function initializeDbVar() {
                     return { v: displayValue, s: displayValue };
 
                 case 'table': 
-                    return undefined;
+                    // entity: json_val -> array of ordered row objects [{'attr1_id': value, 'attr2_id': value}, ...]
+                    let table = {
+                        head: [],
+                        body: [],
+                        attrs: [],
+                        sortTypes: []
+                    };
+                    let colAttrs = {}; // for quicker access than via db.attributes
+                    let i = 0;
+                    origValue.forEach(row => {
+                        let tblRow = [];
+                        row.forEachValue((attr_id, value) => {
+                            let attr;
+                            if(i == 0) {
+                                attr = colAttrs[attr_id] = db.attributes[attr_id];
+                                table.head.push(attr ? attr.name : c);
+                                table.attrs.push(attr);
+                                table.sortTypes.push(attr ? db.getSortTypeFromAttr(attr) : undefined);
+                            }
+                            else {
+                                attr = colAttrs[attr_id];
+                            }
+                            // TODO: check display value for table cells
+                            tblRow.push(this.getValueToDisplay(value, attr));
+                        });
+                        table.body.push(tblRow);
+                        i++;
+                    });
+                    /*if(!asString)
+                        return table.body;*/
+                    if(i == 0) {
+                        return null;
+                    }
+
+                    let infoIndex = DataTableElementInfos.add({
+                        table: table,
+                        target: '#modalTableInCell'
+                    }, 'showTableModal');
+                    let btn = $('<button/>')
+                        .attr({
+                            type: 'button',
+                            title: l10n.resultShowTableModalTooltip,
+                            'data-xinfo': infoIndex
+                        })
+                        .addClass('xinfo btn btn-outline-dark btn-sm pb-0 pt-0')
+                        .text('%s %s'.with(Symbols.table, l10n.resultShowTableModal));
+                    /*if(type === 'html') {
+                        tr.append($('<td/>').append(btn));
+                        break;
+                    }
+                    else {*/
+                    return {
+                        v: btn[0].outerHTML,
+                        s: table.body.length
+                    };
+                    
+                    /*}
+
+                    displayValue = {                            
+                        v: table,
+                        s: undefined
+                    };                    
+                    return displayValue;*/
 
                 case 'timeperiod': 
                 case 'epoch':
