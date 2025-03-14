@@ -738,7 +738,7 @@ function initializeDbVar() {
                     else
                         result.body.push([ v, c ]);
                 }); 
-            }          
+            }        
             else
                 distr.forEachValue((v, c) => result.body.push([v, c]));
             return result;
@@ -1077,6 +1077,10 @@ function initializeDbVar() {
                         displayValue += db.getThesaurusLabel(origValue.epoch.concept_url, origValue.epoch.concept_url);
                     }
                     displayValue = displayValue.trim();
+                    displayValue = {
+                        v: displayValue,
+                        s: displayValue
+                    };
                     break;
 
                 case 'url': 

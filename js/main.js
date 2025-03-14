@@ -1184,7 +1184,6 @@ function renderEntityDetails(
                 $('<th/>').text(l10n.get('entityDetailsChildEntities', typeName))
             );
             renderAttributeValue('html', { display: 'entityLinkList', value: items, overrideMaxShow: 10 }, tr);
-            //renderAttributeValue('html', this.getValueToDisplay(items, attr, context), tr);
             tbody.append(tr);
         });
     }
@@ -1253,161 +1252,111 @@ function renderAttributeValue(
             v: null
         }
     }
-    if(val && typeof val === 'object' && val.v !== undefined) {
-        if(type === 'html') {
-            let td = $('<td/>').html(val.v);
-            if(val.s !== undefined)
-                td.attr('data-order', val.s);
-            tr.append(td);
-            return;
+    if(val && typeof val === 'object') {
+        if(val.v !== undefined) {
+            if(type === 'html') {
+                let td = $('<td/>').html(val.v);
+                if(val.s !== undefined)
+                    td.attr('data-order', val.s);
+                tr.append(td);
+                return;
+            }
+            else {
+                return val;
+            }
+        }
+        else if(val.display === 'entityLinkList') {
+            if(Array.isArray(val.value)) {
+                let maxShow = val.overrideMaxShow || Settings.resultTable.entityLinkListMaxItems;
+                let cut = {
+                    show: val.value.slice(0, maxShow).join(''),
+                    hide: val.value.slice(maxShow)
+                };
+                let hidden;
+                if(cut.hide.length > 0)
+                    hidden = getShowMoreSpan(cut.hide.join(''), true, l10n.get('resultTableShowMoreListItems', cut.hide.length), type === 'data');
+                if(type === 'html') {
+                    let td = $('<td/>');
+                    td.html(cut.show);
+                    if(hidden)
+                        td.append(hidden);
+                    if(val.order !== undefined)
+                        td.attr('data-order', val.order);
+                    tr.append(td);
+                    return;
+                }
+                else {
+                    let hiddenHtml = hidden ? hidden[0].outerHTML : '';
+                    return {
+                        v: cut.show + hiddenHtml,
+                        s: val.order !== undefined ? val.order : (cut.show + hiddenHtml)
+                    };
+                }
+            }
+            else {
+                if(type === 'html') {
+                    tr.append($('<td/>'));
+                    return;
+                }
+                else {
+                    return {
+                        v: '',
+                        s: ''
+                    };
+                }
+            }
         }
         else {
-            return val;
+            console.log(val, attr);
+            if(type === 'html') {
+                tr.append($('<td/>').text('???'));
+                return;
+            }
+            else
+                return { v: '???', s: '???' };
         }
     }
 
     console.log('resort to old renderAttributeValue:', typeof val, val, attr);
 
-    if(val !== null && typeof val === 'object') {
-        switch(val.display) {
-            case 'html':
-                if(type === 'html') {
-                    let td = $('<td/>').html(val.value);
-                    if(val.order !== undefined)
-                        td.attr('data-order', val.order);
-                    tr.append(td);
-                    break;
-                }
-                else {
-                    return {
-                        v: val.value,
-                        s: val.order !== undefined ? val.order : val.value
-                    };
-                }
-            /*case 'entityLinkList':
-                if(Array.isArray(val.value)) {
-                    let maxShow = val.overrideMaxShow || Settings.resultTable.entityLinkListMaxItems;
-                    let cut = {
-                        show: val.value.slice(0, maxShow).join(''),
-                        hide: val.value.slice(maxShow)
-                    };
-                    let hidden;
-                    if(cut.hide.length > 0)
-                        hidden = getShowMoreSpan(cut.hide.join(''), true, l10n.get('resultTableShowMoreListItems', cut.hide.length), type === 'data');
-                    if(type === 'html') {
-                        let td = $('<td/>');
-                        td.html(cut.show);
-                        if(hidden)
-                            td.append(hidden);
-                        if(val.order !== undefined)
-                            td.attr('data-order', val.order);
-                        tr.append(td);
-                        break;
-                    }
-                    else {
-                        let hiddenHtml = hidden ? hidden[0].outerHTML : '';
-                        return {
-                            v: cut.show + hiddenHtml,
-                            s: val.order !== undefined ? val.order : (cut.show + hiddenHtml)
-                        };
-                    }
-                }
-                else {
-                    if(type === 'html') {
-                        tr.append($('<td/>'));
-                        break;
-                    }
-                    else {
-                        return {
-                            v: '',
-                            s: ''
-                        };
-                    }
-                }
-                    */
-            /*case 'table': {
-                let infoIndex = DataTableElementInfos.add({
-                    table: val.value,
-                    target: '#modalTableInCell'
-                }, 'showTableModal');
-                let btn = $('<button/>').attr({
-                    type: 'button',
-                    title: l10n.resultShowTableModalTooltip,
-                    'data-xinfo': infoIndex
-                }).addClass('xinfo btn btn-outline-dark btn-sm pb-0 pt-0').text('%s %s'.with(Symbols.table, l10n.resultShowTableModal));
-                if(type === 'html') {
-                    tr.append($('<td/>').append(btn));
-                    break;
-                }
-                else {
-                    return {
-                        v: btn[0].outerHTML,
-                        s: val.value.body.length
-                    };
-                }
-            }*/
-            case 'plain':
-                if(type === 'html') {
-                    let td = $('<td/>').text(val.value);
-                    if(val.order !== undefined)
-                        td.attr('data-order', val.order);
-                    tr.append(td);
-                    break;
-                }
-                else {
-                    return {
-                        v: val.value,
-                        s: val.order !== undefined ? val.order : val.value
-                    };
-                }
-            default:
-                if(type === 'html') {
-                    tr.append($('<td/>').text('???'));
-                    break;
-                }
-                else
-                    return { v: '???', s: '???' };
+    // here val is not an object but an atomic value (string, number, date, etc.)
+    let cell = $('<td/>');
+    let orderVal;
+    if(val === null || val === undefined)
+        cell/*.attr('data-order', '')*/.text('');
+    else if(attr && attr.type === 'entity') {
+        let entity = db.contexts[val];
+        if(entity) {
+            cell.attr('data-order', orderVal = entity.name).html(
+                db.getEntityDetailsLink(entity, entity.name,
+                    type === 'html' ? { 'data-navigate': true } : undefined
+                )
+            );
         }
     }
-    else {
-        let cell = $('<td/>');
-        let orderVal;
-        if(val === null || val === undefined)
-            cell/*.attr('data-order', '')*/.text('');
-        else if(attr && attr.type === 'entity') {
-            let entity = db.contexts[val];
-            if(entity) {
-                cell.attr('data-order', orderVal = entity.name).html(
-                    db.getEntityDetailsLink(entity, entity.name,
-                        type === 'html' ? { 'data-navigate': true } : undefined
-                    )
-                );
-            }
-        }
-        else switch(typeof val) {
-            case 'number':
-                cell.attr('data-order', orderVal = val).text(
-                    attr && attr.pseudoAttributeKey === PseudoAttributes.ID ? val : val.toLocaleString()
-                );
-                break;
+    else switch(typeof val) {
+        case 'number':
+            cell.attr('data-order', orderVal = val).text(
+                attr && attr.pseudoAttributeKey === PseudoAttributes.ID ? val : val.toLocaleString()
+            );
+            break;
 
-            case 'date':
-                cell.attr('data-order', orderVal = val.getTime()).text(val.toLocaleDateString());
-                break;
+        case 'date':
+            cell.attr('data-order', orderVal = val.getTime()).text(val.toLocaleDateString());
+            break;
 
-            default: {
-                let cut = tryCutCellText(val, attr);
-                cell.text(cut.show);
-                if(cut.hide)
-                    cell.append(getShowMoreSpan(cut.hide, false, undefined, type === 'data'));
-                break;
-            }
+        default: {
+            let cut = tryCutCellText(val, attr);
+            cell.text(cut.show);
+            if(cut.hide)
+                cell.append(getShowMoreSpan(cut.hide, false, undefined, type === 'data'));
+            break;
         }
-        if(type === 'html')
-            tr.append(cell);
-        else
-            return { v: cell.html(), s: orderVal ? orderVal : cell.text() };
     }
+    if(type === 'html')
+        tr.append(cell);
+    else
+        return { v: cell.html(), s: orderVal ? orderVal : cell.text() };
 }
 
 // ------------------------------------------------------------------------------------
@@ -1584,8 +1533,8 @@ function addResultMap(contexts, result_div) {
             renderAttributeValue(
                 'html',
                 attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                ? { display: 'html', value: db.getEntityDetailsLink(context), order: context.id }
-                : db.getValueToDisplay(value, attr, context),
+                    ? { v: db.getEntityDetailsLink(context, context.name), s: context.id }
+                    : db.getValueToDisplay(value, attr, context),
                 tr, attr);
             table.append(tr);
         });
