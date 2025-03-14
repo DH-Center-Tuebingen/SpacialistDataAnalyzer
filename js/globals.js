@@ -13,7 +13,8 @@ var DataTableElementInfos = {
         return this.infos[index];
     },
     clear: function () {
-        this.infos = [];
+        // caching of cell data requires history of infos, so wee keep those
+        //this.infos = [];
     }
 };
 const Settings = {
