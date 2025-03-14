@@ -1004,6 +1004,7 @@ function showTableModal() {
     $('body').append(div);
     makeDataTable(div.find('table#result-table'), {
         iDisplayLength: 100,
+        scrollX: true,
         order: []
     }, [3, 5, 4], false);
     div.on('shown.bs.modal', () => {
