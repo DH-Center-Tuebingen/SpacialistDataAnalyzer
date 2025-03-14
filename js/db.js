@@ -1228,15 +1228,8 @@ function initializeDbVar() {
                     // NEWDATATYPE: if entity list, need to display as links
                     r.attrs.forEach(attr => {
                         if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
-                            row.push({ display: 'html', value: this.getEntityDetailsLink(context), order: context.id });
+                            row.push({ v: this.getEntityDetailsLink(context), s: context.id });
                         }
-                        else if(attr.type === 'url' && context.attributes[attr.id]) {
-                            row.push({ 
-                                display: 'html', 
-                                value: '<a href="%s" target="_blank">%s</a>'.with(context.attributes[attr.id], context.attributes[attr.id]), order: context.attributes[attr.id],
-                                order: context.attributes[attr.id] 
-                            }); 
-                        }                    
                         else {
                             row.push(this.getValueToDisplay(context.attributes[attr.id], attr, context));
                         }
