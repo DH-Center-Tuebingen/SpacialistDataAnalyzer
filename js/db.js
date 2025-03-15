@@ -1754,9 +1754,28 @@ function initializeDbVar() {
                                 if(!this.isRelevantTableRow(context, attr.parentAttribute, index))
                                     return;
                                 let attrVal = tableRow[attr.id];
-                                let displayVal = this.getValueToDisplay(attrVal, attr, context, index);
-                                if(!seenValues.includes(displayVal))
-                                    seenValues.push(displayVal);
+                                // NEWDATATYPE: if list-based datatype (array value), then push all list values here
+                                // those not converted later might need conversion here
+                                if(Array.isArray(attrVal)
+                                    && ['entity-mc', 'list', 'userlist', 'string-mc'].includes(attr.type)
+                                ) {
+                                    attrVal.forEach(val => {
+                                        if(attr.type === 'string-mc') {
+                                            val = db.getThesaurusLabel(val.concept_url);
+                                        }
+                                        if(!seenValues.includes(val))
+                                            seenValues.push(val);
+                                    });
+                                }
+                                else {
+                                    let displayVal = attrVal;
+                                    if('entity' !== attr.type) {
+                                        // gets converted later on
+                                        displayVal = this.getValueToDisplay(attrVal, attr, context, index, true);
+                                    }
+                                    if(!seenValues.includes(displayVal))
+                                        seenValues.push(displayVal);
+                                }
                             });
                             groupColumnValues.push(seenValues);
                         }
@@ -1772,17 +1791,12 @@ function initializeDbVar() {
                             if(Array.isArray(values))
                                 groupColumnValues.push(values.map(val => db.getThesaurusLabel(val.concept_url)));
                         }
-                        else if(attr.type === 'list') {
-                            let values = context.attributes[attr.id];
-                            if(Array.isArray(values))
-                                groupColumnValues.push(values);
-                        }
                         else if(attr.type === 'userlist') {
                             let values = context.attributes[attr.id];
                             if(Array.isArray(values))
                                 groupColumnValues.push(values.map(val => val.name));
                         }
-                        else if(attr.type === 'entity-mc') {
+                        else if(['entity-mc', 'list'].includes(attr.type)) {
                             let values = context.attributes[attr.id];
                             if(Array.isArray(values))
                                 groupColumnValues.push(values);
@@ -1791,7 +1805,9 @@ function initializeDbVar() {
                         // that have an array binding in json_val (e.g. daterange). The outer array will be exploded
                         // later when computing the distinct values for each group column
                         else {
-                            groupColumnValues.push([this.getValueToDisplay(context.attributes[attr.id], attr, context)]);
+                            groupColumnValues.push([
+                                this.getValueToDisplay(context.attributes[attr.id], attr, context, -1, true)
+                            ]);
                         }
                     }
                 });
@@ -1895,12 +1911,15 @@ function initializeDbVar() {
             // from the raw value
             r.body.forEach(row => {
                 for(let i = 0; i < groupColumns.length; i++) {
-                    if(colAttrs[i].type === 'entity' || colAttrs[i].type === 'entity-mc') {
+                    if(row[i] === null) {
+                        row[i] = { v: l10n.dbNull, s: null };
+                    }
+                    else if(colAttrs[i].type === 'entity' || colAttrs[i].type === 'entity-mc') {
                         row[i] = db.getEntityDisplayObject(row[i]);
                     }
-                    if(colAttrs[i].type === 'url' && row[i]) {
-                        row[i] = { display: 'html', value: '<a href="%s" target="_blank">%s</a>'.with(row[i], row[i]), order: row[i] };
-                    }        
+                    else if(colAttrs[i].type === 'url' && row[i]) {
+                        row[i] = { v: row[i], s: row[i] };
+                    }
                 }
                 linkListColumns.forEach(colIndex => {
                     let linkList = row[colIndex];
