@@ -314,9 +314,18 @@ function initializeDbVar() {
         // --------------------------------------------------------------------------------------------
         isNumericSpacialistType: function(spacialistType) {
         // --------------------------------------------------------------------------------------------
+            // NEWDATATYPE: if attribute type is numeric, include here:
             const numericTypes = ['double', 'integer', 'percentage', 'si-unit'];
             return numericTypes.includes(spacialistType);
         },
+
+        // --------------------------------------------------------------------------------------------
+        isAttributeCapableOfLongText: function(attributeType) {
+        // --------------------------------------------------------------------------------------------
+            // NEWDATATYPE: if attribute type can hold long text, that should be cut in a table cell...
+            return ['stringf', 'richtext'].includes(spacialistType);
+        },
+    
 
         // --------------------------------------------------------------------------------------------
         createAncestryTables: function(
@@ -1860,10 +1869,7 @@ function initializeDbVar() {
                     for(let repetition = 0; repetition < repeatCount; repetition++) {
                         groupColumnValues[c].forEach(value => {
                             for(let count = 0; count < countPerRepetition; count++) {
-                                /*if(c < groupColumns.length && colAttrs[c].type === 'entity')
-                                    rows[r++][c] = db.getEntityDisplayObject(value);
-                                else*/
-                                    rows[r++][c] = value;
+                                rows[r++][c] = value;
                             }
                         });
                     }
@@ -1919,6 +1925,13 @@ function initializeDbVar() {
                     }
                     else if(colAttrs[i].type === 'url' && row[i]) {
                         row[i] = { v: row[i], s: row[i] };
+                    }
+                    else {
+                        let cut = tryCutCellText(row[i], groupColumns[i]);
+                        let val = cut.show;
+                        if(cut.hide)
+                            val += getShowMoreSpan(cut.hide, false, undefined, true)[0].outerHTML;
+                        row[i] = { v: val, s: row[i] };
                     }
                 }
                 linkListColumns.forEach(colIndex => {

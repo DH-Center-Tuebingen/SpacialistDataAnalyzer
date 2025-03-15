@@ -1025,10 +1025,9 @@ function tryCutCellText(
 // ------------------------------------------------------------------------------------
     // NEWDATATYPE: for result table, add code for text cutting if value too long (if needed)
     switch(attr && attr.type) {
-        case 'string':        
+        case 'string':      
         case 'stringf':
         case 'richtext':
-        case 'serial':
             return {
                 show: val.substring(0, Settings.resultTable.textMaxChars),
                 hide: val.substring(Settings.resultTable.textMaxChars)
@@ -1159,10 +1158,9 @@ function renderEntityDetails(
             return;
         if(EntityDetailsHiddenAttributes.includes(attr.id))
             return;
-        // NEWDATATYPE: display of special values in entity details popup viewer
         let value = db.getValueToDisplay(context.attributes[attr.id], attr, context);
-        if(value === undefined || value === null || value === '')
-            return;
+        if(typeof value.v === 'undefined' || value.v === null || value.v === '')
+            return; // don't display empty row
         let row = $('<tr/>').appendTo(tbody);
         $('<th/>').text(attr.name).appendTo(row);
         renderAttributeValue('html', value, row, attr);
@@ -1256,13 +1254,25 @@ function renderAttributeValue(
     if(val && typeof val === 'object') {
         if(val.v !== undefined) {
             if(type === 'html') {
-                let td = $('<td/>').html(val.v);
+                let td = $('<td/>')
+                if(val.v !== null) {
+                    let cut = tryCutCellText(val.v, attr);
+                    td.html(cut.show);
+                    if(cut.hide)
+                        td.append(getShowMoreSpan(cut.hide, true, undefined, true));
+                }
                 if(val.s !== undefined)
                     td.attr('data-order', val.s);
                 tr.append(td);
                 return;
             }
             else {
+                if(val.v !== null) {
+                    let cut = tryCutCellText(val.v, attr);
+                    val.v = cut.show;
+                    if(cut.hide)
+                        val.v += getShowMoreSpan(cut.hide, true, undefined, true)[0].outerHTML;
+                }
                 return val;
             }
         }
