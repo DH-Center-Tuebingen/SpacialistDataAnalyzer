@@ -485,10 +485,9 @@ function initializeDbVar() {
                 let attr = db.attributes[av.attribute];
                 let value = JSON.parse(av.value);
                 
-                if(false) {
-                    // this is just for commenting-out convenience
-                }
-                else if(attr.type === 'string-sc' && typeof value === 'string') { 
+                // NEWDATATYPE: some attributes are differently represented in tables than in entities;
+                // for proper processing later, we need to convert them to the expected format
+                if(attr.type === 'string-sc' && typeof value === 'string') { 
                     // make object for consistency with string-sc in tables
                     value = { concept_url: value };
                 }
@@ -504,7 +503,7 @@ function initializeDbVar() {
                             }
                             // string-sc might be represented as a thesaurus_url, not an object (might be fixed already?)
                             else if(columnAttr.type === 'string-sc' && typeof cellValue === 'string') {
-                                    row[columnAttr.id] = { concept_url: cellValue };
+                                row[columnAttr.id] = { concept_url: cellValue };
                             }
                             // it can happen that numeric attribute values are stored as strings in a table's json -> convert to number
                             else if(typeof cellValue === 'string' && this.isNumericSpacialistType(columnAttr.type)) {
@@ -519,8 +518,7 @@ function initializeDbVar() {
                                     row[columnAttr.id] = n;
                             }
                             // in tables entity-mc might come as a string representation of an array, e.g. "['12934', '12935']" -> convert to array
-                            else if(columnAttr.type === 'entity-mc' && typeof cellValue === 'string') {
-                            
+                            else if(columnAttr.type === 'entity-mc' && typeof cellValue === 'string') {                            
                                 try {
                                     cellValue = JSON.parse(cellValue);
                                     if(Array.isArray(cellValue)) {
@@ -536,6 +534,20 @@ function initializeDbVar() {
                                     console.log('Error parsing entity-mc value in table; string-based but no array', e);
                                     row[columnAttr.id] = null;
                                 }                                
+                            }
+                            // in userlist replace user ids with user objects
+                            else if(columnAttr.type === 'userlist' && Array.isArray(cellValue)) {
+                                for(let i = cellValue.length - 1; i >= 0 ; i--) {
+                                    let user = db.users[cellValue[i]];
+                                    if(user) {
+                                        cellValue[i] = { id: user.id, name: user.name };
+                                    }
+                                    else {
+                                        console.warn('User with ID %s not found in database'.with(cellValue[i]));
+                                        cellValue.splice(i, 1);
+                                    }
+                                }
+                                row[columnAttr.id] = cellValue;
                             }
                         });
                     });
@@ -626,9 +638,8 @@ function initializeDbVar() {
             let entity = db.contexts[entityId];
             if(entity)
                 return {
-                    display: 'html',
-                    order: entity.name,
-                    value: this.getEntityDetailsLink(entity, entity.name)
+                    v: this.getEntityDetailsLink(entity, entity.name),
+                    s: entity.id
                 };
             return undefined;
         },
@@ -645,10 +656,22 @@ function initializeDbVar() {
                         let vals = [];
                         parentVal.forEach(row => {
                             let val = row[attribute.id];
-                            vals.push(resolveThesaurus ? 
-                                this.tryResolveThesaurus(val) 
-                                : val
-                            );
+                            if(['entity-mc', 'string-mc', 'userlist', 'list'].includes(attribute.type)
+                                && Array.isArray(val) 
+                            ){
+                                val.forEach(e => {
+                                    vals.push(resolveThesaurus ? 
+                                        this.tryResolveThesaurus(e) 
+                                        : e
+                                    );
+                                });
+                            }
+                            else {
+                                vals.push(resolveThesaurus ? 
+                                    this.tryResolveThesaurus(val) 
+                                    : val
+                                );
+                            }
                         });
                         return vals;
 
@@ -667,40 +690,67 @@ function initializeDbVar() {
         getValueDistributionForAttribute: function (attribute) {
         // --------------------------------------------------------------------------------------------
             let distr = {};
+            // in JS null as object key becomes string "null", which cannot be used
+            // to check whether the original value was null, since "null" can also
+            // be the string value. So remember null values separately:
+            let countNulls = 0;
+
             db.traverseContextsOfType(
                 db.contextTypes[attribute.parentContextType.id],
                 attribute.parentContextType.typePathToRoot,
                 true,
                 context => {
+                    // TODO: if string-mc in a table, returns array of arrays ?!?!? wtf
                     let values = this.getAttributeValue(context, attribute, true);
                     if(typeof values === 'undefined')
-                        return;
+                        values = null;
                     
                     // NEWDATATYPE: if attribute type has array binding in database although it is not a list of values, include here
                     if(!Array.isArray(values)
-                        || ['daterange'].indexOf(attribute.type) >= 0 // has array binding in database json_val and should be conisdered as a single date range value, not as separate start/end values
+                        // daterange has array binding in database json_val and should be conisdered as a single date range value, not as separate start/end values
+                        || (!attribute.parentAttribute && ['daterange'].indexOf(attribute.type) >= 0)
                     ) {
                         values = [ values ];
                     }
                     
-                    // NEWDATATYPE: if values are objects, need to extract string value here
+                    // NEWDATATYPE: if attribute type is list-typeish, then we cannot use getValueToDisplay(),
+                    // since here we are exploding the list types, which would lead to confusion at
+                    // getValueToDisplay, since the funciton expects list-types to come as arrays;
+                    // also include here cases that need markup (e.g., entity, url,...) and get marked up later
                     values.forEach((val, index) => {
+                        if(val === null) {
+                            countNulls++;
+                            return;
+                        }
                         if(attribute.parentAttribute && !this.isRelevantTableRow(context, attribute.parentAttribute, index))
                             return;
-                        if(val !== null) {
-                            if(['string-mc', 'string-sc'].indexOf(attribute.type) >= 0) {
+                        
+                        switch(attribute.type) {
+                            case 'string-mc':
+                            case 'string-sc':
                                 if(typeof val === 'object' && typeof val.concept_url !== 'undefined')
                                     val = val.concept_url;
                                 let thVal = db.thesaurus[val];
                                 if(thVal)
                                     val = thVal.label;
-                            }
-                            else if('userlist' === attribute.type) {
+                                break;
+
+                            case 'userlist':
                                 val = val.name;
-                            }                            
-                            else
-                                val = db.getValueToDisplay(val, attribute, context, false);
+                                break;
+                            
+                            case 'list':
+                            case 'entity-mc':
+                            case 'entity':
+                            case 'url':
+                                // take as is, might get pimped later
+                                break;
+                            
+                            default:
+                                val = db.getValueToDisplay(val, attribute, context, -1, true);
+                                break;
                         }
+                        
                         if(typeof distr[val] === 'undefined')
                             distr[val] = 1;
                         else
@@ -712,35 +762,40 @@ function initializeDbVar() {
                 head: [attribute.name, l10n.resultTableHeadCount],
                 body: []
             };
-            if(this.isNumericSpacialistType(attribute.type))
-                distr.forEachValue((v, c) => {
+            if(this.isNumericSpacialistType(attribute.type)) {
+                for(const v in distr) {
+                    let c = distr[v];
                     // Object keys are always stored as strings in JS, even though they were originally nubmers.
                     // For correct formatting of the value in the GUI, we need to convert the value back to a number
                     let num = Number(v);
                     result.body.push([v === null || v === undefined || isNaN(num) ? null : num, c]);
-                });
-            // NEWDATATYPE: if objects as values that need special representation - do here
+                };
+            }
+            // NEWDATATYPE: if objects as values that need special representation and it has not been done above: do here
             // for example: convert raw url to clickable url
-            else if(['entity', 'entity-mc'].includes(attribute.type))
-                distr.forEachValue((v, c) => {
-                    if(!v)
-                        result.body.push([v, c]);
-                    else {
-                        let displayObj = db.getEntityDisplayObject(v);
-                        if(displayObj)
-                            result.body.push([ displayObj, c ]);
-                    }
-                });
+            else if(['entity', 'entity-mc'].includes(attribute.type)) {
+                for(const v in distr) {
+                    let c = distr[v];
+                    let displayObj = db.getEntityDisplayObject(v);
+                    if(displayObj)
+                        result.body.push([ displayObj, c ]);
+                }
+            }
             else if('url' == attribute.type) {
-                distr.forEachValue((v, c) => {
-                    if(v)
-                        result.body.push([{display: 'html', value: '<a href="%s" target="_blank">%s</a>'.with(v, v), order: v}, c ]);
-                    else
-                        result.body.push([ v, c ]);
-                }); 
+                for(const v in distr) {
+                    let c = distr[v];
+                    result.body.push([{v: '<a href="%s" target="_blank">%s</a>'.with(v, v), s: v}, c ]);
+                }; 
             }        
-            else
-                distr.forEachValue((v, c) => result.body.push([v, c]));
+            else {
+                for(const v in distr) {
+                    result.body.push([v, distr[v]]);
+                }
+            }
+            if(countNulls > 0) {
+                // insert as first row in table
+                result.body.unshift([{ v: l10n.dbNull, s: null }, countNulls]);
+            }
             return result;
         },
 
@@ -811,8 +866,9 @@ function initializeDbVar() {
         getValueToDisplay: function(
             origValue, // value as it comes from db and is transformed after _handleSqlResult function
             attribute, // attribute object
-            context, // context object, might be undefined?
-            rawNumbers, // legacy from getDisplayValue 
+            context, // context object; if missing, there is no caching of display value
+            rowIndex = -1, // index of the row in the parent attribute table, if applicable; else 0
+            textOnly = false, // boolean whether to return only the text/numeric value (true) or the whole object (false)
             asString, // legacy from getDisplayValue
             inTable, // boolean whether attribute child of table (true) or entity (false)
             isComputed, // boolean whether value was computed via sql attribute
@@ -821,8 +877,20 @@ function initializeDbVar() {
         ) {
         // --------------------------------------------------------------------------------------------        
             // check if done before
-            if(context && context.datatable.hasOwnProperty(attribute.id)) {
-                return context.datatable[attribute.id];
+            // if attribute has parent attribute (=is in a table), the attribute occurs for each row,
+            // so we need to consider the parent attribute context for caching
+            let parentAttributeId = attribute.parentAttribute ? attribute.parentAttribute.id : 0;
+            if(context
+                && typeof context.datatable[parentAttributeId] !== 'undefined'
+                && typeof context.datatable[parentAttributeId][attribute.id] !== 'undefined'
+                && typeof context.datatable[parentAttributeId][attribute.id][rowIndex] !== 'undefined'
+            ) {
+                let cachedVal = context.datatable[parentAttributeId][attribute.id][rowIndex];
+                // textOnly also requires numbers to be returned as numbers, not locale number strings 
+                // (for grouping, value distribution); in this case return the sorting value
+                return textOnly 
+                    ? (this.isNumericSpacialistType(attribute.type) ? cachedVal.s : cachedVal.v) 
+                    : cachedVal;
             }
 
             let displayValue = origValue;
@@ -834,7 +902,10 @@ function initializeDbVar() {
                 case 'boolean': 
                     // entity: int_val -> int {1, 0}
                     // table: boolean {true, false}
-                    displayValue = (origValue ? Symbols['box-checked'] : Symbols['box-unchecked']);
+                    displayValue = {
+                        v: (origValue ? Symbols['box-checked'] : Symbols['box-unchecked']),
+                        s: origValue
+                    };
                     break;
 
                 case 'date': 
@@ -1114,12 +1185,24 @@ function initializeDbVar() {
                     break;
             }
 
+            // null values still need objects
+            if(displayValue === null) {
+                displayValue = { v: null, s: null };
+            }
+            
             // store value so that it doesn't need to be computed again
             if(context) {
-                //console.log('cache datatable for attribute %s in context %s'.with(attribute.id, context.id));
-                context.datatable[attribute.id] = displayValue;
+                if(typeof context.datatable[parentAttributeId] === 'undefined') {
+                    context.datatable[parentAttributeId] = {};
+                }
+                if(typeof context.datatable[parentAttributeId][attribute.id] === 'undefined') {
+                    context.datatable[parentAttributeId][attribute.id] = {};
+                }
+                context.datatable[parentAttributeId][attribute.id][rowIndex] = displayValue;
             }
-            return displayValue;
+            return textOnly 
+                ? (this.isNumericSpacialistType(attribute.type) ? displayValue.s : displayValue.v)
+                : displayValue;
         },
 
         // --------------------------------------------------------------------------------------------
@@ -1582,7 +1665,7 @@ function initializeDbVar() {
                         if(!attr.parentAttribute || attr.parentAttribute.id != attribute.parentAttribute.id)
                             return true;
                         // same table here
-                        return resultRow[index] === this.getValueToDisplay(row[attr.id], attr, context);
+                        return resultRow[index] === this.getValueToDisplay(row[attr.id], attr, context, index);
                     });
                     if(doAggregate)
                         newValue = this.updateAggregateColumnValue(context, attribute, row[attribute.id], aggregateType, newValue, aggregateInfo);
@@ -1671,7 +1754,7 @@ function initializeDbVar() {
                                 if(!this.isRelevantTableRow(context, attr.parentAttribute, index))
                                     return;
                                 let attrVal = tableRow[attr.id];
-                                let displayVal = this.getValueToDisplay(attrVal, attr, context);
+                                let displayVal = this.getValueToDisplay(attrVal, attr, context, index);
                                 if(!seenValues.includes(displayVal))
                                     seenValues.push(displayVal);
                             });

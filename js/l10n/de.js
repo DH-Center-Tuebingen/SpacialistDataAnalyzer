@@ -165,6 +165,7 @@ const l10n_de = {
     dbReloadModalCancel: 'Abbrechen',
     dbEmptyHeading: 'Datenbank ist leer ☝',
     dbEmptyMessage: 'Die Datenbank enthält keine Entitäten, also gibt es nichts zu analysieren ☹',
+    dbNull: '<i>kein Wert</i>',
 
     treeCaption: 'Datenbankstruktur <sup><a title="Hilfe" target="_help" href="https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Database-Structure-Pane"></a></sup>',
     treeHideProperties: 'Einklappen',

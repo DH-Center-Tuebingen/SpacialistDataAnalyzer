@@ -1444,7 +1444,7 @@ function getContextMapMarkers(contexts, geoDataProperty, withPopupTooltip) {
                 let attr = db.attributes[attrId];
                 if(attr.pseudoAttributeKey || attr.isAncestryTable)
                     return;
-                properties[attr.name] = db.getValueToDisplay(attrVal, attr, context, true, false);
+                properties[attr.name] = db.getValueToDisplay(attrVal, attr, context);
             });
             let marker = L.geoJson({
                 type: 'Feature',
