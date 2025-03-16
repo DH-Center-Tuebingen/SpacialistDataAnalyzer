@@ -114,7 +114,7 @@
         });
         let nameCell = getPaddedCell(depth)
             .append($('<span/>').addClass('badge badge-secondary mr-2').text(contextType.countInstances.toLocaleString()))
-            .append($('<b/>').text(contextType.name.toUpperCase()));
+            .append($('<b/>').text(contextType.name));
         if(contextType.attributes.length > 0) {
             nameCell.append(
                 $('<button/>').addClass('btn btn-outline-secondary btn-sm show-hide-properties ml-3').data({
