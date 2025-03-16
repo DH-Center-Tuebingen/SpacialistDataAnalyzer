@@ -668,12 +668,14 @@ function initializeDbVar() {
                             if(['entity-mc', 'string-mc', 'userlist', 'list'].includes(attribute.type)
                                 && Array.isArray(val) 
                             ){
+                                rowVals = [];
                                 val.forEach(e => {
-                                    vals.push(resolveThesaurus ? 
+                                    rowVals.push(resolveThesaurus ? 
                                         this.tryResolveThesaurus(e) 
                                         : e
                                     );
                                 });
+                                vals.push(rowVals);
                             }
                             else {
                                 vals.push(resolveThesaurus ? 
