@@ -33,7 +33,8 @@ const Settings = {
     dimensionSeparator: ' × ',
     jumpToFilterTabAfterOutputSelection: false,
     skipLoadingComputedAttributes: false,
-    thesaurusPickerExpandAllMax: 100
+    thesaurusPickerExpandAllMax: 100,
+    geometryCoordinatesMaxChars: 100,
 };
 const PseudoAttributes = { // These must match the context's attribute keys!
     ID: 'id',

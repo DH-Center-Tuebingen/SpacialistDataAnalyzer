@@ -991,25 +991,41 @@ function initializeDbVar() {
                 case 'geometry': 
                     // note: geography is also interpreted as geometry
                     // entity: geography_val
-                    // table: string?
+                    // table: string
+                    if(typeof origValue === 'string') {
+                        // in a table, geometries are stored as wkt strings, so fake object:
+                        origValue = { wkt: origValue };
+                    }
                     if(typeof origValue === 'object' && origValue.wkt) {
-                        if(origValue.wkt.length > 40) {
-                            displayValue = origValue.wkt.trim().replace(/^([a-zA-Z]+)\(.+\)$/, '$1 (⋯)');
+                        // origValue.wkt is looks like Point (1.2 2.3)
+                        // check if it matches this pattern:
+                        let isGeometry = origValue.wkt.trim().match(/^\s*([^(]+)\((.+)\)\s*$/);
+                        if(isGeometry) {
+                            let geometryType = origValue.wkt.trim().replace(/^\s*([^()]+)\((.+)\)\s*$/, '$1').trim();
+                            let coordinates = origValue.wkt.trim().replace(/^\s*([^()]+)\((.+)\)\s*$/, '$2').trim();
+                            geometryType = geometryType.charAt(0).toUpperCase() + geometryType.substr(1).toLowerCase();
+                            // if too long, display expansion link for coordinates
+                            displayValue = '%s (%s)'.with(
+                                geometryType,
+                                coordinates.length > Settings.geometryCoordinatesMaxChars
+                                    ? getShowMoreSpan(coordinates, false, '⋯⋯', true)[0].outerHTML
+                                    : coordinates
+                            );
                         }
                         else {
-                            displayValue = origValue.wkt.trim().replace(/^([a-zA-Z]+)\((.+)\)$/, '$1 ($2)');
-                        }                        
-                        displayValue = displayValue.charAt(0).toUpperCase() + displayValue.substr(1).toLowerCase();
-                    }
-                    else if(typeof origValue === 'string') {
-                        console.log('geometry value is of type string instead of geo object:', origValue);
-                        displayValue = origValue;
+                            console.log('Unexpected geometry/geography string:', origValue.wkt);
+                            // just display, clipped if too long
+                            displayValue = origValue.wkt.length > Settings.geometryCoordinatesMaxChars
+                                ? origValue.wkt.substr(0, Settings.geometryCoordinatesMaxChars) 
+                                    + getShowMoreSpan(origValue.wkt.substr(Settings.geometryCoordinatesMaxChars), false, '⋯⋯', true)[0].outerHTML
+                                : origValue.wkt;
+                        }
                     }
                     else {
                         console.log('Unexpected geometry/geography value:', origValue);
                         displayValue = null;
                     }
-                    displayValue = {v: displayValue, s: displayValue};
+                    displayValue = { v: displayValue, s: origValue ? origValue.wkt : null };
                     break;
                 
                 case 'iconclass':
