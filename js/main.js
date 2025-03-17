@@ -1028,6 +1028,7 @@ function tryCutCellText(
         case 'string':      
         case 'stringf':
         case 'richtext':
+            val = String(val);
             return {
                 show: val.substring(0, Settings.resultTable.textMaxChars),
                 hide: val.substring(Settings.resultTable.textMaxChars)

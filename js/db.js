@@ -501,6 +501,23 @@ function initializeDbVar() {
                     value = { concept_url: value };
                 }
                 else if(attr.type === 'table') {
+                    // there are kaputt table json_vals in the database
+                    // e.g. agrigent database, entity 23061, attribute 124 (table "Funde")
+                    // in these faulty cases, the table row is not represented as an object with attr_id:value pairs,
+                    // but with seemingly random and long arrays of null values. So we simply filter all those faulty
+                    // rows out here and console.log some info
+                    let numFaultyRows = 0;
+                    for(let i = value.length-1; i >= 0; i--) {
+                        if(Array.isArray(value[i])) {
+                            numFaultyRows++;
+                            value.splice(i, 1);
+                        }
+                    }
+                    if(numFaultyRows > 0) {
+                        console.log('\tFound and ignored %s faulty rows in table attribute %s of entity %s'.with(
+                            numFaultyRows, attr.id, av.context
+                        ));
+                    }
                     // in the json that represents a table, some things need fixing to work later
                     attr.children.forEach(columnAttr => {  // for each column
                         value.forEach(row => { // for each row
@@ -878,19 +895,21 @@ function initializeDbVar() {
             origValue, // value as it comes from db and is transformed after _handleSqlResult function
             attribute, // attribute object
             context, // context object; if missing, there is no caching of display value
-            rowIndex = -1, // index of the row in the parent attribute table, if applicable; else 0
-            textOnly = false, // boolean whether to return only the text/numeric value (true) or the whole object (false)
-            asString, // legacy from getDisplayValue
-            inTable, // boolean whether attribute child of table (true) or entity (false)
-            isComputed, // boolean whether value was computed via sql attribute
-            forGrouping, // boolean whether value is used for grouping - needs to return something that can be compared with ==
-            displayContext // { resultTable, groupColumn, aggregateColumn, entityPopup, geomapPopup, tablePopup }
+            rowIndex = -1, // index of the row in the parent attribute table, if applicable; else -1
+            textOnly = false // boolean whether to return only the text/numeric value (true) or the whole object (false)            
         ) {
         // --------------------------------------------------------------------------------------------        
             // check if done before
             // if attribute has parent attribute (=is in a table), the attribute occurs for each row,
             // so we need to consider the parent attribute context for caching
-            let parentAttributeId = attribute.parentAttribute ? attribute.parentAttribute.id : 0;
+            if(!attribute) {
+                console.log("Somethng is wrong at getValueToDisplay(", 
+                    origValue, ",", attribute, ",", context, ",", rowIndex, ",", textOnly, ")");
+                return { v: null, s: null };
+            }
+            
+            // ignore caching for now
+            /*let parentAttributeId = attribute.parentAttribute ? attribute.parentAttribute.id : 0;
             if(context
                 && typeof context.datatable[parentAttributeId] !== 'undefined'
                 && typeof context.datatable[parentAttributeId][attribute.id] !== 'undefined'
@@ -902,7 +921,7 @@ function initializeDbVar() {
                 return textOnly 
                     ? (this.isNumericSpacialistType(attribute.type) ? cachedVal.s : cachedVal.v) 
                     : cachedVal;
-            }
+            }*/
 
             let displayValue = origValue;
             if(typeof displayValue === 'undefined' || displayValue === null) {
@@ -1124,14 +1143,17 @@ function initializeDbVar() {
                             let attr;
                             if(i == 0) {
                                 attr = colAttrs[attr_id] = db.attributes[attr_id];
-                                table.head.push(attr ? attr.name : c);
+                                table.head.push(attr ? attr.name : attr_id);
                                 table.attrs.push(attr);
                                 table.sortTypes.push(attr ? db.getSortTypeFromAttr(attr) : undefined);
                             }
                             else {
                                 attr = colAttrs[attr_id];
                             }
-                            tblRow.push(this.getValueToDisplay(value, attr));
+                            if(!attr) {
+                                console.log('Attribute', attr_id, ' not found in database\n  getValueToDisplay:', origValue, attribute, context, rowIndex, textOnly);
+                            }
+                            tblRow.push(this.getValueToDisplay(value, attr, context, i));
                         });
                         table.body.push(tblRow);
                         i++;
@@ -1217,7 +1239,9 @@ function initializeDbVar() {
                 displayValue = { v: null, s: null };
             }
             
+            // ignore caching for now
             // store value so that it doesn't need to be computed again
+            /*
             if(context) {
                 if(typeof context.datatable[parentAttributeId] === 'undefined') {
                     context.datatable[parentAttributeId] = {};
@@ -1226,7 +1250,7 @@ function initializeDbVar() {
                     context.datatable[parentAttributeId][attribute.id] = {};
                 }
                 context.datatable[parentAttributeId][attribute.id][rowIndex] = displayValue;
-            }
+            }*/
             return textOnly 
                 ? (this.isNumericSpacialistType(attribute.type) ? displayValue.s : displayValue.v)
                 : displayValue;
@@ -1692,7 +1716,7 @@ function initializeDbVar() {
                         if(!attr.parentAttribute || attr.parentAttribute.id != attribute.parentAttribute.id)
                             return true;
                         // same table here
-                        return resultRow[index] === this.getValueToDisplay(row[attr.id], attr, context, index);
+                        return resultRow[index] === this.getValueToDisplay(row[attr.id], attr, context, index, true);
                     });
                     if(doAggregate)
                         newValue = this.updateAggregateColumnValue(context, attribute, row[attribute.id], aggregateType, newValue, aggregateInfo);
