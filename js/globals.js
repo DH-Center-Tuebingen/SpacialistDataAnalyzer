@@ -44,6 +44,7 @@ const PseudoAttributes = { // These must match the context's attribute keys!
 const ResultTableIcons = {
     excel: '▦',
     copy: '⎘',
+    csv: '▤',
     print: '⎙',
     colvis: '▥'
 };

@@ -4,8 +4,8 @@
     "dependencies": {
         "@esciencecenter/simple-tree": "^1.1.1",
         "bootstrap": "4.1.2",
-        "datatables.net-bs4": "1.10.19",
-        "datatables.net-buttons-bs4": "1.5.3",
+        "datatables.net-bs4": "1.10.25",
+        "datatables.net-buttons-bs4": "1.7.1",
         "jquery": "3.1.1",
         "jquery-ui-dist": "1.12.1",
         "jszip": "3.1.5",

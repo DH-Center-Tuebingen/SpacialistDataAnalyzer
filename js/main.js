@@ -1247,10 +1247,7 @@ function renderAttributeValue(
     // workaround for new getValueToDisplay function, which returns dataTable object 
     // as cell value like {v: value, s: sortValue}
     if(val === null) {
-        val = {
-            s: null,
-            v: null
-        }
+        val = {s: null, v: null, e: '' };
     }
     if(val && typeof val === 'object') {
         if(val.v !== undefined) {
@@ -1311,10 +1308,7 @@ function renderAttributeValue(
                     return;
                 }
                 else {
-                    return {
-                        v: '',
-                        s: ''
-                    };
+                    return { v: null, s: null, e: '' };
                 }
             }
         }
@@ -1368,7 +1362,11 @@ function renderAttributeValue(
     if(type === 'html')
         tr.append(cell);
     else
-        return { v: cell.html(), s: orderVal ? orderVal : cell.text() };
+        return { 
+            v: cell.html(), 
+            s: orderVal ? orderVal : cell.text(),
+            e: cell.text()
+        };
 }
 
 // ------------------------------------------------------------------------------------
@@ -1455,7 +1453,7 @@ function getContextMapMarkers(contexts, geoDataProperty, withPopupTooltip) {
                 let attr = db.attributes[attrId];
                 if(attr.pseudoAttributeKey || attr.isAncestryTable)
                     return;
-                properties[attr.name] = db.getValueToDisplay(attrVal, attr, context);
+                properties[attr.name] = db.getValueToDisplay(attrVal, attr, context).e;
             });
             let marker = L.geoJson({
                 type: 'Feature',
@@ -1545,7 +1543,7 @@ function addResultMap(contexts, result_div) {
             renderAttributeValue(
                 'html',
                 attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                    ? { v: db.getEntityDetailsLink(context, context.name), s: context.id }
+                    ? { v: db.getEntityDetailsLink(context, context.name), s: context.name, e: context.name }
                     : db.getValueToDisplay(value, attr, context),
                 tr, attr);
             table.append(tr);
@@ -1583,12 +1581,28 @@ function makeDataTable(table, customOptions, domColumns, isResultTable) {
 // ------------------------------------------------------------------------------------
     let init_button = (foo, node) => node.removeClass('btn-secondary').addClass('btn-outline-secondary btn-sm');
     let buttons = [];
-    ['excel', 'copy', 'print', 'colvis'].forEach(i => {
+    ['copy', 'csv', 'excel', 'print', 'colvis'].forEach(i => {
         buttons.push({
             extend: i,
-            text: '%s %s'.with(ResultTableIcons[i], l10n.resultTableButtons[i]),
-            titleAttr: l10n.resultTableButtonTooltips[i],
-            init: init_button
+            text: isResultTable
+                ? '%s %s'.with(ResultTableIcons[i], l10n.resultTableButtons[i])
+                : ResultTableIcons[i], // bei popup nur icon anzeigen
+            titleAttr: isResultTable
+                ? l10n.resultTableButtonTooltips[i]
+                : '%s: %s'.with(l10n.resultTableButtons[i], l10n.resultTableButtonTooltips[i]), // bei popup button label in tooltip
+            init: init_button,
+            // export settings
+            exportOptions: {
+                orthogonal: 'customExport'
+            },
+            fieldSeparator: i === 'copy' ? '\t' : ',',
+            fieldBoundary: i === 'copy' ? '' : '"',
+            newline: '\r\n',
+            title: '',
+            messageTop: '',
+            messageBottom: '',
+            header: true,
+            footer: false,      
         });
     });
     let sortTypes = table.data('tableSortTypes');
@@ -1605,7 +1619,13 @@ function makeDataTable(table, customOptions, domColumns, isResultTable) {
                     _: '%s.v'.with(colIndex),
                     sort: '%s.s'.with(colIndex)
                 },
-                type: sortTypes === undefined ? undefined : sortTypes[colIndex]
+                type: sortTypes === undefined ? undefined : sortTypes[colIndex],
+                render: (data, type, row, meta) => {
+                    if(type === 'customExport') {
+                        return row[meta.col].e;
+                    }
+                    return data;
+                }
             }
         }),
         buttons,

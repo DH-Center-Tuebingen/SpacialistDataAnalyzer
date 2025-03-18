@@ -238,12 +238,14 @@ const l10n_de = {
     resultTableButtons: {
         excel: 'Excel',
         copy: 'Kopieren',
+        csv: 'CSV',
         print: 'Drucken',
         colvis: 'Spalten'
     },
     resultTableButtonTooltips: {
         excel: 'Tabelle als Excel-Datei herunterladen',
-        copy: 'Tabelle in die Zwischenablage kopieren',
+        copy: 'Tabelle im TSV-Format in die Zwischenablage kopieren (nicht gut bei Zeilenumbrüchen in Zellen)',
+        csv: 'Tabelle als CSV-Datei herunterladen',
         print: 'Tabelle für Ausdrucken vorbereiten',
         colvis: 'Spalten ein- und ausblenden'
     },

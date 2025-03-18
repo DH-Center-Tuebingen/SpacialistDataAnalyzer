@@ -238,12 +238,14 @@ const l10n_en = {
     resultTableButtons: {
         excel: 'Excel',
         copy: 'Copy',
+        csv: 'CSV',
         print: 'Print',
         colvis: 'Columns'
     },
     resultTableButtonTooltips: {
         excel: 'Download table as Excel file',
-        copy: 'Copy table to clipboard',
+        copy: 'Copy table to clipboard in TSV format (will not work with newlines in cells)',
+        csv: 'Download table as CSV file',
         print: 'Prepare table for printing',
         colvis: 'Select visible columns'
     },

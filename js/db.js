@@ -665,7 +665,8 @@ function initializeDbVar() {
             if(entity)
                 return {
                     v: this.getEntityDetailsLink(entity, entity.name),
-                    s: entity.id
+                    s: entity.name,
+                    e: entity.name
                 };
             return undefined;
         },
@@ -812,7 +813,11 @@ function initializeDbVar() {
             else if('url' == attribute.type) {
                 for(const v in distr) {
                     let c = distr[v];
-                    result.body.push([{v: '<a href="%s" target="_blank">%s</a>'.with(v, v), s: v}, c ]);
+                    result.body.push([{
+                        v: '<a href="%s" target="_blank">%s</a>'.with(v, v), 
+                        s: v,
+                        e: v
+                    }, c ]);
                 }; 
             }        
             else {
@@ -822,7 +827,7 @@ function initializeDbVar() {
             }
             if(countNulls > 0) {
                 // insert as first row in table
-                result.body.unshift([{ v: l10n.dbNull, s: null }, countNulls]);
+                result.body.unshift([{ v: l10n.dbNull, s: null, e: '' }, countNulls]);
             }
             return result;
         },
@@ -891,6 +896,11 @@ function initializeDbVar() {
         },
 
         // --------------------------------------------------------------------------------------------
+        // returns an object with the following properties:
+        //   v: value to display in table cell (html string)    
+        //   s: sorting value (number, string, ...)
+        //   e: export value (string, number, ...)
+        // --------------------------------------------------------------------------------------------
         getValueToDisplay: function(
             origValue, // value as it comes from db and is transformed after _handleSqlResult function
             attribute, // attribute object
@@ -905,7 +915,7 @@ function initializeDbVar() {
             if(!attribute) {
                 console.log("Somethng is wrong at getValueToDisplay(", 
                     origValue, ",", attribute, ",", context, ",", rowIndex, ",", textOnly, ")");
-                return { v: null, s: null };
+                return { v: null, s: null, e: '' };
             }
             
             // ignore caching for now
@@ -934,7 +944,8 @@ function initializeDbVar() {
                     // table: boolean {true, false}
                     displayValue = {
                         v: (origValue ? Symbols['box-checked'] : Symbols['box-unchecked']),
-                        s: origValue
+                        s: origValue,
+                        e: origValue ? 1 : 0
                     };
                     break;
 
@@ -943,7 +954,11 @@ function initializeDbVar() {
                     // table: string "YYYY-MM-DDT00:00:00.000Z"
                     // always comes as string, never as a JS date
                     let dt = new Date(origValue);
-                    displayValue = { v: dt.toLocaleDateString(), s: dt.getTime() };
+                    displayValue = { 
+                        v: dt.toLocaleDateString(), 
+                        s: dt.getTime(),
+                        e: dt.toISOString().substring(0, 10)
+                    };
                     break;
 
                 case 'daterange':
@@ -953,7 +968,11 @@ function initializeDbVar() {
                     let range = origValue.map(dt => new Date(dt));
                     let disp = range[0].toLocaleDateString() + ' ‒ ' + range[1].toLocaleDateString();
                     // sort by start and end date strings concatenated
-                    displayValue = { v: disp, s: origValue.map(s => s.substring(0,10)).join("") };
+                    displayValue = { 
+                        v: disp, 
+                        s: origValue.map(s => s.substring(0,10)).join(""),
+                        e: origValue.map(s => s.substring(0,10)).join("-")
+                    };
                     break;
 
                 case 'dimension':
@@ -967,14 +986,18 @@ function initializeDbVar() {
                     displayValue = displayValue.join(Settings.dimensionSeparator) + (origValue.unit ? ' ' + origValue.unit : '');
                     displayValue = { 
                         v: displayValue, 
-                        s: origValue.B ?? origValue.H ?? origValue.T
+                        s: origValue.B ?? origValue.H ?? origValue.T,
+                        e: displayValue
                     };
                     break;
                 
                 case 'double':
                     // entity: dbl_val -> double
                     // table: double
-                    displayValue = { v: origValue.toLocaleString(), s: origValue };
+                    displayValue = { 
+                        v: origValue.toLocaleString(), 
+                        s: origValue,
+                        e: origValue };
                     break;
 
                 case 'entity': 
@@ -982,7 +1005,8 @@ function initializeDbVar() {
                     // table: -"-
                     displayValue = {
                         v: this.getEntityDetailsLink(this.contexts[origValue], this.contexts[origValue].name),
-                        s: this.contexts[origValue].name
+                        s: this.contexts[origValue].name,
+                        e: this.contexts[origValue].name
                     };
                     break;
 
@@ -998,8 +1022,9 @@ function initializeDbVar() {
                         ));                    
                         displayValue = { 
                             v: html_list.join(''), 
-                            s: html_list.length 
-                        };                        
+                            s: html_list.length, 
+                            e: origValue.map(entity_id => this.contexts[entity_id].name).join('\r\n')
+                        };
                     }
                     else {
                         console.log("Unknown value format for entity-mc attribute:", origValue, typeof origValue);
@@ -1044,7 +1069,11 @@ function initializeDbVar() {
                         console.log('Unexpected geometry/geography value:', origValue);
                         displayValue = null;
                     }
-                    displayValue = { v: displayValue, s: origValue ? origValue.wkt : null };
+                    displayValue = { 
+                        v: displayValue, 
+                        s: origValue ? origValue.wkt : null,
+                        e: origValue ? origValue.wkt : null
+                    };
                     break;
                 
                 case 'iconclass':
@@ -1055,13 +1084,21 @@ function initializeDbVar() {
                 case 'stringf':         // not allowed in table
                     // entity: str_val -> string
                     // table: string
-                    displayValue = { v: displayValue, s: displayValue };
+                    displayValue = { 
+                        v: displayValue, 
+                        s: displayValue, 
+                        e: displayValue 
+                    };
                     break;
 
                 case 'integer':
                     // entity: int_val -> int
                     // table: int
-                    displayValue = { v: origValue.toLocaleString(), s: origValue };
+                    displayValue = { 
+                        v: origValue.toLocaleString(), 
+                        s: origValue,
+                        e: origValue
+                    };
                     break;
 
                 case 'list': 
@@ -1069,7 +1106,11 @@ function initializeDbVar() {
                     // table: not allowed
                     if(Array.isArray(origValue)) {
                         displayValue = origValue.join(Settings.mcSeparator);
-                        displayValue = { v: displayValue, s: displayValue };
+                        displayValue = { 
+                            v: displayValue, 
+                            s: displayValue,
+                            e: origValue.join('\r\n')
+                        };
                     }
                     else {
                         console.log('Unexpected list format:', typeof origValue, origValue);
@@ -1080,7 +1121,11 @@ function initializeDbVar() {
                 case 'percentage':
                     // entity: int_val -> int
                     // table: int
-                    displayValue = { v: origValue + ' %', s: origValue };
+                    displayValue = { 
+                        v: origValue + ' %',
+                        s: origValue,
+                        e: origValue
+                    };
                     break;
 
                 case 'relation': 
@@ -1103,7 +1148,11 @@ function initializeDbVar() {
                             displayValue = null;
                         }
                     }
-                    displayValue = { v: displayValue.toLocaleString(), s: displayValue };
+                    displayValue = { 
+                        v: displayValue.toLocaleString(), 
+                        s: displayValue,
+                        e: displayValue
+                    };
                     break;
 
                 case 'string-mc': 
@@ -1116,15 +1165,19 @@ function initializeDbVar() {
                         let th = db.thesaurus[url];
                         mc.push(th ? th.label : url);
                     });
-                    displayValue = mc.join(Settings.mcSeparator);
-                    displayValue = { v: displayValue, s: displayValue };
+                    displayValue = mc.join(Settings.mcSeparator);                    
+                    displayValue = { 
+                        v: displayValue, 
+                        s: displayValue, 
+                        e: mc.join('\r\n')
+                    };
                     break;
 
                 case 'string-sc':
                     // entity: thesaurus_val -> string -> object {concept_url: string} after loading db
                     // table: object {id: int, concept_url: string}
                     displayValue = this.tryResolveThesaurus(origValue);
-                    displayValue = { v: displayValue, s: displayValue };
+                    displayValue = { v: displayValue, s: displayValue, e: displayValue };
                     break;
 
                 case 'table': 
@@ -1176,7 +1229,13 @@ function initializeDbVar() {
                             .text('%s %s'.with(Symbols.table, l10n.resultShowTableModal));
                         displayValue = {
                             v: btn[0].outerHTML,
-                            s: table.body.length
+                            s: table.body.length,
+                            e: [table.head].concat(table.body.map(r => r.map(c => c.e))).map( // create csv
+                                row => row                                    
+                                    .map(s => String(s).replaceAll('"', '""'))  // escape double quotes
+                                    .map(s => `"${s}"`)  // quote it
+                                    .join(',')  // comma-separated
+                                ).join('\r\n')
                         };
                     }
                     break;
@@ -1199,7 +1258,8 @@ function initializeDbVar() {
                     displayValue = displayValue.trim();
                     displayValue = {
                         v: displayValue,
-                        s: displayValue
+                        s: displayValue,
+                        e: displayValue
                     };
                     break;
 
@@ -1209,7 +1269,8 @@ function initializeDbVar() {
                     // make clickable url
                     displayValue = { 
                         v: '<a href="%s" target="_blank">%s</a>'.with(origValue, origValue), 
-                        s: origValue 
+                        s: origValue,
+                        e: origValue
                     };
                     break;
 
@@ -1230,13 +1291,17 @@ function initializeDbVar() {
                         origValue.forEach(s => userlist.push(s.name));
                     }
                     displayValue = userlist.join(Settings.mcSeparator);
-                    displayValue = { v: displayValue, s: displayValue };
+                    displayValue = { 
+                        v: displayValue, 
+                        s: displayValue,
+                        e: userlist.join('\r\n') 
+                    };
                     break;
             }
 
             // null values still need objects
             if(displayValue === null) {
-                displayValue = { v: null, s: null };
+                displayValue = { v: null, s: null, e: '' };
             }
             
             // ignore caching for now
@@ -1362,7 +1427,7 @@ function initializeDbVar() {
                     // NEWDATATYPE: if entity list, need to display as links
                     r.attrs.forEach(attr => {
                         if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
-                            row.push({ v: this.getEntityDetailsLink(context), s: context.id });
+                            row.push({ v: this.getEntityDetailsLink(context), s: context.name, e: context.name });
                         }
                         else {
                             row.push(this.getValueToDisplay(context.attributes[attr.id], attr, context));
@@ -1960,20 +2025,20 @@ function initializeDbVar() {
             r.body.forEach(row => {
                 for(let i = 0; i < groupColumns.length; i++) {
                     if(row[i] === null) {
-                        row[i] = { v: l10n.dbNull, s: null };
+                        row[i] = { v: l10n.dbNull, s: null, e: '' };
                     }
                     else if(colAttrs[i].type === 'entity' || colAttrs[i].type === 'entity-mc') {
                         row[i] = db.getEntityDisplayObject(row[i]);
                     }
                     else if(colAttrs[i].type === 'url' && row[i]) {
-                        row[i] = { v: row[i], s: row[i] };
+                        row[i] = { v: row[i], s: row[i], e: row[i] };
                     }
                     else {
                         let cut = tryCutCellText(row[i], groupColumns[i]);
                         let val = cut.show;
                         if(cut.hide)
                             val += getShowMoreSpan(cut.hide, false, undefined, true)[0].outerHTML;
-                        row[i] = { v: val, s: row[i] };
+                        row[i] = { v: val, s: row[i], e: val };
                     }
                 }
                 linkListColumns.forEach(colIndex => {
