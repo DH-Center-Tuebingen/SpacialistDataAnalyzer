@@ -1902,27 +1902,28 @@ function initializeDbVar() {
                     else { // single attribute
                         // NEWDATATYPE: if list-based datatype (array value), then push all list values here;
                         // might reuqire special handling of array binding in json_val (see comment below)
-                        if(attr.type === 'string-mc') {
-                            let values = context.attributes[attr.id];
-                            if(Array.isArray(values))
-                                groupColumnValues.push(values.map(val => db.getThesaurusLabel(val.concept_url)));
+                        let attrVal = context.attributes[attr.id];
+                        if(attrVal === undefined || attrVal === null) {
+                            groupColumnValues.push([null]);
+                        }
+                        else if(attr.type === 'string-mc') {                            
+                            if(Array.isArray(attrVal))
+                                groupColumnValues.push(attrVal.map(val => db.getThesaurusLabel(val.concept_url)));
                         }
                         else if(attr.type === 'userlist') {
-                            let values = context.attributes[attr.id];
-                            if(Array.isArray(values))
-                                groupColumnValues.push(values.map(val => val.name));
+                            if(Array.isArray(attrVal))
+                                groupColumnValues.push(attrVal.map(val => val.name));
                         }
                         else if(['entity-mc', 'list'].includes(attr.type)) {
-                            let values = context.attributes[attr.id];
-                            if(Array.isArray(values))
-                                groupColumnValues.push(values);
+                            if(Array.isArray(attrVal))
+                                groupColumnValues.push(attrVal);
                         }
                         // by default we add the value as an array with one element, since there are attribute types
                         // that have an array binding in json_val (e.g. daterange). The outer array will be exploded
                         // later when computing the distinct values for each group column
                         else {
                             groupColumnValues.push([
-                                this.getValueToDisplay(context.attributes[attr.id], attr, context, -1, true)
+                                this.getValueToDisplay(attrVal, attr, context, -1, true)
                             ]);
                         }
                     }

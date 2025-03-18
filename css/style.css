@@ -300,6 +300,11 @@ tr:not(.row-cur) td.col-flt-object {
     font-weight: 600 !important;
 }
 
+.db-null {
+    font-style: italic;
+    color: gray
+}
+
 #status {
     margin-bottom: 1rem;
     color: dimgray;
