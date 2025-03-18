@@ -909,18 +909,18 @@ function initializeDbVar() {
             textOnly = false // boolean whether to return only the text/numeric value (true) or the whole object (false)            
         ) {
         // --------------------------------------------------------------------------------------------        
-            // check if done before
-            // if attribute has parent attribute (=is in a table), the attribute occurs for each row,
-            // so we need to consider the parent attribute context for caching
             if(!attribute) {
                 console.log("Somethng is wrong at getValueToDisplay(", 
                     origValue, ",", attribute, ",", context, ",", rowIndex, ",", textOnly, ")");
                 return { v: null, s: null, e: '' };
-            }
-            
-            // ignore caching for now
-            /*let parentAttributeId = attribute.parentAttribute ? attribute.parentAttribute.id : 0;
-            if(context
+            }    
+        
+            // check if done before
+            // if attribute has parent attribute (=is in a table), the attribute occurs for each row,
+            // so we need to consider the parent attribute context for caching
+            let parentAttributeId = attribute.parentAttribute ? attribute.parentAttribute.id : 0;
+            if(Settings.cacheAttributeValues
+                && context
                 && typeof context.datatable[parentAttributeId] !== 'undefined'
                 && typeof context.datatable[parentAttributeId][attribute.id] !== 'undefined'
                 && typeof context.datatable[parentAttributeId][attribute.id][rowIndex] !== 'undefined'
@@ -931,7 +931,7 @@ function initializeDbVar() {
                 return textOnly 
                     ? (this.isNumericSpacialistType(attribute.type) ? cachedVal.s : cachedVal.v) 
                     : cachedVal;
-            }*/
+            }
 
             let displayValue = origValue;
             if(typeof displayValue === 'undefined' || displayValue === null) {
@@ -1206,7 +1206,7 @@ function initializeDbVar() {
                             if(!attr) {
                                 console.log('Attribute', attr_id, ' not found in database\n  getValueToDisplay:', origValue, attribute, context, rowIndex, textOnly);
                             }
-                            tblRow.push(this.getValueToDisplay(value, attr, context, i));
+                            tblRow.push(this.getValueToDisplay(value, attr, context, i, false));
                         });
                         table.body.push(tblRow);
                         i++;
@@ -1304,10 +1304,10 @@ function initializeDbVar() {
                 displayValue = { v: null, s: null, e: '' };
             }
             
-            // ignore caching for now
             // store value so that it doesn't need to be computed again
-            /*
-            if(context) {
+            if(Settings.cacheAttributeValues 
+                && context
+            ) {
                 if(typeof context.datatable[parentAttributeId] === 'undefined') {
                     context.datatable[parentAttributeId] = {};
                 }
@@ -1315,7 +1315,7 @@ function initializeDbVar() {
                     context.datatable[parentAttributeId][attribute.id] = {};
                 }
                 context.datatable[parentAttributeId][attribute.id][rowIndex] = displayValue;
-            }*/
+            }
             return textOnly 
                 ? (this.isNumericSpacialistType(attribute.type) ? displayValue.s : displayValue.v)
                 : displayValue;
@@ -1772,16 +1772,16 @@ function initializeDbVar() {
                 if(table === undefined || table === null)
                     return currentValue;
                 let newValue = currentValue;
-                table.forEach((row, index) => {
-                    if(!this.isRelevantTableRow(context, attribute.parentAttribute, index))
+                table.forEach((row, rowIndex) => {
+                    if(!this.isRelevantTableRow(context, attribute.parentAttribute, rowIndex))
                         return;
                     // if there are grouped columns in this table, we must consider only those rows where the grouped columns match
-                    let doAggregate = groupColumns.every((attr, index) => {
+                    let doAggregate = groupColumns.every((attr, columnIndex) => {
                         // check if same table
                         if(!attr.parentAttribute || attr.parentAttribute.id != attribute.parentAttribute.id)
                             return true;
                         // same table here
-                        return resultRow[index] === this.getValueToDisplay(row[attr.id], attr, context, index, true);
+                        return resultRow[columnIndex] === this.getValueToDisplay(row[attr.id], attr, context, rowIndex, true);
                     });
                     if(doAggregate)
                         newValue = this.updateAggregateColumnValue(context, attribute, row[attribute.id], aggregateType, newValue, aggregateInfo);

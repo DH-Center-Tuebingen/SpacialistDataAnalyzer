@@ -1323,7 +1323,7 @@ function renderAttributeValue(
         }
     }
 
-    console.log('resort to old renderAttributeValue:', typeof val, val, attr);
+    //console.log('resort to old renderAttributeValue:', typeof val, val, attr);
 
     // here val is not an object but an atomic value (string, number, date, etc.)
     let cell = $('<td/>');

@@ -26,7 +26,7 @@ const Settings = {
     resultTable: {
         textMaxChars: 200,
         entityLinkListMaxItems: 50,
-        maxRows: 1000
+        maxRows: 1000        
     },
     mcSeparator: ' ⬥ ',
     epochSeparator: ' ⬥ ',
@@ -35,6 +35,7 @@ const Settings = {
     skipLoadingComputedAttributes: false,
     thesaurusPickerExpandAllMax: 100,
     geometryCoordinatesMaxChars: 100,
+    cacheAttributeValues: true
 };
 const PseudoAttributes = { // These must match the context's attribute keys!
     ID: 'id',
