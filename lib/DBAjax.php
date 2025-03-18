@@ -1,4 +1,9 @@
 <?php
+// If the JSON output of this file changes (e.g. through new database structure, change of queries
+// in this file, change of representation of attribute values in the database, so forth), we must
+// increase the CACHE_VERSION here, so that a refresh of the cache is forced.
+define('CACHE_VERSION', 2);
+
 require_once 'Helper.php';
 require_once 'Login.php';
 start_the_session('..');
@@ -16,8 +21,12 @@ if(!$forceLive) {
     }
     $cached_json = cache_get_data_db($lang);
     if($cached_json !== false) {
-        echo $cached_json;
-        exit;
+        // only use the cache if the version is current
+        $cache = json_decode($cached_json, true);
+        if(isset($cache['cacheVersion']) && $cache['cacheVersion'] == CACHE_VERSION) {
+            echo $cached_json;
+            exit;
+        }
     }
 }
 
@@ -259,6 +268,7 @@ try {
 
     $json = json_encode(array(
         'error' => false,
+        'cacheVersion' => CACHE_VERSION,
         'cacheTimestamp' => time() * 1000,
         'contextTypes' => $contextTypes,
         'attributes' => $attributes,

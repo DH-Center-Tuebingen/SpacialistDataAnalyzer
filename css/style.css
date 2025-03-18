@@ -326,6 +326,11 @@ tr:not(.row-cur) td.col-flt-object {
     float: right;
 }
 
+#data-status {
+    font-size: smaller;
+    float: right;
+}
+
 #reload-area {
     float: right;
 }

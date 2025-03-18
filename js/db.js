@@ -159,6 +159,7 @@ function initializeDbVar() {
             }
             let computedAttrTypes = {};
             db.cacheTimestamp = result.cacheTimestamp;
+            setDataStatusInfo(db.cacheTimestamp);
             result.attributeValues.forEach(row => {
                 let context = db.contexts[row.contextId];
                 row.values.forEachValue((attrId, val) => {
@@ -419,6 +420,7 @@ function initializeDbVar() {
                 return;
             }
             result.forEach(key => this[key] = result[key]);
+            setDataStatusInfo(this.cacheTimestamp);
             db_stats = '\t%s thesaurus concepts\n\t%s entities of %s types\n\t%s attributes with %s attribute values'.with(
                 this.thesaurus.countProperties(), 
                 this.contexts.countProperties(), this.contextTypes.countProperties(), 

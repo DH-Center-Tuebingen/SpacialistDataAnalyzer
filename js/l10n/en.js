@@ -263,6 +263,9 @@ const l10n_en = {
     statusInitUI: 'Initializing User Interface',
     statusFetchDB: 'Fetching Database',
     statusLoadComputedProperties: 'Processing in background...',
+    statusDataDate: 'Data status: %s%s',
+    statusDataDateToday: 'today, ',
+    statusDataDateTooltip: 'You are working with a cached copy of the database from %s. To check for updated data, click the refresh button to the right.',
 
     labelNone: 'None',
     labelLogout: 'Logout',

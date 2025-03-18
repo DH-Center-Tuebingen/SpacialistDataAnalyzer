@@ -263,6 +263,9 @@ const l10n_de = {
     statusInitUI: 'Initialisiere Anwendungsfenster',
     statusFetchDB: 'Lade Datenbank',
     statusLoadComputedProperties: 'Hintergrundberechnungen laufen...',
+    statusDataDate: 'Datenstatus: %s%s',
+    statusDataDateToday: 'heute, ',
+    statusDataDateTooltip: 'Sie arbeiten mit einer zwischengespeicherten Version der Spacialist-Datenbank vom %s. Um auf neue Daten zu prüfen, drücken Sie rechts den Aktualisierungsknopf.',
 
     labelNone: 'Keine',
     labelLogout: 'Ausloggen',

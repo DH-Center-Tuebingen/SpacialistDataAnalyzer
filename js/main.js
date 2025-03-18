@@ -2085,6 +2085,34 @@ function getTreeRowFromInternalId(internalId, isLegacy) {
 }
 
 // ------------------------------------------------------------------------------------
+function setDataStatusInfo(timestamp) {
+// ------------------------------------------------------------------------------------
+    // prepare status date with only necessary info
+    let curTime = new Date();
+    let cacheTime = new Date(timestamp);
+    let displayOptions;
+    let today = '';
+    let sameYear = curTime.getFullYear() === cacheTime.getFullYear();
+    let sameMonth = sameYear && curTime.getMonth() === cacheTime.getMonth();
+    let sameDay = sameMonth && curTime.getDate() === cacheTime.getDate();
+    if(sameDay) { // only time
+        displayOptions = { hour: '2-digit', minute: '2-digit'};
+        today = l10n.statusDataDateToday;
+    }
+    else if(sameYear) { // only day and month
+        displayOptions = { day: '2-digit', month: '2-digit' };
+    }
+    else { // different year: only date
+        displayOptions = { day: '2-digit', month: '2-digit', year: 'numeric' };
+    }
+    $('#data-status').empty().append(
+        $('<span/>')
+            .text(l10n.statusDataDate.with(today, new Date(cacheTime).toLocaleString(undefined, displayOptions)))
+            .attr('title', l10n.statusDataDateTooltip.with(new Date(cacheTime).toLocaleString()))
+    );
+}
+
+// ------------------------------------------------------------------------------------
 function clearStatusText() {
 // ------------------------------------------------------------------------------------
     setStatusText('', 0);
@@ -2095,9 +2123,20 @@ function setStatusText(text, seconds = 5) {
 // ------------------------------------------------------------------------------------
     if(window.clearStatusTimeout)
         clearTimeout(window.clearStatusTimeout);
-    let span = $('<span/>').text(text).appendTo($('#status-text').empty());
+    $('#status-text').empty()
+    if(text == '') {
+        $('#data-status').show();
+        return;
+    }
+    $('#data-status').hide();
+    let span = $('<span/>').text(text).appendTo($('#status-text'));
     window.clearStatusTimeout = setTimeout(
-        () => span.fadeOut(() => span.remove()),
+        () => {
+            span.fadeOut(() => {
+                span.remove()
+                $('#data-status').show();
+            });
+        },
         seconds * 1000
     );
 }
