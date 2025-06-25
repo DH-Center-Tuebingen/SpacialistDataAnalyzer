@@ -27,11 +27,11 @@ If successful, the browser should display a login page. If opened via a hyperlin
 
 The properties of the `Settings` object in `js/global.js` can be overridden, by providing a JSON object in a file named like the database and located in the `settings` subfolder. E.g., for the database `test`, putting `{ "Settings": { "forceLiveDb": false } }` into the file `settings/test.json` will override the default setting for this property and make the tool fetch the database from the cache rather than loading it from the PostgreSQL database upon every visit.
 
-Read the **[User Manual](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/User-Manual)** to learn how to use Spacialist Data Analyzer.
+Read the **[User Manual](https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis.html)** to learn how to use Spacialist Data Analyzer.
 
 ## Screenshot
 
-The screenshot below shows the Spacialist Data Analyzer main window, offering a hierarchical view of the **[structure of data](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Database-Structure-Pane)** in the database (tree on the left), various **[analysis options](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Analysis-Options-Pane)** (right-top pane, allowing selecting what kind of data to display, filtering based on entity properties, as well as grouping with and aggregation of property values), and various kinds of **[result displays](https://github.com/eScienceCenter/SpacialistDataAnalyzer/wiki/Result-Pane)** including geomaps and tabular data (right-bottom pane).
+The screenshot below shows the Spacialist Data Analyzer main window, offering a hierarchical view of the **[structure of data](https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis-database-structure-pane.html)** in the database (tree on the left), various **[analysis options](https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis-options-pane.html)** (right-top pane, allowing selecting what kind of data to display, filtering based on entity properties, as well as grouping with and aggregation of property values), and various kinds of **[result displays](https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis-result-pane.html)** including geomaps and tabular data (right-bottom pane).
 
 ![scr_main]
 
