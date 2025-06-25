@@ -1865,7 +1865,14 @@ function initializeDbVar() {
                 let attr = db.attributes[attrId];
                 colAttrs.push(attr);
                 aggrColumns.push(attr);
-                let colIndex = r.head.push("%s: %s %s".with(db.attributes[attrId].name, Symbols[aggr], l10n.attributeDisplayTypeLabels[aggr])) - 1;
+                let colIndex = r.head.push(
+                    "%s%s: %s %s".with(
+                        db.attributes[attrId].parentAttribute ? db.attributes[attrId].parentAttribute.name + ': ' : '',
+                        db.attributes[attrId].name, 
+                        Symbols[aggr], 
+                        l10n.attributeDisplayTypeLabels[aggr]
+                    )
+                ) - 1;
                 if([PseudoAttributes.ID, PseudoAttributes.Name].includes(attr.pseudoAttributeKey) && ['list-links', 'list-entities'].includes(aggr))
                     linkListColumns.push(colIndex);
                 r.sortTypes.push('num'); // aggregate columns always numberic ?!
