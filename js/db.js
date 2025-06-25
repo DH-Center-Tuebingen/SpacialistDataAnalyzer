@@ -1006,18 +1006,26 @@ function initializeDbVar() {
 
                 case 'entity': 
                     // entity: entity_val, integer with entity id -> clickable entity
-                    // table: -"-
-                    displayValue = {
-                        v: this.getEntityDetailsLink(this.contexts[origValue], this.contexts[origValue].name),
-                        s: this.contexts[origValue].name,
-                        e: this.contexts[origValue].name
-                    };
+                    // table: -"-                    
+                    // beware: might reference already delete entity (bug #199)
+                    if(typeof this.contexts[origValue] === 'undefined') {
+                        displayValue = null;
+                    }
+                    else {
+                        displayValue = {
+                            v: this.getEntityDetailsLink(this.contexts[origValue], this.contexts[origValue].name),
+                            s: this.contexts[origValue].name,
+                            e: this.contexts[origValue].name
+                        };
+                    }
                     break;
 
                 case 'entity-mc':
                     // entity: json_val, array [entity1_id, entity2_id, ...]
                     // table: array [entity1_id, entity2_id, ...] (actually might come as string, but is preprocessed before)
-                    if(Array.isArray(origValue)) {                        
+                    if(Array.isArray(origValue)) {
+                        // beware: referenced entity might not exist any more (bug #199), therefore we filter first
+                        origValue = origValue.filter(entity_id => typeof this.contexts[entity_id] !== 'undefined');
                         html_list = origValue.map(entity_id => this.getEntityDetailsLink(
                             this.contexts[entity_id], 
                             this.contexts[entity_id].name, 
