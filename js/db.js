@@ -1903,11 +1903,11 @@ function initializeDbVar() {
                                     });
                                 }
                                 else {
-                                    let displayVal = attrVal;
+                                    let displayVal = attrVal;                                    
                                     if('entity' !== attr.type) {
                                         // gets converted later on
                                         displayVal = this.getValueToDisplay(attrVal, attr, context, index, true);
-                                    }
+                                    }                                    
                                     if(!seenValues.includes(displayVal))
                                         seenValues.push(displayVal);
                                 }
@@ -1918,7 +1918,7 @@ function initializeDbVar() {
                             groupColumnValues.push([null]);
                         }
                     }
-                    else { // single attribute
+                    else { // simple (non-table) attribute
                         // NEWDATATYPE: if list-based datatype (array value), then push all list values here;
                         // might reuqire special handling of array binding in json_val (see comment below)
                         let attrVal = context.attributes[attr.id];
@@ -1936,6 +1936,9 @@ function initializeDbVar() {
                         else if(['entity-mc', 'list'].includes(attr.type)) {
                             if(Array.isArray(attrVal))
                                 groupColumnValues.push(attrVal);
+                        }
+                        else if(attr.type === 'entity') {                            
+                            groupColumnValues.push([attrVal]);
                         }
                         // by default we add the value as an array with one element, since there are attribute types
                         // that have an array binding in json_val (e.g. daterange). The outer array will be exploded
