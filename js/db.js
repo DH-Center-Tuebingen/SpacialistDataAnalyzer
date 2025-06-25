@@ -501,13 +501,15 @@ function initializeDbVar() {
                 if(attr.type === 'string-sc' && typeof value === 'string') { 
                     // make object for consistency with string-sc in tables
                     value = { concept_url: value };
-                }
-                else if(attr.type === 'table') {
+                }                
+                else if(attr.type === 'table' 
+                    && value !== null // there are some tables in the DB that have a json_val of NULL 
+                ) {
                     // there are kaputt table json_vals in the database
                     // e.g. agrigent database, entity 23061, attribute 124 (table "Funde")
                     // in these faulty cases, the table row is not represented as an object with attr_id:value pairs,
                     // but with seemingly random and long arrays of null values. So we simply filter all those faulty
-                    // rows out here and console.log some info
+                    // rows out here and console.log some info                    
                     let numFaultyRows = 0;
                     for(let i = value.length-1; i >= 0; i--) {
                         if(Array.isArray(value[i])) {
