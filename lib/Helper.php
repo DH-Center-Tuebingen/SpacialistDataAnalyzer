@@ -145,7 +145,7 @@ function get_session_vars_js() {
         'name' => $_SESSION['instance']['name'],
         'db' => $_SESSION['instance']['db'],
         'webRoot' => $_SESSION['ini']['webRoot'],
-        'spacialistSubDir' => $_SESSION['ini']['spacialist_subdir']
+        'spacialistSubDir' => $_SESSION['ini']['spacialistSubDir'],
     ), JSON_NUMERIC_CHECK);
 }
 
