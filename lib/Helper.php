@@ -38,32 +38,32 @@ function start_the_session($reldir = '.') {
             example global.ini:
                 spacialist_root=/var/www/html/spacialist
                 spacialist_webroot=/spacialist
+                spacialist_subdir=s
+                analysis_subdir=analysis
             
-            $_SERVER[SCRIPT_NAME] is something like: 
-                /spacialist/some-instance/analysis/index.php
+            $script is something like: 
+                /var/www/html/spacialist/instance_folder/analysis/index.php
 
-            ==> we want to extract "some-instance"
+            ==> we want to extract instance_folder
         */
-        $script = $_SERVER['SCRIPT_NAME'];
-        $webroot = $ini['spacialist_webroot'];
-        $pos = strpos($script, $webroot);        
-        if($pos === 0) {
-            $script = substr($script, strlen($webroot) + 1);
-            $pos = strpos($script, '/' . $ini['analysis_subdir'] . '/');
-            if($pos !== false) {
-                $envName = trim(substr($script, 0, $pos), '/');
-                $envFile = sprintf('%s/%s/%s', $ini['spacialist_root'], $envName, $ini['spacialist_subdir']);
-            }
+        $script = $_SERVER['DOCUMENT_ROOT'] . $_SERVER['REQUEST_URI'];
+        $pattern = "{$ini['spacialist_root']}/%[^/]/{$ini['analysis_subdir']}/%s";
+        $instance_folder = null;
+        $remainder = null;        
+        $count = sscanf($script, $pattern, $instance_folder, $remainder);
+        if($count >= 1 && $instance_folder !== null) {
+            $envFile = sprintf('%s/%s/%s', $ini['spacialist_root'], $instance_folder, $ini['spacialist_subdir']);
         }
     }
     if($envFile === false)
         die('<b>.env</b> file not found for Spacialist instance');
     $_SESSION['ini'] = array(
-        'webRoot' => $ini['spacialist_webroot']
+        'webRoot' => $ini['spacialist_webroot'],
+        'spacialistSubDir' => $ini['spacialist_subdir']
     );
     $instance = array(
-        'name' => $envName,
-        'folder' => $envName
+        'name' => $instance_folder,
+        'folder' => $instance_folder
     );
     $dotenv = Dotenv\Dotenv::create($envFile);
     $dotenv->load();
@@ -144,7 +144,8 @@ function get_session_vars_js() {
         'folder' => $_SESSION['instance']['folder'],
         'name' => $_SESSION['instance']['name'],
         'db' => $_SESSION['instance']['db'],
-        'webRoot' => $_SESSION['ini']['webRoot']
+        'webRoot' => $_SESSION['ini']['webRoot'],
+        'spacialistSubDir' => $_SESSION['ini']['spacialist_subdir']
     ), JSON_NUMERIC_CHECK);
 }
 

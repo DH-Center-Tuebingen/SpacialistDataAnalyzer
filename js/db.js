@@ -1356,14 +1356,22 @@ function initializeDbVar() {
             if(window.opener && window.opener.Vue) { // select entity in Spacialist
                 link = $('<a/>').attr({
                     href: 'javascript:void(0)',
-                    onclick: "window.opener.location='%s/%s/s/#/e/%s'".with(spacialistInstance.webRoot, spacialistInstance.folder, context.id),
+                    onclick: "window.opener.location='%s/%s/%s/#/e/%s'".with(
+                        spacialistInstance.webRoot, 
+                        spacialistInstance.folder, 
+                        spacialistInstance.spacialistSubDir,
+                        context.id),
                     title: l10n.dbSpacialistLinkTitle.with(context.contextType.name),
                 });
             }
             else {
                 link = $('<a/>').attr({
                     target: '_spacialist',
-                    href: '%s/%s/s/#/e/%s'.with(spacialistInstance.webRoot, spacialistInstance.folder, context.id),
+                    href: '%s/%s/%s/#/e/%s'.with(
+                        spacialistInstance.webRoot, 
+                        spacialistInstance.folder, 
+                        spacialistInstance.spacialistSubDir,
+                        context.id),
                     title: l10n.dbSpacialistLinkTitle.with(context.contextType.name),
                 });
             }
