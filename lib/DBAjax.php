@@ -136,6 +136,11 @@ try {
         $attributes[$row['id']] = $row;
     }
 
+    // check whether 'geodata' table exists (if map plugin not activated, it won't)
+    $geodata_exists = false;
+    if(false === db_single_val('select to_regclass(\'geodata\') is not null', [], $geodata_exists, $error, $db))
+       throw new Exception('Failed checking geodata table existence'); 
+    
     // fetch entities
     $stmt = db_exec(
         'select 
@@ -143,7 +148,7 @@ try {
             name, 
             entity_type_id "contextType", 
             root_entity_id "parentContext", 
-            (select json_build_object(
+            ' . ($geodata_exists ? '(select json_build_object(
                     \'wkt\', st_astext(g.geom), 
                     \'geojson4326\', st_asgeojson(st_transform(g.geom::geometry,4326)), 
                     \'geojsonOrig\', st_asgeojson(g.geom::geometry), 
@@ -152,7 +157,7 @@ try {
                 ) 
                 from geodata g 
                 where g.id = geodata_id
-            ) "geoData", 
+            )' : 'null::json') . ' "geoData", 
             rank 
         from entities',
         array(), $error, $db
