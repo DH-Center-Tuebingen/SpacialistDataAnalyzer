@@ -13,13 +13,17 @@ function start_the_session($reldir = '.') {
         die('Invalid <b>spacialist_root</b> in global.ini');
     if(!isset($ini['spacialist_webroot']))
         die('Invalid <b>spacialist_root</b> in global.ini');
+    if(!isset($ini['spacialist_subdir']))
+        $ini['spacialist_subdir'] = 's';
+    if(!isset($ini['analysis_subdir']))
+        $ini['analysis_subdir'] = 'analysis';
     $envFile = false;
     if(isset($_GET['env'])) {
         // get from env parameter -- legacy, should be removed some fine future day
         $envName = $_GET['env'];
         $try_env = array(
             $ini['spacialist_root'] . '/' . $_GET['env'] . '/.env',
-            $ini['spacialist_root'] . '/' . $_GET['env'] . '/s/.env'
+            $ini['spacialist_root'] . '/' . $_GET['env'] . '/' . $ini['spacialist_subdir'] . '/.env'
         );
         foreach($try_env as $file) {
             if(@file_exists($file)) {
@@ -42,14 +46,13 @@ function start_the_session($reldir = '.') {
         */
         $script = $_SERVER['SCRIPT_NAME'];
         $webroot = $ini['spacialist_webroot'];
-        $pos = strpos($script, $webroot);
-        $env = false;
+        $pos = strpos($script, $webroot);        
         if($pos === 0) {
             $script = substr($script, strlen($webroot) + 1);
-            $pos = strpos($script, '/analysis/');
+            $pos = strpos($script, '/' . $ini['analysis_subdir'] . '/');
             if($pos !== false) {
                 $envName = trim(substr($script, 0, $pos), '/');
-                $envFile = sprintf('%s/%s/s', $ini['spacialist_root'], $envName);
+                $envFile = sprintf('%s/%s/%s', $ini['spacialist_root'], $envName, $ini['spacialist_subdir']);
             }
         }
     }

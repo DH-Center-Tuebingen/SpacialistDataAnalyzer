@@ -16,8 +16,15 @@ Spacialist Data Analyzer is a web application that allows users to analyze data 
     spacialist_webroot=/spacialist
     ```
 
+* It is assumed that under the Spacialist instance folder, the actual Spacialist frontend will be served from subfolder `s`, and the Spacialist Data Analyzer app will be served from subfolder `analysis`. However, it is possible to specify other directory names in `global.ini`, e.g.:
+    ```
+    spacialist_subdir=spacializzle
+    analysis_subdir=analyzzle
+    ```
+
+
 ## Usage
-It is assumed that under the Spacialist instance folder, the actual Spacialist frontend will be served from subfolder `s`, and the Spacialist Data Analyzer app will be symbolically linked from a sibling folder `analysis`. In this case, the app will find the `.env` file of the present Spacialist instance automatically, and you simply direct your browser to the app directory, e.g. `https://my.spacialist-server.com/spacialist/some-instance/analysis`
+Based on correct settings in `global.ini`, the app will find the `.env` file of the present Spacialist instance automatically, and you simply direct your browser to the app directory, e.g. `https://my.spacialist-server.com/spacialist/some-instance/analysis`
 
 If you are not using this default setup, direct your browser to the URL of the app folder and provide a parameter `env` that reflects the name of the folder of the Spacialist instance relative to the `spacialist_root` setting defined in `global.ini`.
 
