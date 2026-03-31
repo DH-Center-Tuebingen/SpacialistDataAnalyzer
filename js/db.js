@@ -516,6 +516,15 @@ function initializeDbVar() {
                             numFaultyRows++;
                             value.splice(i, 1);
                         }
+                        else {
+                            /* since early 2026 there might be a column "index" in all or some rows
+                               of the table json_val. Those are not regular columns, just unique row
+                               indexes for Spacialist internal use -> remove! 
+                            */
+                            if (value[i].hasOwnProperty('index')) {                                
+                                delete value[i].index;
+                            }
+                        }
                     }
                     if(numFaultyRows > 0) {
                         console.log('\tFound and ignored %s faulty rows in table attribute %s of entity %s'.with(
