@@ -2465,8 +2465,13 @@ function makeResizable() {
     var oldWindowSize = {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         load: function(loadedCallback) {
+            // console.debug('Loading old window size');
             this.update(true);
+            if(!Settings.storeWindowLayout) {
+                return;
+            }
             let v = getLocalStorageItem('oldWindowSize');
+            // console.debug('Loaded old window size:', v);
             if(v) {
                 this.leftColPct = v.leftColPct;
                 this.topRowPct = v.topRowPct;
@@ -2475,12 +2480,14 @@ function makeResizable() {
             }
         },
         update: function(preventStore = false) {
+            // console.debug('Updating old window size');
             this.h = window.innerHeight;
             this.w = window.innerWidth;
             this.leftColPct = leftCol.outerWidth() / window.innerWidth;
             this.topRowPct = topRow.outerHeight() / (window.innerHeight - containerMargin);
-            if(!preventStore) {
+            if(!preventStore && Settings.storeWindowLayout) {
                 setLocalStorageItem('oldWindowSize', this);
+                // console.debug('Stored old window size:', this);
             }
         }
     };
@@ -2579,11 +2586,20 @@ function makeResizable() {
     });
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    $(window).on('resize', function() {
+    function windowResized(forceUpdate = false) {
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         if(fullScreen) {
             rightCol.outerWidth(window.innerWidth - containerMargin);
             bottomRow.outerHeight(window.innerHeight - containerMargin);
+            return;
+        }
+        if(!forceUpdate
+            && oldWindowSize.w 
+            && oldWindowSize.h 
+            && window.innerWidth == oldWindowSize.w
+            && window.innerHeight == oldWindowSize.h
+        ) {
+            // console.debug('Resize triggered, but nothing changed in window size');
             return;
         }
         if(window.innerWidth < 200 || window.innerHeight < 200)
@@ -2601,6 +2617,12 @@ function makeResizable() {
         handleX.trigger('adjustHandle');
         handleY.trigger('adjustHandle');
         oldWindowSize.update();
+    }
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    $(window).on('resize', function() {
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        windowResized();
     });
 
     // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2612,7 +2634,7 @@ function makeResizable() {
             elements.forEach(e => e.hide());
         else
             elements.forEach(e => e.show());
-        $(window).resize(); // so the DataTable will auto adjust column widths in header and rows
+        windowResized(true); // to show the hidden elements properly again
         resultContainerSizeChanged();
     });
 }

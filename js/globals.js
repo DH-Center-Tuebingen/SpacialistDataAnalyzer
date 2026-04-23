@@ -35,7 +35,8 @@ const Settings = {
     skipLoadingComputedAttributes: false,
     thesaurusPickerExpandAllMax: 100,
     geometryCoordinatesMaxChars: 100,
-    cacheAttributeValues: true
+    cacheAttributeValues: true,
+    storeWindowLayout: true
 };
 const PseudoAttributes = { // These must match the context's attribute keys!
     ID: 'id',
