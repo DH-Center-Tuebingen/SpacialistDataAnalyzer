@@ -1754,9 +1754,22 @@ function setAnalysisStatus(fullStatus) {
 }
 
 // ------------------------------------------------------------------------------------
+function logAnalysisConf() {
+// ------------------------------------------------------------------------------------
+    $.ajax({
+        type: 'POST',
+        url: 'lib/AnalysisLog.php',
+        data: {
+            analysis_conf: stringifyAnalysis()
+        }
+    });
+}
+
+// ------------------------------------------------------------------------------------
 function getResultButton(inPara) {
 // ------------------------------------------------------------------------------------
     return get_result_button(l10n.resultButtonLabel, function() {
+        logAnalysisConf();
         updateResult();
     }, inPara).prepend($('<span/>').addClass('result-button-icon'));
 }
