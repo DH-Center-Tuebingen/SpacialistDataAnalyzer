@@ -501,7 +501,13 @@ function initializeDbVar() {
                 if(attr.type === 'string-sc' && typeof value === 'string') { 
                     // make object for consistency with string-sc in tables
                     value = { concept_url: value };
-                }                
+                }
+                else if (attr.type === 'si-unit') {
+                    // si unit comes as an object {unit: str, value: num, normalized: num}, we reduce to normalized value,
+                    // but only if the value representation is valid. otherwise set to null
+                    value = (value !== null && typeof value === 'object' && typeof value.normalized === 'number' && typeof value.value === 'number') 
+                        ? value.normalized : null;
+                }
                 else if(attr.type === 'table' 
                     && value !== null // there are some tables in the DB that have a json_val of NULL 
                 ) {
@@ -543,6 +549,18 @@ function initializeDbVar() {
                             // string-sc might be represented as a thesaurus_url, not an object (might be fixed already?)
                             else if(columnAttr.type === 'string-sc' && typeof cellValue === 'string') {
                                 row[columnAttr.id] = { concept_url: cellValue };
+                            }
+                            else if(columnAttr.type === 'si-unit') {
+                                // same reasoning as above...
+                                if (typeof cellValue !== null 
+                                    && typeof cellValue === 'object' 
+                                    && typeof cellValue.normalized === 'number' 
+                                    && typeof cellValue.value === 'number'
+                                ) {
+                                    row[columnAttr.id] = cellValue.normalized;
+                                } else {
+                                    row[columnAttr.id] = null;
+                                }
                             }
                             // it can happen that numeric attribute values are stored as strings in a table's json -> convert to number
                             else if(typeof cellValue === 'string' && this.isNumericSpacialistType(columnAttr.type)) {
@@ -789,7 +807,7 @@ function initializeDbVar() {
                                 break;
                             
                             default:
-                                val = db.getValueToDisplay(val, attribute, context, -1, true);
+                                val = db.getValueToDisplay(val, attribute, context, attribute.parentAttribute ? index : -1, true);
                                 break;
                         }
                         
@@ -880,7 +898,7 @@ function initializeDbVar() {
                                 min = val;
                             if(typeof max === 'undefined' || val > max)
                                 max = val;
-                        }
+                        }                        
                     });
                 }
             );
@@ -1004,13 +1022,17 @@ function initializeDbVar() {
                     };
                     break;
                 
+                case 'si-unit': 
+                    // is transformed from json object in DB to a numeric value after fetching the database,
+                    // so we treat like a double ... 
                 case 'double':
                     // entity: dbl_val -> double
                     // table: double
                     displayValue = { 
                         v: origValue.toLocaleString(), 
                         s: origValue,
-                        e: origValue };
+                        e: origValue 
+                    };
                     break;
 
                 case 'entity': 
@@ -1154,27 +1176,6 @@ function initializeDbVar() {
                     displayValue = null;
                     break;
 
-                case 'si-unit': 
-                    // exception: if attribute is in a table, the normalized value is not available (TODO:BUG?)
-                    if(typeof origValue === 'object') {
-                        // apparently attribute in a table comes without normalized value, only {unit:..., value:...}                        
-                        if(origValue.normalized !== undefined) {
-                            displayValue = origValue.normalized;
-                        }
-                        else if(origValue.value !== undefined) {
-                            displayValue = origValue.value;
-                        }
-                        else {
-                            console.log('Unexpected si-unit value format:', origValue);
-                            displayValue = null;
-                        }
-                    }
-                    displayValue = { 
-                        v: displayValue.toLocaleString(), 
-                        s: displayValue,
-                        e: displayValue
-                    };
-                    break;
 
                 case 'string-mc': 
                     // entity: json_val, array [{id: int, concept_url: string}, ...]
@@ -1525,6 +1526,7 @@ function initializeDbVar() {
                 if(!isRelevantTable)
                     return currentValue;
             }
+
             aggregateInfo.count++;
             if(aggregateInfo.sum === undefined)
                 aggregateInfo.sum = 0;
@@ -1956,7 +1958,7 @@ function initializeDbVar() {
                         }
                         else if(attr.type === 'entity') {                            
                             groupColumnValues.push([attrVal]);
-                        }
+                        }                        
                         // by default we add the value as an array with one element, since there are attribute types
                         // that have an array binding in json_val (e.g. daterange). The outer array will be exploded
                         // later when computing the distinct values for each group column
