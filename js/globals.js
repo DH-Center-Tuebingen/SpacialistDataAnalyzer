@@ -26,7 +26,8 @@ const Settings = {
     resultTable: {
         textMaxChars: 200,
         entityLinkListMaxItems: 50,
-        maxRows: 1000        
+        maxRows: 1000,
+        paginationOptions: [10, 25, 50, 100, 500]        
     },
     mcSeparator: ' ⬥ ',
     epochSeparator: ' ⬥ ',

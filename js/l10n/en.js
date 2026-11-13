@@ -249,7 +249,8 @@ const l10n_en = {
         print: 'Prepare table for printing',
         colvis: 'Select visible columns'
     },
-    resultTableLimit: 'Limiting the table to the first %s of %s total entries. Please define filters or aggregates to reduce the number of results.',
+    resultTableLimit: 'Limiting the table to the first %s of %s total entries. Please define filters or aggregates to reduce the number of results, or:',
+    resultTableLimitShowAll: 'Show all this time!',
     resultButtonLabel: 'Get Result',
     resultTableShowMore: '[show more]',
     resultTableShowMoreListItems: '[show remaining %s items]',

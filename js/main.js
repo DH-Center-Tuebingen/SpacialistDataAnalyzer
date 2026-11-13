@@ -1374,11 +1374,12 @@ function getResultTable(r, info) {
 // ------------------------------------------------------------------------------------
     if(r.head.length == 0)
         return $('<div/>').addClass('alert alert-info').text(l10n.resultsNone);
-    var t = $('<table/>').attr({ id: 'result-table' }).addClass('table table-striped table-bordered table-nonfluid table-sm').data({
+    var t = $('<table/>').attr({ id: 'result-table' }).addClass('table table-striped table-bordered table-nonfluid table-sm').data({        
         contexts: r.contexts,
         tableBody: r.body,
         tableHead: r.head,
-        tableSortTypes: r.sortTypes
+        tableSortTypes: r.sortTypes,
+        totalResults: r.grandTotal
     });
     let res = {
         total: r.body.length
@@ -1605,8 +1606,37 @@ function makeDataTable(table, customOptions, domColumns, isResultTable) {
             footer: false,      
         });
     });
+    let paginationOptions = [];
+    let totalResults = table.data('totalResults');
+    if(totalResults === undefined) {
+        paginationOptions = Settings.resultTable.paginationOptions.slice();
+    } 
+    else {
+        // cut off pagination options that are larger than total results or max rows
+        for(let i = 0; i < Settings.resultTable.paginationOptions.length; i++) {
+            let opt = Settings.resultTable.paginationOptions[i];
+            if(opt > totalResults || opt > Settings.resultTable.maxRows) {
+                break;
+            }
+            paginationOptions.push(opt);
+        }
+        // add total results or max rows as last option if not already present
+        if(paginationOptions.length === 0) {
+            paginationOptions.push(totalResults);
+        }
+        else {
+            let maxOption = totalResults;
+            if(maxOption > Settings.resultTable.maxRows) {
+                maxOption = Settings.resultTable.maxRows;
+            }
+            if(paginationOptions[paginationOptions.length - 1] !== maxOption) {
+                paginationOptions.push(maxOption);
+            }
+        }
+    }
     let sortTypes = table.data('tableSortTypes');
     let options = {
+        lengthMenu: paginationOptions,
         scrollX: isResultTable ? true : false,
         scrollY: isResultTable ? 10 : '',
         scrollCollapse: isResultTable ? true : false,
@@ -1702,19 +1732,30 @@ function updateResult(callback) {
                         addResultMap(r, result_div);
                     }
                     else {
-                        let tbl = getResultTable(r, result.info);
+                        let tbl = getResultTable(r, result.info);                                                
                         if(r.grandTotal > Settings.resultTable.maxRows) {
                             result_div.append($('<p/>').addClass('alert alert-warning').text(
                                 l10n.resultTableLimit.with(Settings.resultTable.maxRows.toLocaleString(), r.grandTotal.toLocaleString())
-                            ));
+                            ).append($('<button/>')
+                                .addClass('btn ml-2 mb-1 pt-0 pb-0 btn-outline-secondary')
+                                .text(l10n.resultTableLimitShowAll).on('click', () => {
+                                    Settings.resultTable.oldMaxRows = Settings.resultTable.maxRows;
+                                    Settings.resultTable.maxRows = r.grandTotal;
+                                    updateResult();
+                                }))
+                            );
                         }
-                        result_div.append(tbl.div);
-                        let customOrder;
+                        let customOptions = {};
                         if(analysis.outputDisplay.type === 'distribution')
-                            customOrder = { order: [[ 1, 'desc']] }; // order by second column descending
+                            customOptions.order = [[ 1, 'desc' ]]; // order by second column descending
+                        result_div.append(tbl.div);
                         let table = result_div.find('table').first();
-                        makeDataTable(table, customOrder, [5, 1, 6], true);
+                        makeDataTable(table, customOptions, [5, 1, 6], true);
                         result_div.find('div.dt-buttons').detach().appendTo('#result-heading').addClass('datatable-buttons').removeClass('btn-group dt-buttons');
+                        if (Settings.resultTable.oldMaxRows !== undefined) {
+                            Settings.resultTable.maxRows = Settings.resultTable.oldMaxRows;
+                            Settings.resultTable.oldMaxRows = undefined;                             
+                        }                        
                     }
                 }
                 else
@@ -1725,7 +1766,7 @@ function updateResult(callback) {
         }
         finally {
             clearResultLoadingTimeout();
-            $('.result-button').prop('disabled', false);
+            $('.result-button').prop('disabled', false);            
             if(callback)
                 callback();
         }
