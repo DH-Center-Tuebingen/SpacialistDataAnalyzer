@@ -201,6 +201,46 @@ function updateGui(update) {
             get_checkbox({ id: 'tree-analysis' }, null, true, l10n.get('outputHierarchicalAnalysis', ctName, ctName))
         ).appendTo(div_info);
 
+        // Explode Table Attributes:
+        // if we have a table attribute, we can offer the option to explode it
+        let tableAttributes = db.contextTypes[update.outputObject.id].attributes.filter(attr => 
+            attr.type === 'table' && !attr.isAncestryTable
+        );
+        if(update.outputObject.what === 'ContextType' && tableAttributes.length > 0) {
+            console.log('update.outputObject', update.outputObject);            
+            // put {value: attr.id, label: attr.name} for each table attribute into tableAttrOptions
+            let tableAttrOptions = [/*{
+                value: '',
+                label: l10n.labelClickToSelect
+            }*/];
+            tableAttributes.forEach(attr => {
+                tableAttrOptions.push({
+                    value: attr.id,
+                    label: attr.name
+                });
+            });
+            div_info.append(
+                $('<div/>').addClass('form-check mt-small').append(
+                    get_checkbox({ id: 'explodeTableOption' }, null, false, '')
+                        .append($('<span/>')
+                        .html(l10n.filterExplodeTable)
+                ))
+            );
+            let selectTable;
+            div_info.find('#explodeTableAttr').replaceWith(
+                selectTable = get_select({id: 'explodeTableAttr'}, null, tableAttrOptions, function() {
+                    $('#explodeTableOption').prop('checked', !!$(this).val());
+                })
+            );
+            selectTable.parents('label').first().on('click', function(e) {
+                if ($(e.target).closest('.select2-container').length) {
+                    // Stop the label from toggling the checkbox
+                    e.preventDefault(); 
+                }
+            });
+            //$('#explodeTableOption').prop('disabled', !tableAttributeOfOutputHasFilter);
+        }
+
         // highlight column
         $('.col-out').empty().removeClass('selected');
         update.outputObject.treeRow.find('td.col-out')
@@ -925,14 +965,14 @@ function renderRowIngoreSettings() {
             )
         );
     }
-    let disable = true;
+    let tableAttributeOfOutputHasFilter = false;
     if(analysis.outputObject) {
         if(analysis.outputObject.what === 'ContextType') {
             $('.outputObjectName').text(analysis.outputObject.name);
             filtersTable.find('tbody tr').each(function() {
                 let obj = $(this).data('object');
                 if(obj && obj.what === 'Attribute' && obj.parentAttribute && obj.parentContextType.internalId === analysis.outputObject.internalId) {
-                    disable = false;
+                    tableAttributeOfOutputHasFilter = true;
                     return false;
                 }
             });
@@ -943,7 +983,7 @@ function renderRowIngoreSettings() {
             filtersTable.find('tbody tr').each(function() {
                 let obj = $(this).data('object');
                 if(obj && obj.what === 'Attribute' && obj.parentAttribute && obj.parentAttribute.internalId === analysis.outputObject.parentAttribute.internalId) {
-                    disable = false;
+                    tableAttributeOfOutputHasFilter = true;
                     return false;
                 }
             });
@@ -952,7 +992,7 @@ function renderRowIngoreSettings() {
     else {
         $('.outputObjectName').text(l10n.filterDiscardTableRowsOutputObjectNameEntity);
     }
-    $('#discardTableRows').prop('disabled', disable);
+    $('#discardTableRows').prop('disabled', !tableAttributeOfOutputHasFilter);
 }
 
 // ------------------------------------------------------------------------------------
@@ -1544,7 +1584,7 @@ function addResultMap(contexts, result_div) {
             renderAttributeValue(
                 'html',
                 attr.pseudoAttributeKey === PseudoAttributes.ID // this is the column with the ID attribute -> make Spacialist link
-                    ? { v: db.getEntityDetailsLink(context, context.name), s: context.name, e: context.name }
+                    ? { v: db.getEntityDetailsLink(context, context.name), s: context.id, e: context.id }
                     : db.getValueToDisplay(value, attr, context),
                 tr, attr);
             table.append(tr);
@@ -1711,6 +1751,9 @@ function updateResult(callback) {
             analysis.grouping = groupingObject;
             analysis.hierarchical = $('#tree-analysis').prop('checked');
             analysis.discardTableRows = doIgnoreTableRows();
+            analysis.explodeTableAttrId = $('#explodeTableOption').prop('checked') && $('#explodeTableAttr').val() 
+                ? parseInt($('#explodeTableAttr').val()) : null;
+            
             let result = db.getAnalysisResults(analysis);
             console.log(result);
             if(result.error)
@@ -2098,6 +2141,7 @@ function makeSelect2(box, options) {
     let initialValue = box.data('initialValue');
     if(typeof initialValue !== 'undefined')
         box.val(initialValue).trigger('change');
+    return box;
 }
 
 // ------------------------------------------------------------------------------------
@@ -2223,6 +2267,16 @@ function parseAnalysis(jsonString, complete) {
     if(json.hierarchical !== undefined)
         $('#tree-analysis').prop('checked', json.hierarchical).trigger('change');
 
+    if(json.version >= 4) {
+        if(json.explodeTableAttrId)
+            $('#explodeTableAttr').val(json.explodeTableAttrId).trigger('change');
+        $('#explodeTableOption').prop('checked', !!json.explodeTableAttrId).trigger('change');
+    }
+    else {
+        $('#explodeTableOption').prop('checked', false).trigger('change');
+        $('#explodeTableAttr').val('').trigger('change');
+    }
+
     // reconstruct filters
     $('.remove-filter-button').trigger('click');
     json.filters.forEach((filter, index) => {
@@ -2286,8 +2340,9 @@ function parseAnalysis(jsonString, complete) {
 function stringifyAnalysis() {
 // ------------------------------------------------------------------------------------
     let flat = {
-        version: 3
+        version: 4
         /* VERSION DESCRIPTION:
+            4 = explodeTableAttrId now available; default = null
             3 = object internalId now reflects their database hierarchical position 
                 instead of a meaningless running numeric identifier. This way, changes
                 in the DB structure don't screw up stored analyses so easily
@@ -2312,6 +2367,8 @@ function stringifyAnalysis() {
     flat.grouping = getGroupingObject();
     flat.hierarchical = $('#tree-analysis').prop('checked');
     flat.discardTableRows = doIgnoreTableRows();
+    flat.explodeTableAttrId = $('#explodeTableOption').prop('checked') && $('#explodeTableAttr').val()
+        ? parseInt($('#explodeTableAttr').val()) : null;
     return JSON.stringify(flat, undefined, 2);
 }
 
