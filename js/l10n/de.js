@@ -194,7 +194,12 @@ const l10n_de = {
     outputSelectedPropertyParent:  ' der zusammengesetzten Eigenschaft <b>%s</b>',
     outputSelectPropertyDisplayType: 'Wählen Sie, welche Information über diese Eigenschaft dargestellt werden soll: ',
     outputSelectEntityDisplay: 'Wählen Sie, wie die Entitäten dieses Typs dargestellt werden sollen: ',
-    outputHierarchicalAnalysis: 'Hierarchische Analyse durchführen. Wenn diese Box angekreuzt ist, so wird die hierarchische Ebene der Entitäten des gewählten Typs %s berücksichtigt; es werden dann nur Entitäten auf der im Baum gewählten Ebene für das Ergebnis berücksichtigt. Wenn diese Box nicht angekreuzt ist, werden alle Entitäten des Typs %s für die Analyse berücksigt.',
+    outputHierarchicalAnalysis: 'Hierarchische Analyse durchführen. Wenn diese Box angekreuzt ist, so wird die hierarchische Ebene der Entitäten des gewählten Typs %s berücksichtigt; es werden dann nur Entitäten auf der im Baum gewählten Ebene für das Ergebnis berücksichtigt. Wenn diese Box nicht angekreuzt ist, werden alle Entitäten des Typs %s für die Analyse berücksichtigt.',
+    outputExplodeTable: 'In der Ergebnistabelle soll jede Zeile der Tabelle <span id="explodeTableAttr"></span> angezeigt werden, die den etwaigen Filtern für diese Tabelle entspricht, und zusätzlich jeweils folgende Attribute von <b class="outputObjectName"></b> in die Tabelle aufnehmen: <span id="explodeIncludeEntityAttrs"></span>',
+    outputExplodeIncludeEntityAttrsAll: 'Alle',
+    outputExplodeIncludeEntityAttrsNone: 'Keine',
+    outputExplodeIncludeEntityAttrsOnlyId: 'Nur ID',
+    outputExplodeIncludeEntityAttrsOnlyIdName: 'Nur ID und Name',
 
     filterIntro: 'Definieren Sie in der folgenden Tabelle beliebige Filter, um die Analyse auf Entitäten mit bestimmten Eigenschaftswerten zu fokussieren <a title="Hilfe" target="_help" href="https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis-options-pane.html#filters-tab"></a>.',
     filterConjunctionHeading: 'Konjunktion',
@@ -217,8 +222,7 @@ const l10n_de = {
     filterAdd: 'Filter Hinzufügen',
     filterRemoveAll: 'Alle Filter Entfernen',
     filterNoDescendantConcepts: 'Keine Konzepte zur Auswahl',
-    filterExplodeTable: 'In der Ergebnistabelle jede Zeile der Tabelle <span id="explodeTableAttr"></span> anzeigen, die den Filtern für diese Tabelle entspricht',
-
+    
     groupIntro: 'Hier können Sie definieren, wie die Eigenschaftswerte der Entitäten des Typs <b class="outputObjectName"></b> im Ergebnis gruppiert oder aggregiert werden sollen <a title="Hilfe" target="_help" href="https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis-options-pane.html#aggregates-tab"></a>.',
     groupDropdownPlaceholder: 'Ignorieren',
     groupReset: 'Zurücksetzen',

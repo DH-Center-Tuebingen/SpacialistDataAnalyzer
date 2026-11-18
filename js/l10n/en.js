@@ -195,6 +195,11 @@ const l10n_en = {
     outputSelectPropertyDisplayType: 'Select what kind of information about this property shall be presented: ',
     outputSelectEntityDisplay: 'Select how the entities of this type shall be presented: ',
     outputHierarchicalAnalysis: 'Perform hierarchical analysis. If this box is checked, the hierarchical level of %s entities will be considered, and only those at the level selected in the tree will be considered for output. If this box is not checked, all %s entities in the database will be considered for output.',
+    outputExplodeTable: 'In the result table, include each row of table <span id="explodeTableAttr"></span> that matches the filters for this table, if any, and also include the following attributes of <span class="outputObjectName"></span> in the table: <span id="explodeIncludeEntityAttrs"></span>',
+    outputExplodeIncludeEntityAttrsAll: 'All',
+    outputExplodeIncludeEntityAttrsNone: 'None',
+    outputExplodeIncludeEntityAttrsOnlyId: 'Only ID',
+    outputExplodeIncludeEntityAttrsOnlyIdName: 'Only ID and Name',
 
     filterIntro: 'Define filters using the following table to limit the analysis focus on entities with specific property values <a title="Help" target="_help" href="https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis-options-pane.html#filters-tab"></a>.',
     filterConjunctionHeading: 'Conjunction',
@@ -216,8 +221,7 @@ const l10n_en = {
     },
     filterAdd: 'Add A Filter',
     filterRemoveAll: 'Remove All Filters',
-    filterNoDescendantConcepts: 'There are no concepts to choose from',
-    filterExplodeTable: 'In the result table, include each matching row of table <span id="explodeTableAttr"></span>',
+    filterNoDescendantConcepts: 'There are no concepts to choose from',    
 
     groupIntro: 'You may define how to group and aggregate the resulting entities of type <b class="outputObjectName"></b> by the values of their properties <a title="Help" target="_help" href="https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis-options-pane.html#aggregates-tab"></a>.',
     groupDropdownPlaceholder: 'No Grouping or Aggregation',

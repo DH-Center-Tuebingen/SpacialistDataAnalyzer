@@ -222,23 +222,35 @@ function updateGui(update) {
             div_info.append(
                 $('<div/>').addClass('form-check mt-small').append(
                     get_checkbox({ id: 'explodeTableOption' }, null, false, '')
-                        .append($('<span/>')
-                        .html(l10n.filterExplodeTable)
-                ))
-            );
-            let selectTable;
+                    .append($('<span/>').html(l10n.outputExplodeTable))
+                )
+            );            
+            let selectTable, selectIncludeEntityAttrs;
             div_info.find('#explodeTableAttr').replaceWith(
                 selectTable = get_select({id: 'explodeTableAttr'}, null, tableAttrOptions, function() {
                     $('#explodeTableOption').prop('checked', !!$(this).val());
                 })
-            );
-            selectTable.parents('label').first().on('click', function(e) {
-                if ($(e.target).closest('.select2-container').length) {
-                    // Stop the label from toggling the checkbox
-                    e.preventDefault(); 
-                }
+            );            
+            makeSelect2(selectTable, { width: 'auto' });
+            div_info.find('#explodeIncludeEntityAttrs').replaceWith(
+                selectIncludeEntityAttrs = get_select({id: 'explodeIncludeEntityAttrs'}, null, [
+                    { value: 'all', label: l10n.outputExplodeIncludeEntityAttrsAll },  
+                    { value: 'none', label: l10n.outputExplodeIncludeEntityAttrsNone },
+                    { value: 'only-id', label: l10n.outputExplodeIncludeEntityAttrsOnlyId },
+                    { value: 'only-id-name', label: l10n.outputExplodeIncludeEntityAttrsOnlyIdName }
+                ], function() {
+                    $('#explodeTableOption').prop('checked', !!$(this).val());
+                })
+            );            
+            makeSelect2(selectIncludeEntityAttrs, { width: 'auto' });
+            [selectTable, selectIncludeEntityAttrs].forEach(select => {
+                select.parents('label').first().on('click', function(e) {
+                    if ($(e.target).closest('.select2-container').length) {
+                        // Stop the label from toggling the checkbox
+                        e.preventDefault(); 
+                    }
+                });
             });
-            //$('#explodeTableOption').prop('disabled', !tableAttributeOfOutputHasFilter);
         }
 
         // highlight column
@@ -1753,6 +1765,9 @@ function updateResult(callback) {
             analysis.discardTableRows = doIgnoreTableRows();
             analysis.explodeTableAttrId = $('#explodeTableOption').prop('checked') && $('#explodeTableAttr').val() 
                 ? parseInt($('#explodeTableAttr').val()) : null;
+            if(analysis.explodeTableAttrId) {
+                analysis.explodeIncludeEntityAttrs = $('#explodeIncludeEntityAttrs').val() || 'all';
+            }
             
             let result = db.getAnalysisResults(analysis);
             console.log(result);
@@ -2246,6 +2261,10 @@ function parseAnalysis(jsonString, complete) {
     console.log(json);
     clearAnalysis();
 
+    // go to output tab, because otherwise GUI might get messed up
+    if($('#nav-tab a.active').data('section') !== 'output')
+        $('#nav-tab a[data-section="output"]').tab('show');
+
     // construct 'analysis' object
     analysis = {
         curSection: json.curSection
@@ -2259,8 +2278,11 @@ function parseAnalysis(jsonString, complete) {
             updateAnalysisStatus({
                 outputObject: objRow.data('object')
             });
-            if(json.outputDisplay)
+            makeAllSelect2();
+            if(json.outputDisplay) {
                 $('#displayType').val(json.outputDisplay.type).trigger('change');
+                makeAllSelect2();
+            }
         }
     }
   
@@ -2268,8 +2290,10 @@ function parseAnalysis(jsonString, complete) {
         $('#tree-analysis').prop('checked', json.hierarchical).trigger('change');
 
     if(json.version >= 4) {
-        if(json.explodeTableAttrId)
+        if(json.explodeTableAttrId) {
             $('#explodeTableAttr').val(json.explodeTableAttrId).trigger('change');
+            $('#explodeIncludeEntityAttrs').val(json.explodeIncludeEntityAttrs || 'all').trigger('change');
+        }
         $('#explodeTableOption').prop('checked', !!json.explodeTableAttrId).trigger('change');
     }
     else {
@@ -2288,12 +2312,19 @@ function parseAnalysis(jsonString, complete) {
         }
         filterObjectSelected(treeRow.data('object'));
         filterRow.find('.col-flt-object').trigger('click'); // activate current filter row
-        if(filter.conjunction)
+        makeAllSelect2(); // this is key otherwise the val() calls below won't work
+        if(filter.conjunction) {
             filterRow.find('td.col-flt-andor select').val(filter.conjunction).trigger('change');
-        if(filter.transformation) // pick transformation
+            makeAllSelect2();
+        }
+        if(filter.transformation) { // pick transformation
             filterRow.find('td.col-flt-trans select').val(filter.transformation).trigger('change');
-        if(filter.operator) // pick operator
+            makeAllSelect2();
+        }
+        if(filter.operator) { // pick operator
             filterRow.find('td.col-flt-op select').val(filter.operator).trigger('change');
+            makeAllSelect2();
+        }
         let valueControls = filterRow.data('valueControls');
         !Array.isArray(filter.values) || filter.values.forEach((value, index) => {
             if(json.version >= 3 && filter.thesaurusHierarchyData) {
@@ -2307,9 +2338,10 @@ function parseAnalysis(jsonString, complete) {
                     filter.thesaurusHierarchyData.selectionChain
                 );
             }
-            else {
+            else {                
                 valueControls[index].val(value).trigger('change');
             }
+            makeAllSelect2();
         });
     });
 
@@ -2326,14 +2358,14 @@ function parseAnalysis(jsonString, complete) {
         json.grouping.aggregate.forEachValue((attrId, value) => {
             $('select#attrGrouping' + attrId).val(value).trigger('change');
         });
-    }
+    }    
 
     // fetch results
     updateResult(complete);
 
-    // go to original tab
+    /*// restore active tab
     if($('#nav-tab a.active').data('section') !== json.curSection)
-        $('#nav-tab a[data-section="' + json.curSection + '"]').tab('show');
+        $('#nav-tab a[data-section="' + json.curSection + '"]').tab('show');*/
 }
 
 // ------------------------------------------------------------------------------------
@@ -2369,6 +2401,9 @@ function stringifyAnalysis() {
     flat.discardTableRows = doIgnoreTableRows();
     flat.explodeTableAttrId = $('#explodeTableOption').prop('checked') && $('#explodeTableAttr').val()
         ? parseInt($('#explodeTableAttr').val()) : null;
+    if(flat.explodeTableAttrId) {
+        flat.explodeIncludeEntityAttrs = $('#explodeIncludeEntityAttrs').val() || 'all';
+    }
     return JSON.stringify(flat, undefined, 2);
 }
 
@@ -2488,13 +2523,21 @@ function reloadDb() {
 }
 
 // ------------------------------------------------------------------------------------
+function makeAllSelect2(force = false) {
+// ------------------------------------------------------------------------------------
+    document.querySelectorAll(
+        force? 'select' : 'select:not(.select2-hidden-accessible)'
+    ).forEach(select => makeSelect2($(select)));
+}
+
+// ------------------------------------------------------------------------------------
 function start() {
 // ------------------------------------------------------------------------------------
     // On Chrome, DOMNodeInserted is not available any more, and MutationObserver 
     // does not work with select2 elements. So we run a function every 100ms to
     // make any Dropdown a select2 dropdown if it isn't already
-    (function convertAllDropdownsToSelect2() {
-        document.querySelectorAll('select:not(.select2-hidden-accessible)').forEach(node => makeSelect2($(node)));
+    (function convertAllDropdownsToSelect2() {        
+        makeAllSelect2();
         setTimeout(convertAllDropdownsToSelect2, 100);
     })();
 

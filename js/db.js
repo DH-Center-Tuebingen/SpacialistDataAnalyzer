@@ -1437,7 +1437,7 @@ function initializeDbVar() {
         ) {
         // --------------------------------------------------------------------------------------------
             if(this.query.explodeTableAttrId) {
-                console.log('Exploding table attribute:', this.query.explodeTableAttrId);
+                console.log('Exploding table attribute:', this.query.explodeTableAttrId, ' with entity attributes:', this.query.explodeIncludeEntityAttrs);                
             }
             console.log('Query:', this.query);     
             let r = {
@@ -1459,9 +1459,20 @@ function initializeDbVar() {
                     });
                 }
                 else {
-                    r.head.push(attr.name);
-                    r.attrs.push(attr);
-                    r.sortTypes.push(db.getSortTypeFromAttr(attr));
+                    let includeAttr = true;
+                    if(this.query.explodeIncludeEntityAttrs === 'none'
+                        || (this.query.explodeIncludeEntityAttrs === 'only-id'                             
+                            && attr.pseudoAttributeKey !== PseudoAttributes.ID)
+                        || (this.query.explodeIncludeEntityAttrs === 'only-id-name' 
+                            && ![PseudoAttributes.ID, PseudoAttributes.Name].includes(attr.pseudoAttributeKey))
+                    ) {
+                        includeAttr = false;
+                    }                    
+                    if(includeAttr) {
+                        r.head.push(attr.name);
+                        r.attrs.push(attr);
+                        r.sortTypes.push(db.getSortTypeFromAttr(attr));
+                    }
                 }
             });
             let count = 0;
