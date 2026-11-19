@@ -1763,12 +1763,14 @@ function updateResult(callback) {
             analysis.grouping = groupingObject;
             analysis.hierarchical = $('#tree-analysis').prop('checked');
             analysis.discardTableRows = doIgnoreTableRows();
-            analysis.explodeTableAttrId = $('#explodeTableOption').prop('checked') && $('#explodeTableAttr').val() 
-                ? parseInt($('#explodeTableAttr').val()) : null;
-            if(analysis.explodeTableAttrId) {
+            if($('#explodeTableOption').prop('checked') && $('#explodeTableAttr').val()) {
+                analysis.explodeTableAttrId = parseInt($('#explodeTableAttr').val());
                 analysis.explodeIncludeEntityAttrs = $('#explodeIncludeEntityAttrs').val() || 'all';
             }
-            
+            else {
+                analysis.explodeTableAttrId = null;
+                analysis.explodeIncludeEntityAttrs = null;
+            }
             let result = db.getAnalysisResults(analysis);
             console.log(result);
             if(result.error)

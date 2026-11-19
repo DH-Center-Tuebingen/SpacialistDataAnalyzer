@@ -1460,11 +1460,13 @@ function initializeDbVar() {
                 }
                 else {
                     let includeAttr = true;
-                    if(this.query.explodeIncludeEntityAttrs === 'none'
-                        || (this.query.explodeIncludeEntityAttrs === 'only-id'                             
-                            && attr.pseudoAttributeKey !== PseudoAttributes.ID)
-                        || (this.query.explodeIncludeEntityAttrs === 'only-id-name' 
-                            && ![PseudoAttributes.ID, PseudoAttributes.Name].includes(attr.pseudoAttributeKey))
+                    if(this.query.explodeIncludeEntityAttrs
+                        && (this.query.explodeIncludeEntityAttrs === 'none'
+                            || (this.query.explodeIncludeEntityAttrs === 'only-id'                             
+                                && attr.pseudoAttributeKey !== PseudoAttributes.ID)
+                            || (this.query.explodeIncludeEntityAttrs === 'only-id-name' 
+                                && ![PseudoAttributes.ID, PseudoAttributes.Name].includes(attr.pseudoAttributeKey))
+                        )
                     ) {
                         includeAttr = false;
                     }                    
@@ -1482,16 +1484,26 @@ function initializeDbVar() {
                 if(this.query.explodeTableAttrId) {
                     if(!this.query.tableRowMatches || $.isEmptyObject(this.query.tableRowMatches)) {
                         tableAttrMatchingRowIndexes = true; // all rows match
-
                         // if the exploding table attribute is not present in the context, then there are no rows to explode!!
                         rowsForThisContext = $.isArray(context.attributes[this.query.explodeTableAttrId]) ? context.attributes[this.query.explodeTableAttrId].length : 0;
+                        //console.log('Exploding context', context.id, 'with all', rowsForThisContext, 'rows without any table attribute filters');
                     }
                     else {
-                        let tableRowsAttr = this.query.tableRowMatches[context.id][this.query.tableFilters[0]];
-                        // store indexes of elements in tableRowsAttr array that have value true
-                        tableAttrMatchingRowIndexes = tableRowsAttr.map((v, i) => v ? i : -1).filter(i => i >= 0);
-                        rowsForThisContext = tableAttrMatchingRowIndexes.length;
-                        console.log('Exploding context', context.id, 'with', rowsForThisContext, 'rows with filters');
+                        // check if there are filters on the exploding table attribute
+                        if(this.query.tableFilters.includes(this.query.explodeTableAttrId)) {
+                            let tableRowsAttr = this.query.tableRowMatches[context.id][this.query.explodeTableAttrId];
+                            // store indexes of elements in tableRowsAttr array that have value true
+                            tableAttrMatchingRowIndexes = tableRowsAttr.map((v, i) => v ? i : -1).filter(i => i >= 0);
+                            rowsForThisContext = tableAttrMatchingRowIndexes.length;
+                            //console.log('Exploding context', context.id, 'with', rowsForThisContext, 'rows with filter(s) on exploding attribute', this.query.explodeTableAttrId);
+                        }
+                        else {
+                            // there's no filter, so add all rows of the exploding table attribute
+                            tableAttrMatchingRowIndexes = true; // all rows match
+                            rowsForThisContext = context.attributes[this.query.explodeTableAttrId] 
+                                ? context.attributes[this.query.explodeTableAttrId].length : 0;
+                            //console.log('Exploding context', context.id, 'with all', rowsForThisContext, 'rows of unfiltered exploding attribute', this.query.explodeTableAttrId);
+                        }
                     }
                 }
                 for(let i = 0; i < rowsForThisContext; i++) {
