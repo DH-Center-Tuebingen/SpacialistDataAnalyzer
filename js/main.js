@@ -718,7 +718,11 @@ function getFilterValueControls(row) {
         case 'greater-equal':
         case 'equal':
         case 'not-equal':
-            ctrls.unshift(get_textbox());
+            ctrls.unshift(get_textbox(
+                obj.what === 'Attribute' && obj.type === 'date'
+                    ? { placeholder: l10n.filterValueDatePlaceholder }
+                    : undefined
+            ));
             break;
 
         case 'equal-thesaurus':

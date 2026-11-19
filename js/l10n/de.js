@@ -222,6 +222,7 @@ const l10n_de = {
     filterAdd: 'Filter Hinzufügen',
     filterRemoveAll: 'Alle Filter Entfernen',
     filterNoDescendantConcepts: 'Keine Konzepte zur Auswahl',
+    filterValueDatePlaceholder: 'JJJJ-MM-TT',
     
     groupIntro: 'Hier können Sie definieren, wie die Eigenschaftswerte der Entitäten des Typs <b class="outputObjectName"></b> im Ergebnis gruppiert oder aggregiert werden sollen <a title="Hilfe" target="_help" href="https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis-options-pane.html#aggregates-tab"></a>.',
     groupDropdownPlaceholder: 'Ignorieren',

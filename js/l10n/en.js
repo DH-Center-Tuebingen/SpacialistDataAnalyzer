@@ -222,6 +222,7 @@ const l10n_en = {
     filterAdd: 'Add A Filter',
     filterRemoveAll: 'Remove All Filters',
     filterNoDescendantConcepts: 'There are no concepts to choose from',    
+    filterValueDatePlaceholder: 'YYYY-MM-DD',
 
     groupIntro: 'You may define how to group and aggregate the resulting entities of type <b class="outputObjectName"></b> by the values of their properties <a title="Help" target="_help" href="https://dh-center-tuebingen.github.io/spacialist-docs/user/data-analysis-options-pane.html#aggregates-tab"></a>.',
     groupDropdownPlaceholder: 'No Grouping or Aggregation',
