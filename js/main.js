@@ -220,7 +220,7 @@ function updateGui(update) {
                 });
             });
             div_info.append(
-                $('<div/>').addClass('form-check mt-small').append(
+                $('<div/>').attr({id: 'divExplodeTableSettings'}).addClass('form-check mt-small').append(
                     get_checkbox({ id: 'explodeTableOption' }, null, false, '')
                     .append($('<span/>').html(l10n.outputExplodeTable))
                 )
@@ -270,6 +270,11 @@ function updateGui(update) {
     // Output - first step, object selected
     // ------------------------------------------------------------------------------------
         analysis.outputObject.treeRow.find('td.col-out').text(Symbols[update.outputDisplay.type]);
+        if(update.outputDisplay.type === 'table') {
+            $('#divExplodeTableSettings').show();
+        } else {
+            $('#divExplodeTableSettings').hide();
+        }
         $('.result-button-icon').text(Symbols[update.outputDisplay.type] + ' ');
         $('.result-button').prop('disabled', false);
     }
@@ -1845,8 +1850,9 @@ function updateAnalysisStatus(update) {
             analysis.filters = [];
         analysis.filters.push(update.newFilter);
     }
-    else
+    else {
         analysis = $.extend(analysis || {}, update);
+    }
     console.log('Analysis update:', update, 'Current status:', analysis);
     updateGui(update);
 }
