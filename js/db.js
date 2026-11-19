@@ -1436,6 +1436,10 @@ function initializeDbVar() {
             contextType
         ) {
         // --------------------------------------------------------------------------------------------
+            if(this.query.explodeTableAttrId) {
+                console.log('Exploding table attribute:', this.query.explodeTableAttrId, ' with entity attributes:', this.query.explodeIncludeEntityAttrs);                
+            }
+            console.log('Query:', this.query);     
             let r = {
                 head: [],
                 body: [],
@@ -1446,27 +1450,88 @@ function initializeDbVar() {
             };
             let ct = this.contextTypes[contextType.id];
             ct.attributes.forEach(attr => {
-                r.head.push(attr.name);
-                r.attrs.push(attr);
-                r.sortTypes.push(db.getSortTypeFromAttr(attr));
+                if(this.query.explodeTableAttrId && attr.id === this.query.explodeTableAttrId) {
+                    // add a column for each table column
+                    attr.children.forEach(tableAttr => {
+                        r.head.push(attr.name + ': ' + tableAttr.name);
+                        r.attrs.push(tableAttr);
+                        r.sortTypes.push(db.getSortTypeFromAttr(tableAttr));
+                    });
+                }
+                else {
+                    let includeAttr = true;
+                    if(this.query.explodeIncludeEntityAttrs
+                        && (this.query.explodeIncludeEntityAttrs === 'none'
+                            || (this.query.explodeIncludeEntityAttrs === 'only-id'                             
+                                && attr.pseudoAttributeKey !== PseudoAttributes.ID)
+                            || (this.query.explodeIncludeEntityAttrs === 'only-id-name' 
+                                && ![PseudoAttributes.ID, PseudoAttributes.Name].includes(attr.pseudoAttributeKey))
+                        )
+                    ) {
+                        includeAttr = false;
+                    }                    
+                    if(includeAttr) {
+                        r.head.push(attr.name);
+                        r.attrs.push(attr);
+                        r.sortTypes.push(db.getSortTypeFromAttr(attr));
+                    }
+                }
             });
             let count = 0;
             db.traverseContextsOfType(ct, contextType.typePathToRoot, true, context => {
-                if(++count <= Settings.resultTable.maxRows) {
-                    let row = [];
-                    // NEWDATATYPE: if entity list, need to display as links
-                    r.attrs.forEach(attr => {
-                        if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
-                            row.push({ v: this.getEntityDetailsLink(context), s: context.name, e: context.name });
+                let rowsForThisContext = 1;
+                let tableAttrMatchingRowIndexes = [];
+                if(this.query.explodeTableAttrId) {
+                    if(!this.query.tableRowMatches || $.isEmptyObject(this.query.tableRowMatches)) {
+                        tableAttrMatchingRowIndexes = true; // all rows match
+                        // if the exploding table attribute is not present in the context, then there are no rows to explode!!
+                        rowsForThisContext = $.isArray(context.attributes[this.query.explodeTableAttrId]) ? context.attributes[this.query.explodeTableAttrId].length : 0;
+                        //console.log('Exploding context', context.id, 'with all', rowsForThisContext, 'rows without any table attribute filters');
+                    }
+                    else {
+                        // check if there are filters on the exploding table attribute
+                        if(this.query.tableFilters.includes(this.query.explodeTableAttrId)) {
+                            let tableRowsAttr = this.query.tableRowMatches[context.id][this.query.explodeTableAttrId];
+                            // store indexes of elements in tableRowsAttr array that have value true
+                            tableAttrMatchingRowIndexes = tableRowsAttr.map((v, i) => v ? i : -1).filter(i => i >= 0);
+                            rowsForThisContext = tableAttrMatchingRowIndexes.length;
+                            //console.log('Exploding context', context.id, 'with', rowsForThisContext, 'rows with filter(s) on exploding attribute', this.query.explodeTableAttrId);
                         }
                         else {
-                            row.push(this.getValueToDisplay(context.attributes[attr.id], attr, context));
+                            // there's no filter, so add all rows of the exploding table attribute
+                            tableAttrMatchingRowIndexes = true; // all rows match
+                            rowsForThisContext = context.attributes[this.query.explodeTableAttrId] 
+                                ? context.attributes[this.query.explodeTableAttrId].length : 0;
+                            //console.log('Exploding context', context.id, 'with all', rowsForThisContext, 'rows of unfiltered exploding attribute', this.query.explodeTableAttrId);
                         }
-                    });                        
-                    r.body.push(row);
-                    r.contexts.push(context);
+                    }
                 }
-                r.grandTotal++;
+                for(let i = 0; i < rowsForThisContext; i++) {
+                    if(++count <= Settings.resultTable.maxRows) {
+                        let row = [];
+                        // NEWDATATYPE: if entity list, need to display as links
+                        r.attrs.forEach(attr => {
+                            if(attr.pseudoAttributeKey === PseudoAttributes.ID) {
+                                row.push({ v: this.getEntityDetailsLink(context), s: context.id, e: context.id });
+                            }
+                            else if (this.query.explodeTableAttrId && attr.parentAttribute && attr.parentAttribute.id === this.query.explodeTableAttrId) {
+                                let rowIndex = tableAttrMatchingRowIndexes === true ? i : tableAttrMatchingRowIndexes[i];
+                                row.push(this.getValueToDisplay(
+                                    context.attributes[attr.parentAttribute.id][rowIndex][attr.id],
+                                    attr, 
+                                    context, 
+                                    rowIndex
+                                ));
+                            }
+                            else {                              
+                                row.push(this.getValueToDisplay(context.attributes[attr.id], attr, context));
+                            }
+                        });                      
+                        r.body.push(row);
+                        r.contexts.push(context);
+                    }
+                    r.grandTotal++;
+                }
             });
             return r;
         },
@@ -1833,8 +1898,6 @@ function initializeDbVar() {
             if(!this.query.discardTableRows)
                 return;
             this.query.tableFilters = [];
-            if(!this.query.discardTableRows)
-                return;
             this.query.filters.forEach(filter => {
                 if(this.query.outputObject.what === 'ContextType') {
                     // table is relevant if this filter is on a table column in the output context type

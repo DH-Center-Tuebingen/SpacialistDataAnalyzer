@@ -391,3 +391,7 @@ span.tp-search-icon {
     line-height: 1rem;
 }
 /* << THESAURUS PICKER ======================== */
+
+.mt-small {
+    margin-top: .5rem !important;
+}
